@@ -1,0 +1,138 @@
+GET http://localhost:5000/
+
+###
+
+POST http://localhost:5000/api/users/
+Content-Type: application/json
+
+{
+    "first_name": "Divine",
+    "last_name": "Iso",
+    "gender": "m",
+    "email": "drrowly@gmil.com",
+    "password": "123456",
+    "number": "09079417401"
+}
+
+###
+
+GET http://localhost:5000/api/users/
+Content-Type: application/json
+
+{
+    "first_name": "Divine",
+    "last_name": "Iso",
+    "gender": "m",
+    "email": "test@gmil.com",
+    "password": "1234567",
+    "number": "09079417401"
+}
+
+###
+
+PATCH http://localhost:5000/api/users/
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyZXN1bHQiOnsiaWQiOjgsImZpcnN0TmFtZSI6IkRpdmluZSIsImxhc3ROYW1lIjoiSXNvIiwiZ2VuZGVyIjoibSIsImVtYWlsIjoidGVzdEBnbWlsLmNvbSIsIm51bWJlciI6MjE0NzQ4MzY0NywiY3JlYXRlZF9hdCI6IjAwMDAtMDAtMDAgMDA6MDA6MDAiLCJnb29nX3JlZnJlc2hfdG9rZW4iOm51bGwsImFjY2Vzc190b2tlbiI6bnVsbCwicGxhbiI6bnVsbCwic3RhdHVzIjpudWxsLCJzZXNzaW9uX3VyaSI6bnVsbCwiY291bnRfdXBsb2FkcyI6bnVsbCwiYnl0ZXMgX3RvdGFsIjpudWxsLCJ1c2VyX2lkIjpudWxsfSwiaWF0IjoxNjk1Mzc5MDEzLCJleHAiOjE2OTUzODI2MTN9.yj6Jtw2KgdyjPGUnz8vhWcUE4o7hFQZO9ZuVgolIbvo
+
+{
+    "id": "2",
+    "first_name": "Divine",
+    "last_name": "dane",
+    "gender": "m",
+    "email": "testupdate@gmil.com",
+    "password": "1234567",
+    "number": "09079417401"
+}
+
+###
+
+GET http://localhost:5000/api/users/3
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyZXN1bHQiOnsiaWQiOjgsImZpcnN0TmFtZSI6IkRpdmluZSIsImxhc3ROYW1lIjoiSXNvIiwiZ2VuZGVyIjoibSIsImVtYWlsIjoidGVzdEBnbWlsLmNvbSIsIm51bWJlciI6MjE0NzQ4MzY0NywiY3JlYXRlZF9hdCI6IjAwMDAtMDAtMDAgMDA6MDA6MDAiLCJnb29nX3JlZnJlc2hfdG9rZW4iOm51bGwsImFjY2Vzc190b2tlbiI6bnVsbCwicGxhbiI6bnVsbCwic3RhdHVzIjpudWxsLCJzZXNzaW9uX3VyaSI6bnVsbCwiY291bnRfdXBsb2FkcyI6bnVsbCwiYnl0ZXMgX3RvdGFsIjpudWxsLCJ1c2VyX2lkIjpudWxsfSwiaWF0IjoxNjk1Mzc5MDEzLCJleHAiOjE2OTUzODI2MTN9.yj6Jtw2KgdyjPGUnz8vhWcUE4o7hFQZO9ZuVgolIbvo
+    
+{    
+    "first_name": "Divine",
+    "last_name": "Iso",
+    "gender": "m",
+    "email": "test@gmil.com",
+    "password": "1234567",
+    "number": "09079417401"
+}
+
+###
+
+DELETE http://localhost:5000/api/users/
+Content-Type: application/json
+
+{
+    "id": "1",
+    "first_name": "Divine",
+    "last_name": "Iso",
+    "gender": "m",
+    "email": "test@gmil.com",
+    "password": "1234567",
+    "number": "09079417401"
+}
+
+###
+
+POST http://localhost:5000/api/users/login
+Content-Type: application/json
+
+{
+    "email": "drrowly@gmil.com",
+    "password": "123456"
+
+}
+
+###
+
+POST http://localhost:5000/api/users/login
+Content-Type: application/json
+# Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyZXN1bHQiOnsiaWQiOjgsImZpcnN0TmFtZSI6IkRpdmluZSIsImxhc3ROYW1lIjoiSXNvIiwiZ2VuZGVyIjoibSIsImVtYWlsIjoidGVzdEBnbWlsLmNvbSIsIm51bWJlciI6MjE0NzQ4MzY0NywiY3JlYXRlZF9hdCI6IjAwMDAtMDAtMDAgMDA6MDA6MDAiLCJnb29nX3JlZnJlc2hfdG9rZW4iOm51bGwsImFjY2Vzc190b2tlbiI6bnVsbCwicGxhbiI6bnVsbCwic3RhdHVzIjpudWxsLCJzZXNzaW9uX3VyaSI6bnVsbCwiY291bnRfdXBsb2FkcyI6bnVsbCwiYnl0ZXMgX3RvdGFsIjpudWxsLCJ1c2VyX2lkIjpudWxsfSwiaWF0IjoxNjk0MDIwMDQ3LCJleHAiOjE2OTQwMjM2NDd9.HySHe9tztCnRGzt0GrG_x6X-YCurjMXj7n2D8eT8Mlw
+
+{
+    "email": "test@gmil.com",
+    "name": "ubong",
+    "password": "1234567",
+    "passwordConfirmation": "1234567"
+}
+
+###
+
+
+POST http://localhost:5000/api/users/create
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyZXN1bHQiOnsiaWQiOjgsImZpcnN0TmFtZSI6IkRpdmluZSIsImxhc3ROYW1lIjoiSXNvIiwiZ2VuZGVyIjoibSIsImVtYWlsIjoidGVzdEBnbWlsLmNvbSIsIm51bWJlciI6MjE0NzQ4MzY0NywiY3JlYXRlZF9hdCI6IjAwMDAtMDAtMDAgMDA6MDA6MDAiLCJnb29nX3JlZnJlc2hfdG9rZW4iOm51bGwsImFjY2Vzc190b2tlbiI6bnVsbCwicGxhbiI6bnVsbCwic3RhdHVzIjpudWxsLCJzZXNzaW9uX3VyaSI6bnVsbCwiY291bnRfdXBsb2FkcyI6bnVsbCwiYnl0ZXMgX3RvdGFsIjpudWxsLCJ1c2VyX2lkIjpudWxsfSwiaWF0IjoxNjk1Mzc5MDEzLCJleHAiOjE2OTUzODI2MTN9.yj6Jtw2KgdyjPGUnz8vhWcUE4o7hFQZO9ZuVgolIbvo
+
+{
+    "name": "test@gmil.com",
+    "description": "ubong",
+    "folder": "1234567",
+    "subfolder": "1234567",
+    "drive_email": "1234567",
+    "record_id": "1234567",
+    "user_id": "1234567"
+}
+
+###
+
+GET http://localhost:5000/api/users/get/fuhzQWCIu
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyZXN1bHQiOnsiaWQiOjgsImZpcnN0TmFtZSI6IkRpdmluZSIsImxhc3ROYW1lIjoiSXNvIiwiZ2VuZGVyIjoibSIsImVtYWlsIjoidGVzdEBnbWlsLmNvbSIsIm51bWJlciI6MjE0NzQ4MzY0NywiY3JlYXRlZF9hdCI6IjAwMDAtMDAtMDAgMDA6MDA6MDAiLCJnb29nX3JlZnJlc2hfdG9rZW4iOm51bGwsImFjY2Vzc190b2tlbiI6bnVsbCwicGxhbiI6bnVsbCwic3RhdHVzIjpudWxsLCJzZXNzaW9uX3VyaSI6bnVsbCwiY291bnRfdXBsb2FkcyI6bnVsbCwiYnl0ZXMgX3RvdGFsIjpudWxsLCJ1c2VyX2lkIjpudWxsfSwiaWF0IjoxNjk1Mzc5MDEzLCJleHAiOjE2OTUzODI2MTN9.yj6Jtw2KgdyjPGUnz8vhWcUE4o7hFQZO9ZuVgolIbvos
+
+
+###
+
+GET http://localhost:5000/api/google/speedlinkaccess
+Content-Type: application/json
+
+
+
+###
+GET http://localhost:5000/api/app/getrecords
+Content-Type: application/json,
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyZXN1bHQiOnsiaWQiOjE0LCJmaXJzdE5hbWUiOiJEaXZpbmUiLCJsYXN0TmFtZSI6IklzbyIsImdlbmRlciI6Im0iLCJlbWFpbCI6ImRycm93bHlAZ21pbC5jb20iLCJudW1iZXIiOjIxNDc0ODM2NDcsImNyZWF0ZWRfYXQiOiIwMDAwLTAwLTAwIDAwOjAwOjAwIiwiZ29vZ19yZWZyZXNoX3Rva2VuIjpudWxsLCJhY2Nlc3NfdG9rZW4iOm51bGwsInBsYW4iOm51bGwsInN0YXR1cyI6bnVsbCwic2Vzc2lvbl91cmkiOm51bGwsImNvdW50X3VwbG9hZHMiOm51bGwsImJ5dGVzIF90b3RhbCI6bnVsbCwidXNlcl9pZCI6ImhhdXl1NyJ9LCJpYXQiOjE2OTYxNDM5NTIsImV4cCI6MTY5NjE0NzU1Mn0.wVDYXKZaumD854aRqmxRN3c7zD7Oyny9ZuUnOKJW698
+
+
+###
