@@ -6,10 +6,10 @@ const {addRecord, getRecord} = require('../controllers/CreateController');
 const {checkToken, TRY} = require("../middlewares/ValidateToken")
 
 // login check
-const validateLogin = require("../middlewares/ValidateMiddleware")
+const {validateSignup,validateLogin} = require("../middlewares/ValidateMiddleware")
 const {loginSchema, registerSchema} = require("../validations/UserValidation")
 
-router.post('/', createUser)
+router.post('/', validateSignup(registerSchema), createUser)
 router.get('/', getUsers)
 // router.get('/:id',checkToken, getUserById)
 router.patch('/',checkToken, updateUsers)
@@ -23,8 +23,6 @@ router.get('/get/:record', checkToken, getRecord)
 
 //get upload record
 router.get('/getforupload/:record', getRecord)
-
-
 
 
 

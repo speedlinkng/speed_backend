@@ -5,7 +5,7 @@ const upload = multer();
 const {login, createUser, getMe} = require('../controllers/AuthController');
 const {checkToken} = require("../middlewares/ValidateToken");
 const {getGoogleData} = require("../middlewares/Generals");
-const {addRecord, getRecord, getRecordById, getSettingById, checkOnline} = require('../controllers/CreateController');
+const {addRecord, getRecord, getRecordById, getSettingById, checkOnline, submitUpload} = require('../controllers/CreateController');
 const { uploadToDrive } = require('../controllers/UploadController');
 
 
@@ -29,6 +29,7 @@ router.post('/checkonline', checkOnline)
 
 // UPLOAD TO DRIVE
 router.post('/upload', upload.single('file'), uploadToDrive)
+router.post('/submitupload', upload.single('file'), submitUpload)
 
 
 

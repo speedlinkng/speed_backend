@@ -37,6 +37,25 @@ module.exports = {
         }
     },
 
+    submitUpload:(record_id, callback)=>{
+
+        pool.query(
+            `select user_id from records where record_id = ?`,
+            [
+                record_id 
+            ],
+           
+            (err, res, fields) =>{
+                console.log(res)
+                if(err){
+                    return callback(err);
+                }
+                getUserGoogle(res[0].user_id)
+            }
+
+        )
+    },
+
     getRefreshTokenGoogle:(user_id, callback)=>{
         pool.query(
             'SELECT refresh_token FROM user_google WHERE user_id = ? ORDER BY date_created DESC LIMIT 1',

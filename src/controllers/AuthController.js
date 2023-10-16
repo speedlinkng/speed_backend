@@ -36,9 +36,9 @@ module.exports = {
         register(body, (err, results)=>{
             if(err){
                 console.log(err);
-                return res.status(500).json({
-                    success: err,
-                    message : 'DB connection error',
+                return res.status(301).json({
+                    error: 1,
+                    message : err,
                 })
             }
             return res.status(200).json({
@@ -54,7 +54,10 @@ module.exports = {
       
             if(err){
                 console.log(err);
-                return res.status(500).json({
+                if(err.code == 'ER_DUP_ENTRY'){
+                    err = 'Email or Phone Number has already been used'
+                }
+                return res.status(301).json({
                     error: 1,
                     message: err
                    

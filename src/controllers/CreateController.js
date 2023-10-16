@@ -279,4 +279,30 @@ module.exports = {
             })
         })
     },
+
+    submitUpload: (req, res)=>{
+        let access =  res.decoded_access
+        console.log(access)
+        submitUpload(access.user_id, (err, results)=>{
+            if(err){
+                console.log(err);
+                return res.status(500).json({
+                    status: 400,
+                    error: 1,
+                    message : err,
+                })
+            }
+            let rez = []
+            results.forEach(ress => {
+                rez.push(ress)
+            });
+            let js = JSON.stringify(rez)
+            // console.log(js)
+            return res.status(200).json({
+                status: 200,
+                success: 1,
+                data : rez  
+            })
+        })
+    },
 }

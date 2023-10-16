@@ -16,7 +16,7 @@ module.exports ={
 
 
 
-validateLogin = (schema)=> async (req, res, next) => {
+const validateLogin = (schema)=> async (req, res, next) => {
     let body = req.body
 
     try{
@@ -34,4 +34,25 @@ validateLogin = (schema)=> async (req, res, next) => {
     }
 }
 
-module.exports  = validateLogin
+const validateSignup = (schemas)=> async (req, res, next) => {
+    let body = req.body
+
+    try{
+        await schemas.validate(body, { abortEarly: false })
+        next()
+        // return next()
+    }
+    catch(err){
+        // console.log(err)
+        return res.status(403).json({
+            error: 1,
+            message:err.errors
+        })
+     
+    }
+}
+
+module.exports = {
+    validateLogin,
+    validateSignup
+  };

@@ -1,23 +1,26 @@
 const pool = require('../models/DB');
 const crypto = require("crypto")
+const { customAlphabet } = require('../../generateId');
 
 
 module.exports = {
     register: (data, callback)=>{
-        var mykey = crypto.createCipher('aes-128-cbc', data.email);
-        var uid = mykey.update('abc', 'utf8', 'hex')
-        uid += mykey.final('hex');
-        console.log(uid)
+        // Create a custom ID generator function with your preferred characters
+        const generateUniqueId = customAlphabet('ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789', 10);
+
+        // Generate a 10-character unique ID
+        const uniqueId = generateUniqueId();
+
+        console.log(data)
         pool.query(
-            `insert into registration(firstName, lastName, gender, email, password, number, user_id) values(?,?,?,?,?,?,?)`,
+            `insert into users(firstName, lastName, email, password, number, user_id) values(?,?,?,?,?,?)`,
             [
                 data.first_name,
                 data.last_name,
-                data.gender,
                 data.email,
                 data.password,
                 data.number,
-                uid
+                uniqueId
             ],
             (err, res, fields) =>{
                 if(err){
@@ -30,7 +33,7 @@ module.exports = {
 
     getUserByUserEmail: (email, callback) =>{
         pool.query(
-            `select * from registration where email = ?`,
+            `select * from users where email = ?`,
             [
                 email 
             ],
@@ -47,7 +50,7 @@ module.exports = {
 
     getMe: (email, callback) =>{
         pool.query(
-            `select * from registration where email = ?`,
+            `select * from users where email = ?`,
             [
                 email 
             ],

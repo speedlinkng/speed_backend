@@ -3,7 +3,7 @@ const pool = require('../models/DB');
 module.exports = {
     create: (data, callback)=>{
         pool.query(
-            `insert into registration(firstName, lastName, gender, email, password, number) values(?,?,?,?,?,?)`,
+            `insert into users(firstName, lastName, gender, email, password, number) values(?,?,?,?,?,?)`,
             [
                 data.first_name,
                 data.last_name,
@@ -23,7 +23,7 @@ module.exports = {
 
     getUsers: callback =>{
         pool.query(
-            `select id,firstName,lastName,gender,email,number from registration`,
+            `select id,firstName,lastName,gender,email,number from users`,
             [
 
             ],
@@ -39,7 +39,7 @@ module.exports = {
 
     getUserById: (id, callback) =>{
         pool.query(
-            `select id,firstName,lastName,gender,email,number from registration where id=?`,
+            `select id,firstName,lastName,gender,email,number from users where id=?`,
             [
             id
             ],
@@ -55,7 +55,7 @@ module.exports = {
 
     updateUser: (data, callback) =>{
         pool.query(
-            `update registration set firstName=?, lastName=?, gender=?, email=?, password=?, number=? where id=?`,
+            `update users set firstName=?, lastName=?, gender=?, email=?, password=?, number=? where id=?`,
             [
                 data.first_name,
                 data.last_name,
@@ -77,7 +77,7 @@ module.exports = {
 
     deleteUser: (data, callback) =>{
         pool.query(
-            `delete from registration where id = ?`,
+            `delete from users where id = ?`,
             [
                 data.id 
             ],
@@ -95,7 +95,7 @@ module.exports = {
 
     getUserByUserEmail: (email, callback) =>{
         pool.query(
-            `select * from registration where email = ?`,
+            `select * from users where email = ?`,
             [
                 email 
             ],

@@ -14,7 +14,7 @@ const corsOptions ={
 
 dotenv.config();
 // trial
-const validateLogin = require("./src/middlewares/ValidateMiddleware")
+const {validateLogin} = require("./src/middlewares/ValidateMiddleware")
 const userSchema = require("./src/validations/UserValidation");
 const { checkToken } = require('./src/middlewares/ValidateToken');
 
