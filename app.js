@@ -35,7 +35,7 @@ app.post('/login', validateLogin(userSchema), function(req, res) {
     res.json(req.body);
 });
 
-app.post('/', function(req, res) {
+app.get('/', function(req, res) {
     // res.redirect('view/index.html');
     res.send('node app is working');
 });
