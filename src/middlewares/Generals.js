@@ -1,11 +1,11 @@
 const {google} = require('googleapis');
-const request = require("request");
 const process = require('process');
 const pool = require('../models/DB');
 const shortid = require("shortid");
 const dotenv = require('dotenv');
 const date = require('date-and-time');
 const { getGoogleData } = require('../services/google.services');
+const { getRecordById } = require('../services/create.services');
 
 const oauth2Client = new google.auth.OAuth2(
     process.env.YOUR_CLIENT_ID,
@@ -14,6 +14,47 @@ const oauth2Client = new google.auth.OAuth2(
 );
 
 module.exports = {
+    checkLinkExpire: (req, res, next) => {
+        console.log('checkLinkExpire')
+        console.log(req.body.record_id)
+        getRecordById(req.body.record_id, (err, results)=>{ 
+            if(err){
+                console.log(err);
+                return res.status(400).json({
+                    status: 400,
+                    error: 1,
+                    message : err,
+                })
+            }
+            if(results && results.id){
+        
+                let date1 = new Date();
+                let date2 = new Date(results.expiry_date);
+                
+                if(date1 > date2 ){
+                    
+                    return res.status(301).json({
+                        status:301,
+                        error:1,
+                        message: 'Expired',
+                    })
+                }else{
+                   
+                    return next(); 
+                }
+            }
+            else{
+                return res.status(300).json({
+                    status:300,
+                    error:1,
+                    message: 'Record not found',
+                })
+            }
+          
+        })
+     
+    },
+
     getGoogleData:  (req, res, next) => {
         let access =  res.decoded_access
         let tok_data = ''
@@ -42,7 +83,6 @@ module.exports = {
 
                     next();
                     // return next()
-            
                 
             })
        

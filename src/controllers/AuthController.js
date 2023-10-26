@@ -11,7 +11,7 @@ module.exports = {
         getUserByUserEmail(access.email, (err, results)=>{
             if(err){
                 // console.log(err);
-                return res.status(500).json({
+                return res.status(400).json({
                     success: err,
                     message : 'DB connection error',
                 })
@@ -36,7 +36,7 @@ module.exports = {
         register(body, (err, results)=>{
             if(err){
                 console.log(err);
-                return res.status(301).json({
+                return res.status(400).json({
                     error: 1,
                     message : err,
                 })
@@ -57,14 +57,14 @@ module.exports = {
                 if(err.code == 'ER_DUP_ENTRY'){
                     err = 'Email or Phone Number has already been used'
                 }
-                return res.status(301).json({
+                return res.status(303).json({
                     error: 1,
                     message: err
                    
                 })
             }
             if(!results){
-                return res.status(401).json({
+                return res.status(302).json({
                     error: 1,
                     message : 'iinvalid email or password',
                 })
@@ -83,7 +83,7 @@ module.exports = {
                     token : accessToken,
                 })
             }else{
-                return res.status(401).json({
+                return res.status(302).json({
                     error:1,
                     message : 'invalid email or password',
                 })

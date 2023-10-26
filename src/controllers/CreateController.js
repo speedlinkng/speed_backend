@@ -16,68 +16,60 @@ const oauth3Client = new google.auth.OAuth2(
 
 
 module.exports = {
-    checkOnline:(req, res)=>{
-        console.log('online')
-        console.log(req.body)
-        request(
-     
-         {
-           method: "PUT",
-           url: req.body.url,
-           headers: { 
-             "Content-Range": `bytes */*`,
-             "Content-Length": '0'
-          }
-         },
-         (err, response, body) => {
-           if (err) {
-             console.log(err);
-             return
-           }
-           console.log(body);
-           console.log('done');
-           console.log(JSON.stringify(response.headers));
-           console.log(JSON.stringify(response.statusCode));
-           console.log(JSON.stringify(response.headers['range']));
-     
-           sta = response.statusCode
-           // return response.statusCode;
-           return res.json({
-             status:sta,
-             headerRange:response.headers['range'],
-             header:response.headers
-           })
-           
-         })  
-        // return res.status(200).json({
-        //     status: 200,
-        //     success: 1,
-        //     message : 'connection successful',
-        // })
-    },
-    addRecord: (req, res)=>{
 
+    addRecord: (req, res)=>{
+        
+
+        // initialize decoded access from middleware
         let access =  res.decoded_access
   
         let json = JSON.parse(res.tok_data);
 
-        console.log(process.env.YOUR_CLIENT_ID)
-        console.log(json)
+        // console.log(process.env.YOUR_CLIENT_ID)
+        // console.log(json)
         oauth3Client.setCredentials(json);
+
+        // initialize services
+        const service = google.drive({version: 'v3',  auth: oauth3Client});
+
+
         const body = req.body
         let folder = body.folder
         let google_refresh_token = '' 
         let record_id = shortid()
-        console.log(oauth3Client)
+        // console.log(oauth3Client)
 
-        // return 'd'
-        
+    
+
+    // return check if folder already exists, if it dosent, create one
+    async function checkFolderExists(folder_name) {
+        service.files.list(
+            {
+              q: `name = '${folder_name}' and mimeType = 'application/vnd.google-apps.folder'`,
+              fields: 'files(id, name)',
+            },
+            (err, res) => {
+              if (err) return console.error('The API returned an error: ' + err);
+              const files = res.data.files;
+              if (files.length) {
+                console.log(`Folder '${folder_name}' exists with ID: ${files[0].id}`);
+                firstQuery(files[0].id)
+              } else {
+                console.log(`Folder '${folder_name}' does not exist.`);
+                createFolder(folder_name)
+              }
+            }
+          );
+    }
+
+    // Create folder if it dosent already exists
     async function createFolder(data) {
-        const service = google.drive({version: 'v3',  auth: oauth3Client});
         const fileMetadata = {
         name: data,
         mimeType: 'application/vnd.google-apps.folder',
         };
+
+        
         try {
         let file = await service.files.create({
             resource: fileMetadata,
@@ -86,36 +78,36 @@ module.exports = {
         console.log('first FOLDER Id:', file.data.id);
  
         firstQuery(file.data.id)
-        //   return file.data.id;
+        // return file.data.id;
         } catch (err) {
         // TODO(developer) - Handle error
         throw err;
         }
 
-
     }
 
 
         function firstQuery(folder_id){
-            // FIRST GET HE RELATIVE LAST REFRESH_TOKEN USED IN USER_GOOGLE 
+            // FIRST GET THE RELATIVE LAST REFRESH_TOKEN USED IN USER_GOOGLE 
             getRefreshTokenGoogle(access.user_id, (err, google_res)=>{
                 console.log(google_res)
                 if(err){
-                    console.log(err);
-                    return res.status(500).json({
+                   
+                    return res.status(400).json({
                         status: 400,
                         error: 1,
                         message : err,
                     })
                 }
                 else if(google_res && google_res.length > 0){
+
                     google_refresh_token = google_res[0].refresh_token;      
                     console.log(`get refresh token from usergoogle ${google_refresh_token}`)
                     secondQuery(folder_id)
                 }else{
-                    console.log('then this')
-                    return res.status(500).json({
-                        status: 400,
+    
+                    return res.status(300).json({
+                        status: 300,
                         error: 1,
                         message : err,
                     })
@@ -128,7 +120,7 @@ module.exports = {
             createRecord(body,folder_id, google_refresh_token, record_id, access.user_id, (err, results)=>{
                 if(err){
                     console.log(err);
-                    return res.status(500).json({
+                    return res.status(400).json({
                         status: 400,
                         error: 1,
                         message : err,
@@ -145,7 +137,8 @@ module.exports = {
     
             })
         }
-        createFolder(folder)
+        checkFolderExists(folder)
+        // createFolder(folder)
         // return 'ok'
     },
     getSettingById:(req, res)=>{
@@ -158,7 +151,7 @@ module.exports = {
         
             if(err){
                 console.log(err);
-                return res.status(500).json({
+                return res.status(400).json({
                     status: 400,
                     error: 1,
                     message : err,
@@ -190,7 +183,7 @@ module.exports = {
             getSettingById(r_id, (err, results)=>{
                 if(err){
                     console.log(err);
-                    return res.status(500).json({
+                    return res.status(400).json({
                         status: 400,
                         error: 1,
                         message : err,
@@ -212,8 +205,8 @@ module.exports = {
         getRecordById(r_id, (err, results)=>{
             if(err){
                 console.log(err);
-                return res.status(401).json({
-                    status: 401,
+                return res.status(400).json({
+                    status: 400,
                     error: 1,
                     message : err,
                 })
@@ -224,8 +217,9 @@ module.exports = {
                 console.log('date1:'+date1)
                 console.log('date2:'+date2)
                 if(date1 > date2 ){
-                    return res.status(700).json({
-                        status: 700, //no result found
+                
+                    return res.status(301).json({
+                        status: 301, //no result found
                         error: 1,
                         message : 'link expired',
                     })
@@ -236,15 +230,23 @@ module.exports = {
                     console.log(formattedDate) 
 
                 }
-                // console.log(results)
+                if(results.status == 'completed'){
+                    return res.status(303).json({
+                        status: 303, //no result found
+                        error: 1,
+                        message : 'Record completed',
+                    }) 
+                }
+                
+
                 return res.status(200).json({
                     status: 200,
                     success: 1,
                     data : results  
                 })
             }else{
-                return res.status(400).json({
-                    status: 400, //no result found
+                return res.status(300).json({
+                    status: 300, //no result found
                     error: 1,
                     message : 'no result found',
                 })
@@ -260,7 +262,7 @@ module.exports = {
         getRecord(access.user_id, (err, results)=>{
             if(err){
                 console.log(err);
-                return res.status(500).json({
+                return res.status(400).json({
                     status: 400,
                     error: 1,
                     message : err,
@@ -281,12 +283,44 @@ module.exports = {
     },
 
     submitUpload: (req, res)=>{
-        let access =  res.decoded_access
-        console.log(access)
-        submitUpload(access.user_id, (err, results)=>{
+        let record_id =  req.record_id
+        // only upload if the link has not expired and
+        // if the expected update fields arnt already updated
+        //get record_id details
+
+        getRecordById(record_id, (err, results)=>{
+            
             if(err){
                 console.log(err);
-                return res.status(500).json({
+                return res.status(401).json({
+                    status: 401,
+                    error: 1,
+                    message : err,
+                })
+            }
+            if(results && results.id){
+                let date1 = new Date();
+                let date2 = new Date(results.expiry_date);
+                console.log('date1:'+date1)
+                console.log('date2:'+date2)
+                if(date1 > date2 ){
+                    return res.status(402).json({
+                        status:402,
+                        error:1,
+                        message: 'Expired',
+                    })
+                }
+            }
+        })
+ 
+        console.log(record_id)
+        function sendEmail(){
+            
+        }
+        submitUpload(record_id, (err, results)=>{
+            if(err){
+                console.log(err);
+                return res.status(400).json({
                     status: 400,
                     error: 1,
                     message : err,
@@ -298,6 +332,7 @@ module.exports = {
             });
             let js = JSON.stringify(rez)
             // console.log(js)
+            sendEmail();
             return res.status(200).json({
                 status: 200,
                 success: 1,

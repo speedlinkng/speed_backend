@@ -1,12 +1,16 @@
 const pool = require('../models/DB');
 const crypto = require("crypto")
-const { customAlphabet } = require('../../generateId');
+const { v4: uuidv4 } = require('uuid');
+
+// Generate a new UUID
+const uniqueId = uuidv4();
 
 
 module.exports = {
+
     register: (data, callback)=>{
         // Create a custom ID generator function with your preferred characters
-        const generateUniqueId = customAlphabet('ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789', 10);
+        const generateUniqueId = uniqueId;
 
         // Generate a 10-character unique ID
         const uniqueId = generateUniqueId();

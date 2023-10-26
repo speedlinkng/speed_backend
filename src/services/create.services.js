@@ -23,7 +23,7 @@ module.exports = {
 
         function getUserGoogle(user_id){
             pool.query(
-                'SELECT * FROM user_google WHERE user_id = ? ORDER BY date_created DESC LIMIT 1',            [
+                `SELECT * FROM user_google WHERE user_id = ? ORDER BY date_created DESC LIMIT 1`,            [
                     user_id 
                 ],
                 (err, res, fields) =>{
@@ -37,20 +37,28 @@ module.exports = {
         }
     },
 
-    submitUpload:(record_id, callback)=>{
-
+    submitUpload:(body, callback)=>{
         pool.query(
-            `select user_id from records where record_id = ?`,
+            'update records set sender_name=?, sender_email=?, file_name=?, file_size=?, file_id=?, file_type=?, answers=?, status=? where record_id=?',            
             [
-                record_id 
+                body.name,
+                body.email,
+                body.fileName,
+                body.fileSize,
+                body.fileId,
+                body.fileType,
+                body.answers,
+                'completed',
+                body.record_id
+
             ],
            
             (err, res, fields) =>{
-                console.log(res)
+                
                 if(err){
                     return callback(err);
                 }
-                getUserGoogle(res[0].user_id)
+                return callback(null, res[0])
             }
 
         )
@@ -81,13 +89,13 @@ module.exports = {
         const currentDate = new Date();
         const oneMoreDay = date.format(date.addDays(currentDate, +1), 'YYYY/MM/DD HH:mm:ss'); 
         pool.query(
-            `insert into records(record_name, google_refresh_token, description, folder, subfolder, drive_email, record_id, user_id, expiry_date) values(?,?,?,?,?,?,?,?,?)`,
+            `insert into records(record_name, google_refresh_token, description, folder, folder_id, drive_email, record_id, user_id, expiry_date) values(?,?,?,?,?,?,?,?,?)`,
             [
                 data.name,
                 google_refresh_token,
                 data.description,
+                data.folder,
                 folder_id,
-                data.subfolder,
                 data.drive_email,
                 record_id, //record id
                 user_id,//data.user_id
