@@ -35,6 +35,7 @@ app.post('/login', validateLogin(userSchema), function(req, res) {
     res.json(req.body);
 });
 
+
 app.get('/', function(req, res) {
     // res.redirect('view/index.html');
     res.send('Backend is now working');
