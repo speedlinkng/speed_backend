@@ -6,13 +6,13 @@ const userRoute = require('./src/routes/user.route');
 const googleRoute = require('./src/routes/google.route');
 const dotenv = require('dotenv')
 const cors=require("cors");
+dotenv.config();
 const corsOptions ={
-   origin:'http://127.0.0.1:5502', 
+   origin:process.env.FRONTEND_URL, 
    credentials:true,            //access-control-allow-credentials:true
    optionSuccessStatus:200,
 }
 
-dotenv.config();
 // trial
 const {validateLogin} = require("./src/middlewares/ValidateMiddleware")
 const userSchema = require("./src/validations/UserValidation");
@@ -37,7 +37,7 @@ app.post('/login', validateLogin(userSchema), function(req, res) {
 
 app.get('/', function(req, res) {
     // res.redirect('view/index.html');
-    res.send('Backend is now working');
+    res.send('server Backend is now working');
 });
 
 

@@ -66,7 +66,7 @@ module.exports = {
             if(!results){
                 return res.status(302).json({
                     error: 1,
-                    message : 'iinvalid email or password',
+                    message : 'Email or password does not exist',
                 })
             }
             const result = compareSync(data.password, results.password)
@@ -85,7 +85,7 @@ module.exports = {
             }else{
                 return res.status(302).json({
                     error:1,
-                    message : 'invalid email or password',
+                    message : 'Email or password does not exist',
                 })
             }
            
