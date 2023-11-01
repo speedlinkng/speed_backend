@@ -7,7 +7,7 @@ module.exports = {
             token =  token && token.split(' ')[1]
             verify(token, process.env.REFRESH_TOK_SEC, (err, decoded)=>{
                if(err){
-                res.json({
+                return res.status(403).json({
                     error:2,
                     message:"invalid token",
                 })
@@ -17,7 +17,42 @@ module.exports = {
                }
             })
         }else{
-            return res.json({
+            return res.status(403).json({
+                error: 1,
+                message: "Access denied! Unauthorized"
+            })
+        }
+    },
+
+    ifAdmin:  (req, res, next) => {
+        let token = req.get("authorization")
+        if(token){
+            token =  token && token.split(' ')[1]
+            verify(token, process.env.REFRESH_TOK_SEC, (err, decoded)=>{
+                // console.log(decoded.result.role)
+               if(err){
+                return res.status(403).json({
+                    error:2,
+                    message:"invalid token",
+                })
+               }else{
+                if(decoded.result.role == 'admin'){
+                    console.log(decoded.result.role)
+                    res.decoded_access = decoded.result
+                    next();
+                }else{
+
+                    return res.status(403).json({
+                        error:3,
+                        message:"Access denied!",
+                    })
+                }
+               
+                
+               }
+            })
+        }else{
+            return res.status(403).json({
                 error: 1,
                 message: "Access denied! Unauthorized"
             })
@@ -30,9 +65,9 @@ module.exports = {
         if(token){
             verify(token, process.env.REFRESH_TOK_SEC, (err, decoded)=>{
                if(err){
-                res.json({
+                res.status(403).json({
                     error:2,
-                    message:"invalid token",
+                    message:"invalid tokens",
                 })
                } else{
                 res.decoded_access = decoded.result
@@ -40,7 +75,7 @@ module.exports = {
                }
             })
         }else{
-            return res.json({
+            return res.status(403).json({
                 error: 1,
                 message: "Access denied! Unauthorized"
             })
