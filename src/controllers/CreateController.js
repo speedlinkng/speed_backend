@@ -35,11 +35,18 @@ module.exports = {
 
         const body = req.body
         let folder = body.folder
+        let folder_id = body.folder_id
         let google_refresh_token = '' 
         let record_id = shortid()
         // console.log(oauth3Client)
 
-    
+    if(folder_id != ''){
+        // This means the user selected a google folder that already exists
+        // In this case, skip checkFolderExists and createFolder
+        firstQuery(folder_id)
+    }else{
+        checkFolderExists(folder)
+    }
 
     // return check if folder already exists, if it dosent, create one
     async function checkFolderExists(folder_name) {
@@ -137,7 +144,7 @@ module.exports = {
     
             })
         }
-        checkFolderExists(folder)
+       
         // createFolder(folder)
         // return 'ok'
     },

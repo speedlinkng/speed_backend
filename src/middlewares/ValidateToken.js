@@ -1,6 +1,44 @@
 const {verify} = require("jsonwebtoken")
+const jwt = require("jsonwebtoken")
+const revokedTokens = new Set();
+
+
+    function revokeToken(tokenId) {
+        revokedTokens.add(tokenId);
+    }
+
+    function isTokenRevoked(tokenId) {
+        return revokedTokens.has(tokenId);
+    }
 
 module.exports = {
+
+    protectRoute: (req, res, next)=>{
+
+        function protectRoute(req, res, next) {
+            const token = req.headers.authorization; // Assuming the token is in the request headers
+            if (!token) {
+              return res.status(401).json({ message: 'Unauthorized' });
+            }
+          
+            const decodedToken = jwt.decode(token);
+            if (!decodedToken || !decodedToken.jti) {
+              return res.status(401).json({ message: 'Invalid token' });
+            }
+          
+            const tokenId = decodedToken.jti;
+            if (isTokenRevoked(tokenId)) {
+              return res.status(401).json({ message: 'Token has been revoked' });
+            }
+          
+            // Token is valid, proceed to the protected resource
+            // next();
+            logout()
+          }
+
+        //   protectRoute()
+    },
+
     checkToken:  (req, res, next) => {
         let token = req.get("authorization")
         if(token){

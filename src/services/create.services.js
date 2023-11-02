@@ -89,7 +89,7 @@ module.exports = {
         const currentDate = new Date();
         const oneMoreDay = date.format(date.addDays(currentDate, +1), 'YYYY/MM/DD HH:mm:ss'); 
         pool.query(
-            `insert into records(record_name, google_refresh_token, description, folder, folder_id, drive_email, record_id, user_id, expiry_date) values(?,?,?,?,?,?,?,?,?)`,
+            `insert into records(record_name, google_refresh_token, description, folder, folder_id, drive_email, questions, record_id, user_id, expiry_date) values(?,?,?,?,?,?,?,?,?)`,
             [
                 data.name,
                 google_refresh_token,
@@ -97,6 +97,7 @@ module.exports = {
                 data.folder,
                 folder_id,
                 data.drive_email,
+                data.formQuestion,
                 record_id, //record id
                 user_id,//data.user_id
                 oneMoreDay

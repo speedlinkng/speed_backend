@@ -1,8 +1,47 @@
 const {getUserByUserEmail, register} = require('../services/auth.services');
 const {genSaltSync, hashSync, compareSync, compare} = require("bcrypt")
 const {sign} = require("jsonwebtoken")
+const jwt = require("jsonwebtoken")
+const revokedTokens = new Set();
+
+
+    function revokeToken(tokenId) {
+        revokedTokens.add(tokenId);
+        // STORE REVOKED TOKENS IN DB
+    }
+
+    function isTokenRevoked(tokenId) {
+        return revokedTokens.has(tokenId);
+    }
 
 module.exports = {
+
+
+    logout: (req, res)=>{
+        let token = req.headers.authorization;
+        token =  token && token.split(' ')[1]
+        console.log(token)
+        jwt.verify(token, process.env.REFRESH_TOK_SEC, (err, decoded)=>{
+            let decodedToken = decoded
+         
+            const tokenId = decodedToken.jti;
+            // revokeToken(tokenId)
+            console.log(revokedTokens)
+     
+            if (isTokenRevoked(tokenId)) {
+                res.status(401).json({ message: 'Token has been revoked' });
+              }
+
+            if(revokeToken(tokenId)){
+                res.status(200).json({ message: 'Logged out successfully' });
+            }
+            
+            // res.status(200).json({ message: 'Logged out successfully' });
+           
+        })
+
+    },
+
 
     getMe: (req, res)=>{
         let access = res.decoded_access
@@ -73,7 +112,8 @@ module.exports = {
 
             if(result){
                 results.password = undefined
-                const accessToken = sign({result : results}, process.env.REFRESH_TOK_SEC, {
+                
+                const accessToken = sign({result : results, jti: results.user_id}, process.env.REFRESH_TOK_SEC, {
                     expiresIn: "1h"
                 })
 

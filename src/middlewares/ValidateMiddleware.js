@@ -14,8 +14,6 @@ module.exports ={
 }
 
 
-
-
 const validateLogin = (schema)=> async (req, res, next) => {
     let body = req.body
 

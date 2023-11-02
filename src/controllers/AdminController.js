@@ -16,6 +16,8 @@ const {v4:uuidv4} = require("uuid")
 const shortid = require("shortid")
 const date = require('date-and-time');
 const dotenv = require('dotenv');
+const jwt = require('jsonwebtoken');
+
 
 dotenv.config();
 
@@ -263,10 +265,12 @@ module.exports = {
                     message : err,
                 })
             }
-            else if(results ){                 
+            else if(results ){      
+                console.log('see')           
                 console.log(results.bytes)
                 console.log(results.kilobytes)
                 console.log(results.megabytes)
+                console.log(results.gigabytes)
                 return res.status(200).json({
                     success: 1,
                     data : results,

@@ -124,10 +124,27 @@ module.exports = {
                     return callback(err);
                 }
                 const totalBytesUploaded = res[0].totalBytesUploaded;
-                console.log(`${totalBytesUploaded} BYTES`)
-                // Convert bytes to megabytes (MB)
-                const totalMBUploaded = totalBytesUploaded / (1024 * 1024);
-                return callback(null, totalMBUploaded);
+                console.log(`${totalBytesUploaded} BYTES`);
+    
+                // Convert bytes to kilobytes (KB)
+                const totalKBUploaded = totalBytesUploaded / 1024;
+                console.log(totalKBUploaded)
+                
+                // Convert kilobytes to megabytes (MB)
+                const totalMBUploaded = totalKBUploaded / 1024;
+                console.log(totalMBUploaded)
+                
+                // Convert megabytes to gigabytes (GB)
+                const totalGBUploaded = totalMBUploaded / 1024;
+                console.log(totalGBUploaded)
+
+    
+                return callback(null, {
+                    bytes: totalBytesUploaded,
+                    kilobytes: totalKBUploaded,
+                    megabytes: totalMBUploaded,
+                    gigabytes: totalGBUploaded
+                });
             }
         );
     },
