@@ -7,6 +7,8 @@ const googleRoute = require('./src/routes/google.route');
 const admin = require('./src/routes/admin.route');
 const dotenv = require('dotenv')
 const cors=require("cors");
+const pool = require('./src/models/DB');
+
 dotenv.config();
 const corsOptions ={
    origin:process.env.FRONTEND_URL, 
@@ -28,7 +30,18 @@ app.use("/api/app", appRoute)
 app.use("/api/google", googleRoute)
 app.use("/api/admin", admin)
 
-
+app.get('/testcon', (req, res) => {
+    // Execute a test query to the database
+    pool.query('SELECT 1 + 1 AS result', (error, results) => {
+      if (error) {
+        console.error('Error testing database connection:', error);
+        res.status(500).send('Database connection test failed');
+      } else {
+        console.log('Database connection test successful');
+        res.status(200).send('Database connection test successful');
+      }
+    });
+  });
 // Express Middleware for serving static files
 app.use(express.static(path.join(__dirname, 'public')));
 
