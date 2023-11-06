@@ -1,4 +1,4 @@
-const {createRecord, getRecord, getRecordById, getSettingById, getRefreshTokenGoogle, getRefreshAndExchangeForAccess} = require('../services/create.services');
+const {createRecord, getRecord, getRecordById, getSettingById, getRefreshTokenGoogle, getRefreshAndExchangeForAccess, updateexpired} = require('../services/create.services');
 const {v4:uuidv4} = require("uuid")
 const request = require("request");
 const crypt = require("crypto")
@@ -40,6 +40,8 @@ module.exports = {
         let record_id = shortid()
         // console.log(oauth3Client)
 
+        console.log(folder_id)
+        
     if(folder_id != ''){
         // This means the user selected a google folder that already exists
         // In this case, skip checkFolderExists and createFolder
@@ -265,7 +267,7 @@ module.exports = {
 
     getRecord: (req, res)=>{
         let access =  res.decoded_access
-        console.log(access)
+        // console.log(access)
         getRecord(access.user_id, (err, results)=>{
             if(err){
                 console.log(err);
@@ -275,10 +277,35 @@ module.exports = {
                     message : err,
                 })
             }
+
+
+            function setExpired(element){
+                let date1 = new Date();
+                let date2 = new Date(element.expiry_date); 
+                if(date1 > date2 ){
+                    updateexpired(access.user_id, (err, res)=>{
+                        
+                    })
+                }else{
+                    console.log(element.status)
+                }
+            }
+            
+
+            
+            // SET EXPIRED IN THE DB FOR RECORD
+            results.forEach(element => {
+                console.log(element.id)
+                setExpired(element)
+            });
+           
+
             let rez = []
             results.forEach(ress => {
                 rez.push(ress)
             });
+
+            
             let js = JSON.stringify(rez)
             // console.log(js)
             return res.status(200).json({

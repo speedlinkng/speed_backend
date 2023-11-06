@@ -69,7 +69,7 @@ module.exports = {
             verify(token, process.env.REFRESH_TOK_SEC, (err, decoded)=>{
                 // console.log(decoded.result.role)
                if(err){
-                return res.status(403).json({
+                return res.status(400).json({
                     error:2,
                     message:"invalid token",
                 })

@@ -80,6 +80,35 @@ module.exports = {
         )
     },
 
+    updateexpired:(user_id, callback)=>{
+        pool.query(
+            'update records set status=? WHERE file_id = "null" ',            
+            [
+                'expired' 
+            ],
+            (err, res, fields) =>{
+                if(err){
+                    return callback(err);
+                }
+                // return callback(null, res)
+            }
+
+        )
+        // pool.query(
+        //     'update records set status=? WHERE file_id != "null" ',            
+        //     [
+        //         'completed' 
+        //     ],
+        //     (err, res, fields) =>{
+        //         if(err){
+        //             return callback(err);
+        //         }
+        //         return callback(null, res)
+        //     }
+
+        // )
+    },
+
     createRecord: (data,folder_id, google_refresh_token, record_id, user_id, callback)=>{
         if(data.file_type == 'custom_exe'){
            let custom_type = data.custom_type 
@@ -89,7 +118,7 @@ module.exports = {
         const currentDate = new Date();
         const oneMoreDay = date.format(date.addDays(currentDate, +1), 'YYYY/MM/DD HH:mm:ss'); 
         pool.query(
-            `insert into records(record_name, google_refresh_token, description, folder, folder_id, drive_email, questions, record_id, user_id, expiry_date) values(?,?,?,?,?,?,?,?,?)`,
+            `insert into records(record_name, google_refresh_token, description, folder, folder_id, drive_email, questions, record_id, user_id, expiry_date) values(?,?,?,?,?,?,?,?,?,?)`,
             [
                 data.name,
                 google_refresh_token,

@@ -37,7 +37,7 @@ module.exports = {
 
     searchUser: (searchTerm, callback) => {
         pool.query(
-            `SELECT * FROM users WHERE user_id = ? OR FirstName LIKE ? OR LastName LIKE ? OR email LIKE ?`,
+            `SELECT * FROM users WHERE user_id = ? OR firstName LIKE ? OR lastName LIKE ? OR email LIKE ?`,
             [searchTerm, `%${searchTerm}%`, `%${searchTerm}%`, `%${searchTerm}%`],
             (err, res, fields) => {
                 if (err) {
@@ -61,10 +61,17 @@ module.exports = {
         );
     },
 
-    updateUser: (searchTerm, callback) => {
+    updateUser: (body, a_id, callback) => {
+        console.log(body)
         pool.query(
-            `SELECT * FROM users WHERE user_id = ? OR FirstName LIKE ? OR LastName LIKE ? OR email LIKE ?`,
-            [searchTerm, `%${searchTerm}%`, `%${searchTerm}%`, `%${searchTerm}%`],
+            'UPDATE users set status=?, plan=?, lastName=?, firstName=? WHERE email = ?',            
+            [
+                body.e_status,
+                body.e_plan,
+                body.e_lastname,
+                body.e_firstname,
+                'iso@gmail.com'
+            ],
             (err, res, fields) => {
                 if (err) {
                     return callback(err);
@@ -124,19 +131,19 @@ module.exports = {
                     return callback(err);
                 }
                 const totalBytesUploaded = res[0].totalBytesUploaded;
-                console.log(`${totalBytesUploaded} BYTES`);
+                // console.log(`${totalBytesUploaded} BYTES`);
     
                 // Convert bytes to kilobytes (KB)
                 const totalKBUploaded = totalBytesUploaded / 1024;
-                console.log(totalKBUploaded)
+                // console.log(totalKBUploaded)
                 
                 // Convert kilobytes to megabytes (MB)
                 const totalMBUploaded = totalKBUploaded / 1024;
-                console.log(totalMBUploaded)
+                // console.log(totalMBUploaded)
                 
                 // Convert megabytes to gigabytes (GB)
                 const totalGBUploaded = totalMBUploaded / 1024;
-                console.log(totalGBUploaded)
+                // console.log(totalGBUploaded)
 
     
                 return callback(null, {
