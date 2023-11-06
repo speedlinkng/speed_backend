@@ -33,6 +33,14 @@ app.use("/api/admin", admin)
 app.get('/testcon', (req, res) => {
     // Execute a test query to the database
     pool.query('SELECT 1 + 1 AS result', (error, results) => {
+        console.log(
+
+            process.env.DB_PORT,
+           process.env.DB_HOST,
+             process.env.DB_USERNAME,
+            process.env.DB_PASSWORD,
+        process.env.DB_DATABASE,
+        )
       if (error) {
         console.error('Error testing database connection:', error);
         res.status(500).send('Database connection test failed');
