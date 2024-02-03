@@ -1,4 +1,5 @@
-const pool = require('../models/DB');
+// const pool = require('../models/DB');
+const pool = require('../models/PGDB');
 const shortid = require("shortid");
 const date = require('date-and-time');
 
@@ -9,7 +10,7 @@ module.exports = {
         const oneMoreDay = date.format(date.addDays(currentDate, +1), 'YYYY/MM/DD HH:mm:ss'); 
 
         pool.query(
-            `insert into user_google(refresh_token, access_token, expiry_date, id_token, token_type, scope, email, storage_email, user_id, role, expire_next) values(?,?,?,?,?,?,?,?,?,?,?)`,
+            `insert into user_google(refresh_token, access_token, expiry_date, id_token, token_type, scope, email, storage_email, user_id, role, expire_next) values($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)`,
             [
                 tokens.refresh_token,
                 tokens.access_token,
@@ -30,13 +31,13 @@ module.exports = {
                 }
                 // Wednesday
                 pool.query(
-                `update registeration set goog_refresh_token=? where user_id=?`,
+                `update registeration set goog_refresh_token=$1 where user_id=$2`,
                     [
                         tokens.refresh_token,
                         user_id
                     ],
                 )
-                return callback(null, res)
+                return callback(null, res.rows)
             },
         )
     },
@@ -45,7 +46,7 @@ module.exports = {
   
 
         pool.query(
-            `select * from user_google where user_id= ?`,
+            `select * from user_google where user_id= $1`,
             [
                 access.user_id 
             ],
@@ -54,7 +55,7 @@ module.exports = {
                 if(err){
                     return callback(err);
                 }
-                return callback(null, res)
+                return callback(null, res.rows)
             }
 
         )
@@ -68,7 +69,7 @@ module.exports = {
                 if(err){
                     return callback(err);
                 }
-                return callback(null, res)
+                return callback(null, res.rows)
             }
 
         )
@@ -76,7 +77,7 @@ module.exports = {
 
     myStorage: (user_id, callback) =>{
         pool.query(
-            `select * from user_google where user_id=?`,
+            `select * from user_google where user_id=$1`,
             [
                 user_id
             ],
@@ -84,7 +85,7 @@ module.exports = {
                 if(err){
                     return callback(err);
                 }
-                return callback(null, res)
+                return callback(null, res.rows)
             }
 
         )
@@ -92,7 +93,7 @@ module.exports = {
 
     newStorage: (user_id, callback) =>{
         pool.query(
-            `select * from user_google where user_id=?`,
+            `select * from user_google where user_id=$1`,
             [
                 user_id
             ],
@@ -100,7 +101,7 @@ module.exports = {
                 if(err){
                     return callback(err);
                 }
-                return callback(null, res)
+                return callback(null, res.rows)
             }
 
         )
@@ -108,7 +109,7 @@ module.exports = {
 
     ifexist: (email, callback) =>{
         pool.query(
-            `select * from user_google where email=?`,
+            `select * from user_google where email=$1`,
             [
                 email
             ],
@@ -116,18 +117,20 @@ module.exports = {
                 if(err){
                     return callback(err);
                 }
-                return callback(null, res)
+                return callback(null, res.rows)
             }
 
         )
     },
 
-    updateToken: (tokens, email, callback) =>{
+    updateToken: (tokens, email, storage, callback) =>{
+        console.log('storage: '+storage)
         pool.query(
-            `update user_google set refresh_token=?, access_token=?, expiry_date=? where email=?`,
+            `update user_google set refresh_token=$1, access_token=$2, storage_email=$3, expiry_date=$4 where email=$5`,
             [
                 tokens.refresh_token,
                 tokens.access_token,
+                storage,
                 tokens.expiry_date,
                 email
             ],
@@ -135,7 +138,7 @@ module.exports = {
                 if(err){
                     return callback(err);
                 }
-                return callback(null, res)
+                return callback(null, res.rows)
             }
 
         )

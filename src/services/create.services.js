@@ -1,12 +1,13 @@
 const pool = require('../models/DB');
+const pgpool = require('../models/PGDB');
 const date = require('date-and-time');
 
 module.exports = {
 
     getRefreshAndExchangeForAccess:(record_id, callback)=>{
 
-        pool.query(
-            `select user_id from records where record_id = ?`,
+        pgpool.query(
+            `select user_id from records where record_id = $1`,
             [
                 record_id 
             ],
@@ -16,21 +17,21 @@ module.exports = {
                 if(err){
                     return callback(err);
                 }
-                getUserGoogle(res[0].user_id)
+                getUserGoogle(res.rows[0].user_id)
             }
 
         )
 
         function getUserGoogle(user_id){
-            pool.query(
-                `SELECT * FROM user_google WHERE user_id = ? ORDER BY date_created DESC LIMIT 1`,            [
+            pgpool.query(
+                `SELECT * FROM user_google WHERE user_id = $1 ORDER BY date_created DESC LIMIT 1`,            [
                     user_id 
                 ],
                 (err, res, fields) =>{
                     if(err){
                         return callback(err);
                     }
-                    return callback(null, res)
+                    return callback(null, res.rows)
                 }
 
             )
@@ -38,19 +39,12 @@ module.exports = {
     },
 
     submitUpload:(body, callback)=>{
-        pool.query(
-            'update records set sender_name=?, sender_email=?, file_name=?, file_size=?, file_id=?, file_type=?, answers=?, status=? where record_id=?',            
+        const currentDate = new Date();
+        pgpool.query(
+            'update form_submissions set response_data=$1, submitted_at=$2',            
             [
-                body.name,
-                body.email,
-                body.fileName,
-                body.fileSize,
-                body.fileId,
-                body.fileType,
-                body.answers,
-                'completed',
-                body.record_id
-
+                body.replies_json,
+                currentDate
             ],
            
             (err, res, fields) =>{
@@ -58,31 +52,52 @@ module.exports = {
                 if(err){
                     return callback(err);
                 }
-                return callback(null, res[0])
+                return callback(null, res.rows[0])
             }
 
         )
     },
 
-    getRefreshTokenGoogle:(user_id, callback)=>{
-        pool.query(
-            'SELECT refresh_token FROM user_google WHERE user_id = ? ORDER BY date_created DESC LIMIT 1',
-            [
-                user_id 
-            ],
-            (err, res, fields) =>{
-                if(err){
-                    return callback(err);
+    getRefreshTokenGoogle:(user_id, body, callback)=>{
+        if(body.preferred == 0){
+            // 'speedlink Access'
+            pgpool.query(
+                'SELECT refresh_token,storage_email FROM user_google WHERE role = $1 ORDER BY date_created DESC LIMIT 1',
+                [
+                    'default' 
+                ],
+                (err, res, fields) =>{
+                    console.log(res)
+                    if(err){
+                        return callback(err);
+                    }
+                    return callback(null, res.rows)
                 }
-                return callback(null, res)
-            }
-
-        )
+    
+            )
+        }
+        if(body.preferred == 1){
+            // 'my Access'
+            pgpool.query(
+                'SELECT refresh_token,storage_email FROM user_google WHERE user_id = $1 ORDER BY date_created DESC LIMIT 1',
+                [
+                    user_id 
+                ],
+                (err, res, fields) =>{
+                    if(err){
+                        return callback(err);
+                    }
+                    return callback(null, res.rows)
+                }
+    
+            )
+        }
+        
     },
 
     updateexpired:(user_id, callback)=>{
-        pool.query(
-            'update records set status=? WHERE file_id = "null" ',            
+        pgpool.query(
+            'update form_records set status=$1 WHERE file_id = "null" ',            
             [
                 'expired' 
             ],
@@ -94,7 +109,7 @@ module.exports = {
             }
 
         )
-        // pool.query(
+        // pgpool.query(
         //     'update records set status=? WHERE file_id != "null" ',            
         //     [
         //         'completed' 
@@ -109,27 +124,28 @@ module.exports = {
         // )
     },
 
-    createRecord: (data,folder_id, google_refresh_token, record_id, user_id, callback)=>{
+    createRecord: (data,folder_id, google_refresh_token,google_storage_email, record_id, user_id, callback)=>{
         if(data.file_type == 'custom_exe'){
            let custom_type = data.custom_type 
         }else{
             let custom_type = null 
         }
+        let bt = data.b_token;
+        const jsonData =  data;
         const currentDate = new Date();
         const oneMoreDay = date.format(date.addDays(currentDate, +1), 'YYYY/MM/DD HH:mm:ss'); 
-        pool.query(
-            `insert into records(record_name, google_refresh_token, description, folder, folder_id, drive_email, questions, record_id, user_id, expiry_date) values(?,?,?,?,?,?,?,?,?,?)`,
+   
+        pgpool.query(
+            `insert into form_records(user_id,status, b_token, record_id, google_refresh_token, drive_email, expiry_date, record_data) values($1,$2,$3,$4,$5,$6,$7,$8)`,
             [
-                data.name,
+                user_id,
+                'active',
+                data.b_token,
+                record_id, 
                 google_refresh_token,
-                data.description,
-                data.folder,
-                folder_id,
-                data.drive_email,
-                data.formQuestion,
-                record_id, //record id
-                user_id,//data.user_id
-                oneMoreDay
+                google_storage_email,//record id
+                oneMoreDay,
+                jsonData
                
             ],
             (err, res, fields) =>{
@@ -137,15 +153,16 @@ module.exports = {
                 if(err){
                     return callback(err);
                 }
-                insertSetings()
+                // insertSetings()
+                return callback(null, res)
                 
            
             },
         )
 
         function insertSetings(){
-            pool.query(
-                `insert into settings(user_id, record_id, ask_name, send_notification, quantity, file_type, custom_type, upload_size) values(?,?,?,?,?,?,?,?)`,
+            pgpool.query(
+                `insert into settings(user_id, record_id, ask_name, send_notification, quantity, file_type, custom_type, upload_size) values($1,$2,$3,$4,$5,$6,$7,$8)`,
                 [
                     user_id,
                     record_id,
@@ -165,7 +182,7 @@ module.exports = {
                     }
     
                     
-                    return callback(null, res)
+                    return callback(null, res.rows)
                 },
             )
         }
@@ -173,8 +190,8 @@ module.exports = {
 
 
     getRecord: (user_id, callback)=>{
-            pool.query(
-                `select * from records where user_id = ?`,
+        pgpool.query(
+                `select * from form_records where user_id = $1`,
                 [
                     user_id 
                 ],
@@ -182,15 +199,15 @@ module.exports = {
                     if(err){
                         return callback(err);
                     }
-                    return callback(null, res)
+                    return callback(null, res.rows)
                 }
     
             )
     },
 
     getRecordById: (r_id, callback)=>{
-        pool.query(
-            `select * from records where record_id = ?`,
+        pgpool.query(
+            `select * from records where record_id = $1`,
             [
                 r_id 
             ],
@@ -198,16 +215,17 @@ module.exports = {
                 if(err){
                     return callback(err);
                 }
-                return callback(null, res[0])
+                return callback(null, res.rows[0])
             }
 
         )
         
     },
 
-    getSettingById: (r_id, callback)=>{
-        pool.query(
-            `select * from settings where record_id = ?`,
+    getSubmissionById: (r_id, callback)=>{
+        // get sublisson by upload_id
+        pgpool.query(
+            `select * from form_records where record_id = $1`,
             [
                 r_id 
             ],
@@ -215,7 +233,41 @@ module.exports = {
                 if(err){
                     return callback(err);
                 }
-                return callback(null, res[0])
+                // console.log(res.rows)
+                return callback(null, res.rows)
+            }
+
+        )
+        
+    },
+
+    getUploadRecordById: (r_id, callback)=>{
+        pgpool.query(
+            `select * from form_records where record_id = $1`,
+            [
+                r_id 
+            ],
+            (err, res, fields) =>{
+                if(err){
+                    return callback(err);
+                }
+                return callback(null, res.rows[0])
+            }
+
+        )
+    },
+
+    getSettingById: (r_id, callback)=>{
+        pgpool.query(
+            `select * from settings where record_id = $1`,
+            [
+                r_id 
+            ],
+            (err, res, fields) =>{
+                if(err){
+                    return callback(err);
+                }
+                return callback(null, res.rows[0])
             }
 
         )

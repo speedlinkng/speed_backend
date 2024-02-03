@@ -1,15 +1,32 @@
 const {verify} = require("jsonwebtoken")
 const jwt = require("jsonwebtoken")
 const revokedTokens = new Set();
+const {checkRevoke} = require('../services/auth.services');
 
+    
+async function isTokenRevoked(jti) {
+    return new Promise((resolve, reject) => {
+        // Check if the token is revoked
+        
+        checkRevoke(jti, (err, results) => {
+            if (err) {
+                return res.status(400).json({
+                    error: err,
+                    message: 'DB connection error',
+                });
+            }
+            
+            if (results && results.length > 0) {
+                // console.log('true');
+                resolve(true);
+            } else {
+                // console.log('false');
+                resolve(false);
+            }
+        });
+    });
+}
 
-    function revokeToken(tokenId) {
-        revokedTokens.add(tokenId);
-    }
-
-    function isTokenRevoked(tokenId) {
-        return revokedTokens.has(tokenId);
-    }
 
 module.exports = {
 
@@ -39,62 +56,99 @@ module.exports = {
         //   protectRoute()
     },
 
-    checkToken:  (req, res, next) => {
-        let token = req.get("authorization")
-        if(token){
-            token =  token && token.split(' ')[1]
-            verify(token, process.env.REFRESH_TOK_SEC, (err, decoded)=>{
-               if(err){
-                return res.status(403).json({
-                    error:2,
-                    message:"invalid token",
-                })
-               } else{
-                res.decoded_access = decoded.result
-                next();
-               }
-            })
-        }else{
-            return res.status(403).json({
-                error: 1,
-                message: "Access denied! Unauthorized"
-            })
-        }
-    },
-
-    ifAdmin:  (req, res, next) => {
-        let token = req.get("authorization")
-        if(token){
-            token =  token && token.split(' ')[1]
-            verify(token, process.env.REFRESH_TOK_SEC, (err, decoded)=>{
-                // console.log(decoded.result.role)
-               if(err){
-                return res.status(400).json({
-                    error:2,
-                    message:"invalid token",
-                })
-               }else{
-                if(decoded.result.role == 'admin'){
-                    console.log(decoded.result.role)
-                    res.decoded_access = decoded.result
-                    next();
-                }else{
-
+    checkToken: async (req, res, next) => {
+        let token = req.get("authorization");
+    
+        async function check() {
+            try {
+                if (token) {
+                    token = token && token.split(' ')[1];
+                    verify(token, process.env.REFRESH_TOK_SEC, async (err, decoded) => {
+                        if (err) {
+                            return res.status(403).json({
+                                error: 2,
+                                message: "invalid token",
+                            });
+                        } else {
+                          let d = await isTokenRevoked(decoded.jti);
+                          if(d){
+                            return res.status(305).json({
+                                error: 3,
+                                message: "Logged out already"
+                            });
+                          }else{
+                            res.decoded_access = decoded.result;
+                            res.jti = decoded.jti;
+                            next();
+                          }
+    
+                        }
+                    });
+                } else {
                     return res.status(403).json({
-                        error:3,
-                        message:"Access denied!",
+                        error: 1,
+                        message: "Access denied! Unauthorized"
+                    });
+                }
+            } catch (err) {
+                console.log(err);
+            }
+        }
+        
+        check();
+    },
+    
+
+    ifAdmin: async (req, res, next) => {
+        let token = req.get("authorization")
+        async function check() {
+            try {
+                if(token){
+                    token =  token && token.split(' ')[1]
+                    verify(token, process.env.REFRESH_TOK_SEC, async (err, decoded)=>{
+                        // console.log(decoded.result.role)
+                    if(err){
+                        return res.status(400).json({
+                            error:2,
+                            message:"invalid token",
+                        })
+                    }else{
+                        if(decoded.result.role == 'admin'){
+                            // console.log(decoded.result.role)
+                            res.decoded_access = decoded.result
+                            res.jti = decoded.jti
+                            let d = await isTokenRevoked(decoded.jti);
+                            if(d){
+                              return res.status(305).json({
+                                  error: 3,
+                                  message: "Logged out already"
+                              });
+                            }else{
+                              next();
+                            }
+                     
+                        }else{
+
+                            return res.status(403).json({
+                                error:3,
+                                message:"Access denied!",
+                            })
+                        }
+                    
+                        
+                    }
+                    })
+                }else{
+                    return res.status(403).json({
+                        error: 1,
+                        message: "Access denied! Unauthorized"
                     })
                 }
-               
-                
-               }
-            })
-        }else{
-            return res.status(403).json({
-                error: 1,
-                message: "Access denied! Unauthorized"
-            })
+            }catch(err){
+                console.log(err)
+            }
         }
+        check()
     },
 
     checkTokenUrl:  (req, res, next) => {

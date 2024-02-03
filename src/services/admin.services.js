@@ -1,4 +1,5 @@
-const pool = require('../models/DB');
+// const pool = require('../models/DB');
+const pool = require('../models/PGDB');
 const crypto = require("crypto")
 const { v4: uuidv4 } = require('uuid');
 
@@ -15,7 +16,7 @@ module.exports = {
                 if(err){
                     return callback(err);
                 }
-                return callback(null, res)
+                return callback(null, res.rows)
             }
 
         )
@@ -28,7 +29,7 @@ module.exports = {
                 if(err){
                     return callback(err);
                 }
-                return callback(null, res)
+                return callback(null, res.rows)
             }
 
         )
@@ -37,26 +38,26 @@ module.exports = {
 
     searchUser: (searchTerm, callback) => {
         pool.query(
-            `SELECT * FROM users WHERE user_id = ? OR firstName LIKE ? OR lastName LIKE ? OR email LIKE ?`,
+            `SELECT * FROM users WHERE user_id = $1 OR firstName LIKE $2 OR lastName LIKE $3 OR email LIKE $4`,
             [searchTerm, `%${searchTerm}%`, `%${searchTerm}%`, `%${searchTerm}%`],
             (err, res, fields) => {
                 if (err) {
                     return callback(err);
                 }
-                return callback(null, res); // Return the entire result set as an array
+                return callback(null, res.rows); // Return the entire result set as an array
             }
         );
     },
 
     searchRecord: (searchTerm, callback) => {
         pool.query(
-            `SELECT * FROM records WHERE user_id = ? OR id LIKE ? OR record_name LIKE ? OR sender_name LIKE ? OR file_type LIKE ? OR record_id LIKE ? OR file_name LIKE ? OR sender_email LIKE ? OR description LIKE ?`,
+            `SELECT * FROM records WHERE user_id = $1 OR id LIKE $2 OR record_name LIKE $3 OR sender_name LIKE $4 OR file_type LIKE $5 OR record_id LIKE $6 OR file_name LIKE $7 OR sender_email LIKE $8 OR description LIKE $9`,
             [searchTerm, `%${searchTerm}%`, `%${searchTerm}%`, `%${searchTerm}%`, `%${searchTerm}%`,`%${searchTerm}%`,`%${searchTerm}%`,`%${searchTerm}%`,`%${searchTerm}%`,`%${searchTerm}%`],
             (err, res, fields) => {
                 if (err) {
                     return callback(err);
                 }
-                return callback(null, res); // Return the entire result set as an array
+                return callback(null, res.rows); // Return the entire result set as an array
             }
         );
     },
@@ -64,7 +65,7 @@ module.exports = {
     updateUser: (body, a_id, callback) => {
         console.log(body)
         pool.query(
-            'UPDATE users set status=?, plan=?, lastName=?, firstName=? WHERE email = ?',            
+            'UPDATE users set status=$1, plan=$2, lastName=$3, firstName=$4 WHERE email = $5',            
             [
                 body.e_status,
                 body.e_plan,
@@ -76,7 +77,7 @@ module.exports = {
                 if (err) {
                     return callback(err);
                 }
-                return callback(null, res); // Return the entire result set as an array
+                return callback(null, res.rows); // Return the entire result set as an array
             }
         );
     },
@@ -88,7 +89,7 @@ module.exports = {
                 if (err) {
                     return callback(err);
                 }
-                const userCount = res[0].userCount;
+                const userCount = res.rows[0].userCount;
                 return callback(null, userCount);
             }
         );
@@ -101,7 +102,7 @@ module.exports = {
                 if (err) {
                     return callback(err);
                 }
-                const recordCount = res[0].recordCount;
+                const recordCount = res.rows[0].recordCount;
                 return callback(null, recordCount);
             }
         );

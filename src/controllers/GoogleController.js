@@ -100,6 +100,8 @@ module.exports = {
       console.log(access.email)
       console.log(req.body)
       let {code} = req.body;
+      console.log('this is code: '+code)
+      console.log(req.body)
       const {tokens} = await oauth2Client.getToken(code);
       
       oauth2Client.setCredentials(tokens);
@@ -113,6 +115,10 @@ module.exports = {
       let { data } = await oath_user.userinfo.get();    // get user info
         console.log(data.id);
         console.log(data.email);
+        console.log(data.email);
+        console.log(data.email);
+        console.log(data.email);
+        console.log(data.email);
         console.log('second wave');
   
         // oauth3Client.on('tokens', (tokens) => {
@@ -125,6 +131,7 @@ module.exports = {
       // CHECK IF ALREADY IN DATABASE
       let email = access.email
       let user_id = access.user_id
+      let storage = data.email
       ifexist(email, (err, row)=>{
         console.log(access.email)
         if(err){
@@ -132,7 +139,7 @@ module.exports = {
         }else{
      
           if(row && row.length){
-            updateOld()
+            updateOld(storage)
             console.log ('>>>>>>> email found')
           }else{
             createNew()
@@ -164,8 +171,8 @@ module.exports = {
         })
       }
 
-      function updateOld (){
-        updateToken(tokens, email, (err, results)=>{
+      function updateOld (storage){
+        updateToken(tokens, email, storage, (err, results)=>{
           if(err){
             console.log(err)
           }if(results){
@@ -201,6 +208,9 @@ module.exports = {
             })
           }
           if(_res){
+
+
+            // CHECK IF DATE HAS EXPIRED
           
             console.log(_res)
             let tok_data = JSON.stringify({ 
@@ -250,6 +260,7 @@ module.exports = {
                 })
             }
             if(result){
+              1//03LpTiaHKt5U4CgYIARAAGAMSNwF-L9IrZoVd5nwRe2FiuEwzMuFAOKKbCx1w7oiVF0PBjTLdqSMtUgKbIF9VsN9Cd8LeFdK3PCo
                 let refresh_token = result.google_refresh_token
                 oauth2Client.setCredentials(json); 
 

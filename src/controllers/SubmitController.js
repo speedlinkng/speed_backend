@@ -16,7 +16,6 @@ const { checkToken } = require("../middlewares/ValidateToken");
 const {submitUpload} = require('../services/create.services');
 dotenv.config();
 
-
 module.exports = {
 
     checkOnline:(req, res)=>{

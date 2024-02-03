@@ -14,7 +14,7 @@ const {
 const {getRecord} = require('../services/create.services');
 
 
-const {v4:uuidv4} = require("uuid")
+const crypto = require("crypto")
 const shortid = require("shortid")
 const date = require('date-and-time');
 const dotenv = require('dotenv');
@@ -23,68 +23,38 @@ const jwt = require('jsonwebtoken');
 
 dotenv.config();
 
+function encrypt(text, key) {
+    const iv = crypto.randomBytes(16); // Initialization vector
+    const cipher = crypto.createCipheriv('aes-256-cbc', Buffer.from(key), iv);
+    let encrypted = cipher.update(text, 'utf8', 'hex');
+    encrypted += cipher.final('hex');
+    return { iv: iv.toString('hex'), encryptedData: encrypted };
+  }
+
 
 module.exports = {
 
-    // getAllUsers: (req, res)=>{
-    //     getAllUsers((err, results)=>{
-    //         if(err){      
-    //             return res.status(400).json({
-    //                 status: 400,
-    //                 error: 1,
-    //                 message : err,
-    //             })
-    //         }
-    //         else if(results && results.length > 0){  
-    //             let rez = []
-    //             results.forEach(e => {
-    //                 getRecord(e.user_id, (err, resz)=>{
+    getCodeForAdmin: (req, res)=>{
+        let adminJti = res.jti
+        let adminUserId = res.decoded_access.user_id
+        console.log({
+            'ADMIN:':adminJti,
+            'USER:':adminUserId
+        })
+        // const securecode = jwt.sign({jti : adminJti, user_id: adminUserId}, process.env.ADMIN_KEY, {
+        //     expiresIn: "2m"
+        // })
 
-                       
-    //                     if(err){
-    //                         console.log(err);
-    //                         return res.status(400).json({
-    //                             status: 400,
-    //                             error: 1,
-    //                             message : err,
-    //                         })
-    //                     }
-
-                        
-    //                     resz.forEach(ress => {
-    //                         rez.push(ress)
-    //                     });
-
-    //                     // console.log(e)
-    //                     // console.log('this is')
-    //                     // console.log(rez)
-                      
-                        
-
-    //                 })
-    //             })    
-
-    //             console.log('this is')
-    //                     console.log(rez)
-                
-    //             return res.status(200).json({
-    //                 success: 1,
-    //                 data :results ,
-    //                 sub_data : rez,
-    //             })  
-               
-                 
-    //         }
-    //         else{
-    //             return res.status(402).json({
-    //                 status: 402,
-    //                 error: 1,
-    //                 message : 'try anoher option <Debug></Debug>',
-    //             })
-    //         }
-
-    //     })
-    // },
+         let data = encrypt(adminJti, process.env.ADMIN_KEY)
+        // console.log(securecode)
+        
+        return res.status(200).json({
+            status: 200,
+            success: 1,
+            encryptedData1 : data.iv,
+            encryptedData2 : data.encryptedData,
+        })
+    },
 
 
 

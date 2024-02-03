@@ -12,7 +12,9 @@ const {
     getTotalCompletedRecordCount,
     getTotalByteUploaded,
     getTotalSubscribers,
-    getTotalAmount
+    getTotalAmount,
+    getCodeForAdmin,
+
 } = require('../controllers/AdminController');
 
 
@@ -29,8 +31,9 @@ router.get('/getTotalByteUploaded', ifAdmin, getTotalByteUploaded)
 router.get('/getTotalSubscribers', ifAdmin, getTotalSubscribers)
 router.get('/getTotalAmount', ifAdmin, getTotalAmount)
 
+
 // Protect Admin
-router.get('/checkAdminRoute', ifAdmin)
+router.get('/getCodeForAdmin', ifAdmin, getCodeForAdmin)
 
 
 

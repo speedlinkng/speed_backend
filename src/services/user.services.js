@@ -1,9 +1,11 @@
-const pool = require('../models/DB');
+// const pool = require('../models/DB');
+const pool = require('../models/PGDB');
+
 
 module.exports = {
     create: (data, callback)=>{
         pool.query(
-            `insert into users(firstName, lastName, gender, email, password, number) values(?,?,?,?,?,?)`,
+            `insert into users(firstName, lastName, gender, email, password, number) values($1,$2,$3,$4,$5,$6)`,
             [
                 data.first_name,
                 data.last_name,
@@ -16,7 +18,7 @@ module.exports = {
                 if(err){
                     return callback(err);
                 }
-                return callback(null, res)
+                return callback(null, res.rows)
             },
         )
     },
@@ -31,7 +33,7 @@ module.exports = {
                 if(err){
                     return callback(err);
                 }
-                return callback(null, res)
+                return callback(null, res.rows)
             }
 
         )
@@ -39,7 +41,7 @@ module.exports = {
 
     getUserById: (id, callback) =>{
         pool.query(
-            `select id,firstName,lastName,gender,email,number from users where id=?`,
+            `select id,firstName,lastName,gender,email,number from users where id=$1`,
             [
             id
             ],
@@ -47,7 +49,7 @@ module.exports = {
                 if(err){
                     return callback(err);
                 }
-                return callback(null, res[0])
+                return callback(null, res.rows[0])
             }
 
         )
@@ -55,7 +57,7 @@ module.exports = {
 
     updateUser: (data, callback) =>{
         pool.query(
-            `update users set firstName=?, lastName=?, gender=?, email=?, password=?, number=? where id=?`,
+            `update users set firstName=$1, lastName=$2, gender=$3, email=$4, password=$5, number=$6 where id=$7`,
             [
                 data.first_name,
                 data.last_name,
@@ -69,7 +71,7 @@ module.exports = {
                 if(err){
                     return callback(err);
                 }
-                return callback(null, res[0])
+                return callback(null, res.rows[0])
             }
 
         )
@@ -77,7 +79,7 @@ module.exports = {
 
     deleteUser: (data, callback) =>{
         pool.query(
-            `delete from users where id = ?`,
+            `delete from users where id = $1`,
             [
                 data.id 
             ],
@@ -85,7 +87,7 @@ module.exports = {
                 if(err){
                     return callback(err);
                 }
-                return callback(null, res[0])
+                return callback(null, res.rows[0])
             }
 
         )
@@ -95,7 +97,7 @@ module.exports = {
 
     getUserByUserEmail: (email, callback) =>{
         pool.query(
-            `select * from users where email = ?`,
+            `select * from users where email = $1`,
             [
                 email 
             ],
@@ -103,7 +105,7 @@ module.exports = {
                 if(err){
                     return callback(err);
                 }
-                return callback(null, res[0])
+                return callback(null, res.rows[0])
             }
 
         )

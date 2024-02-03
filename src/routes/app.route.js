@@ -5,8 +5,8 @@ const upload = multer();
 const {login, createUser, getMe} = require('../controllers/AuthController');
 const {checkToken} = require("../middlewares/ValidateToken");
 const {getGoogleData, checkLinkExpire} = require("../middlewares/Generals");
-const {addRecord, getRecord, getRecordById, getSettingById, submitUpload} = require('../controllers/CreateController');
-const { submitAndUpdate, checkOnline } = require('../controllers/UploadController');
+const {addRecord, getRecord, getSubmissionById,getUploadRecordById, getRecordById, getSettingById, submitUpload, refresh} = require('../controllers/CreateController');
+const { submitAndUpdate, checkOnline } = require('../controllers/SubmitController');
 
 
 
@@ -27,9 +27,16 @@ router.get('/getrecords', checkToken, getRecord)
 // get url record by id
 router.get('/getrecordbyid/:id', checkToken, getRecordById)
 
+//get submissions by ID
+router.get('/getSubmissionById/:record_id', checkToken, getSubmissionById)
+
+// get form/upload/record data by the record ID
+router.get('/getUploadRecordById/:record_id', getUploadRecordById)
+
 // get these records and settings details when the user is trying to upload files
 router.get('/getrecordbyidnoauth/:id', getRecordById)
 router.get('/getsettingbyidnoauth/:id', getSettingById)
+router.get('/refresh', refresh)
 
 // router.get('/getsettingbyidnoauth/:id', getSettingById)
 
@@ -46,7 +53,6 @@ router.post('/submitAndUpdate',checkLinkExpire, submitAndUpdate)
 
 // this route isnt functional, discard
 router.post('/submitupload', upload.single('file'), submitUpload)
-
 
 
 
