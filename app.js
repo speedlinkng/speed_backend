@@ -252,6 +252,7 @@ app.get('/', function(req, res) {
       try {
         const client = await pgpool.connect();
         console.log('Acquired a client from the pool');
+        res.send('server Backend is now working');
         return client;
       } catch (error) {
         console.error('Error acquiring client from the pool', error);
@@ -259,7 +260,7 @@ app.get('/', function(req, res) {
       }
     }
     getClient()
-    res.send('server Backend is now working');
+    
 });
 
 
