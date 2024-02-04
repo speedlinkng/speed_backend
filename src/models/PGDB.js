@@ -2,10 +2,10 @@ const { Pool } = require('pg');
 
 // Create a PostgreSQL connection pool
 const pool = new Pool({
-  user: 'root',
-  host: 'dpg-cmv9lsgcmk4c73agjpbg-a',
-  database: 'speed_db',
-  password: 'qC4mpRC438WE5rGgQVUZvM7KzsUr3KTw',
+  user: 'postgres',
+  host: 'speedtest-db-instance.crys3lq4abpt.eu-north-1.rds.amazonaws.com',
+  database: 'speedtest-db-instance',
+  password: 'speedlinkbendan',
   port: 5432,
 });
 

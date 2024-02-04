@@ -248,6 +248,17 @@ app.post('/login', validateLogin(userSchema), function(req, res) {
 
 app.get('/', function(req, res) {
     // res.redirect('view/index.html');
+    async function getClient() {
+      try {
+        const client = await pgpool.connect();
+        console.log('Acquired a client from the pool');
+        return client;
+      } catch (error) {
+        console.error('Error acquiring client from the pool', error);
+        throw error;
+      }
+    }
+    getClient()
     res.send('server Backend is now working');
 });
 
