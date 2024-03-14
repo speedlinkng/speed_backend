@@ -1,4 +1,5 @@
-const {createRecord, getRecord, getSubmissionById, getUploadRecordById, getRecordById, getSettingById, getRefreshTokenGoogle, getRefreshAndExchangeForAccess, updateexpired} = require('../services/create.services');
+const {createRecord,updateRecord, getRecord, getSubmissionById, getUploadRecordById, getRecordById, getSettingById, getRefreshTokenGoogle, getRefreshAndExchangeForAccess, updateexpired, getDefaultFolder} = require('../services/create.services');
+const {getSubmittedRecordById, submitAndUpdate, submitFormReplies} = require('../services/submit.services');
 const {v4:uuidv4} = require("uuid")
 const request = require("request");
 const crypt = require("crypto")
@@ -14,6 +15,9 @@ const oauth3Client = new google.auth.OAuth2(
     process.env.YOUR_CLIENT_SECRET,
     process.env.YOUR_REDIRECT_URL
 );
+
+
+
 
 
 module.exports = {
@@ -53,31 +57,48 @@ module.exports = {
         // let json = JSON.parse(read);
         // console.log(json);
 
-
-
         //   refreshAccessToken()
         return;
     },
 
-    addRecord: (req, res)=>{    
+
+   
+    updateRecord: async (req, res)=>{ 
+        const body = req.body
+       
+        console.log(body.json)
+        updateRecord(body.record_id, body.json, (err, results)=>{
+            if(err){
+                console.log(err)
+                return res.status(400).json({
+                    status: 400,
+                    error: 1,
+                    message : err,
+                })
+            }
+            if(results){
+                console.log(results)
+                return res.status(200).json({
+                    status: 200,
+                    success: 1,
+                    data : results,
+                })
+            }
+        })
+    },
+
+    addRecord: async (req, res)=>{    
 
         // initialize decoded access from middleware
         let access =  res.decoded_access
-        // console.log(access)
         let json = JSON.parse(res.tok_data);
-        // console.log('body')
-         console.log(req.body)
-
+        console.log(req.body)
         oauth3Client.setCredentials(json);
 
         // initialize services
         const service = google.drive({version: 'v3',  auth: oauth3Client});
-
-
         const body = req.body
-
         const page1Data = body.values.page1;
-
         // console.log(page1Data);
         const pages = Object.keys(body.values);
 
@@ -86,10 +107,8 @@ module.exports = {
         if (pages.length > 0) {
             pages.forEach(pageName => {
                 const pageData = body.values[pageName];
-                console.log(`Processing data for ${pageName}:`, pageData);
-            
+                console.log(`Processing data for ${pageName}:`, pageData);   
                 const uniqueFieldNames = Object.keys(Object.assign({}, ...pageData));
-            
                 console.log(`Unique field names for ${pageName}: ${uniqueFieldNames}`);
                 // Perform your action for each page here
                 // You can access the data for the current page using pageData
@@ -97,27 +116,35 @@ module.exports = {
             
 
             console.log(`There are ${pages.length} pages in the JSON file.`);
-        // Access each page data using data.values[pageName]
+            // Access each page data using data.values[pageName]
         } else {
-        console.log('There is only one page in the JSON file.');
-        // Access the single page data using data.values[pages[0]]
+            console.log('There is only one page in the JSON file.');
+            // Access the single page data using data.values[pages[0]]
         }
 
-    //    return;
-
         let folder = body.filesandFolder.chosen_folder
+        let group_by = body.filesandFolder.group_by
         let folder_id = body.filesandFolder.folder_id
         let google_refresh_token = '' 
+        let userGoogleRow_id = ''
         let record_id = shortid()
+       
         // console.log(oauth3Client)
 
     
-        
+       
+console.log('check exist')
+console.log(folder_id)
     if(folder_id != ''){
         // This means the user selected a google folder that already exists
         // In this case, skip checkFolderExists and createFolder
+        console.log('true')
+        console.log('true')
         firstQuery(folder_id)
     }else{
+        console.log('else')
+        console.log('else')
+
         checkFolderExists(folder)
     }
 
@@ -146,64 +173,66 @@ module.exports = {
     }
 
     
-    // Create SUB FOLDERS if it dosent already exists
-    async function createSubFolder(id) {
-        fileMetadata = {
-            'name' : 'sub1',
-            'parents' : [id],
-            'mimeType' : 'application/vnd.google-apps.folder'
+        // Create SUB FOLDERS if it dosent already exists
+        async function createSubFolder(id) {
+            fileMetadata = {
+                'name' : 'sub1',
+                'parents' : [id],
+                'mimeType' : 'application/vnd.google-apps.folder'
+                }
+
+            
+            try {
+                let file = await service.files.create({
+                    resource: fileMetadata,
+                    // fields: 'id',
+                });
+                console.log('first FOLDER Id:', file.data.id);
+        
+                firstQuery(file.data.id)
+                // return file.data.id;
+            } catch (err) {
+            // TODO(developer) - Handle error
+            throw err;
             }
 
-        
-        try {
-        let file = await service.files.create({
-            resource: fileMetadata,
-            // fields: 'id',
-        });
-        console.log('first FOLDER Id:', file.data.id);
- 
-        firstQuery(file.data.id)
-        // return file.data.id;
-        } catch (err) {
-        // TODO(developer) - Handle error
-        throw err;
         }
 
-    }
 
+        // Create folder if it dosent already exists
+        async function createFolder(data) {
+            const fileMetadata = {
+            name: data,
+            mimeType: 'application/vnd.google-apps.folder',
+            };
 
-    // Create folder if it dosent already exists
-    async function createFolder(data) {
-        const fileMetadata = {
-        name: data,
-        mimeType: 'application/vnd.google-apps.folder',
-        };
+            
+            try {
+            let file = await service.files.create({
+                resource: fileMetadata,
+                // fields: 'id',
+            });
+            console.log('first FOLDER Id:', file.data.id);
+    
+            firstQuery(file.data.id)
+            // return file.data.id;
+            } catch (err) {
+            // TODO(developer) - Handle error
+            throw err;
+            }
 
-        
-        try {
-        let file = await service.files.create({
-            resource: fileMetadata,
-            // fields: 'id',
-        });
-        console.log('first FOLDER Id:', file.data.id);
- 
-        firstQuery(file.data.id)
-        // return file.data.id;
-        } catch (err) {
-        // TODO(developer) - Handle error
-        throw err;
         }
 
-    }
-
-        function firstQuery(folder_id){
+        function firstQuery(new_folder_id){
             console.log('folder_id 2')
             console.log(access.user_id)
-            console.log(body)
-            // FIRST GET THE RELATIVE REFRESH_TOKEN IN USER_GOOGLE FOR THIS USER 
+            // console.log(body)
+            // FIRST GET THE RELATIVE REFRESH_TOKEN IN USER_GOOGLE FOR THIS USER
+            // this is not needed 
             getRefreshTokenGoogle(access.user_id, body, (err, google_res)=>{
-                // console.log('folder_id 3')
-                // console.log(google_res)
+                console.log('@@@@@@@@@@@@@@@@@@@@@@@@')
+                console.log(body.preferred )
+                console.log(new_folder_id)
                 if(err){
                    
                     return res.status(400).json({
@@ -216,9 +245,10 @@ module.exports = {
 
                     google_refresh_token = google_res[0].refresh_token;      
                     google_storage_email = google_res[0].storage_email;
+                    userGoogleRow_id = google_res[0].id
                     // console.log('store_email 1:'+google_storage_email)      
                     // console.log(`get refresh token from usergoogle ${google_refresh_token}`)
-                    secondQuery(folder_id, google_storage_email)
+                    secondQuery(new_folder_id, google_storage_email)
                 }else{
     
                     return res.status(300).json({
@@ -231,10 +261,10 @@ module.exports = {
             })
         }
 
-        function secondQuery(folder_id, google_storage_email){
-            // console.log('store_email 2:'+google_storage_email)  
-            // console.log('b_token is:' +body.b_token)
-            createRecord(body, folder_id, google_refresh_token, google_storage_email, record_id, access.user_id, (err, results)=>{
+        function secondQuery(new_folder_id, google_storage_email){
+            console.log('store_email 2:'+new_folder_id) 
+            // console.log('b_token is:' +body.b_token) 
+            createRecord(body, new_folder_id, google_refresh_token, google_storage_email, record_id, access.user_id, userGoogleRow_id, (err, results)=>{
                 if(err){
                     console.log(err);
                     return res.status(400).json({
@@ -248,7 +278,8 @@ module.exports = {
                     status: 200,
                     success: 1,
                     data : results,
-                    id: record_id
+                    id: record_id,
+                   
                 })
                 }
     
@@ -266,7 +297,6 @@ module.exports = {
         // while getting the settings, also get the access token from the refresh token
         // remember refresh token expires after 5 days, so the link is only valid for 5 days
         getRefreshAndExchangeForAccess(r_id,(err, result)=>{
-        
             if(err){
                 console.log(err);
                 return res.status(400).json({
@@ -427,8 +457,6 @@ module.exports = {
     //     })
     // },*/
 
-
-
     
     // POSTGRESS
     
@@ -486,7 +514,7 @@ module.exports = {
     getSubmissionById: (req, res) =>{
         console.log(req.params.record_id,)
         getSubmissionById(req.params.record_id, (err, results)=>{
-            console.log(results[0].id)
+            console.log(results)
             if(err){
                 console.log(err);
                 return res.status(401).json({
@@ -495,8 +523,8 @@ module.exports = {
                     message : err,
                 })
             }
-            if(results && results.id){
-                // console.log('success');
+            if(results){
+                console.log('success');
                 return res.status(200).json({
                     status: 200,
                     success: 1,
@@ -506,8 +534,54 @@ module.exports = {
         })
     },
 
-    getUploadRecordById: (req, res) =>{
+    getUploadRecordById_: (req, res) =>{
         console.log(req.params.record_id)
+        let upload_token;
+   
+
+        getRefreshAndExchangeForAccess(req.params.record_id, (err, result)=>{
+            if(err){
+                console.log(err);
+                return res.status(400).json({
+                    status: 400,
+                    error: 1,
+                    message : err,
+                })
+            }
+            console.log(result)
+            console.log('~~~~~~~~~~~~~~~~~~~~~~~')
+            console.log('this is the refresh token: '+result[0]['refresh_token'])
+            if(result && result.length > 0){
+                let tok_data = JSON.stringify({ 
+                    refresh_token: result[0]['refresh_token'],
+                    access_token: result[0]['access_token'],
+                    expiry_date: result[0]['expiry_date'],
+                    id_token: result[0]['id_token'],
+                    token_type: result[0]['token_type'],
+                    scope: result[0]['scope']
+                  })
+                  console.log(tok_data)
+                var json = JSON.parse(tok_data);
+                oauth3Client.setCredentials(json); 
+                google_refresh_token = result[0].refresh_token;      
+                oauth3Client.refreshAccessToken((err, tokens) => {
+                    // your access_token is now refreshed and stored in oauth2Client
+                    // store these new tokens in a safe place (e.g. database)
+                   
+                    upload_token = tokens.access_token
+                    console.log(upload_token)
+                    console.log('upload_token')
+                    console.log('upload_token')
+                    console.log('upload_token')
+                    console.log('upload_token')
+                    console.log(upload_token)
+                    console.log(upload_token)
+                    console.log(upload_token)
+                    console.log(upload_token)
+                 
+                  });
+            }
+        })
        
         getUploadRecordById(req.params.record_id, (err, results)=>{
             if(err){
@@ -522,10 +596,15 @@ module.exports = {
             
             if(results && results.id){
                  console.log('page exist')
+                 console.log(upload_token)
                 return res.status(200).json({
                     status: 200,
                     success: 1,
-                    data : results //.json_data.values.page1[0].headers.edit_submit_field  
+                    data: {
+                        recordData: results,
+                        uploadToken: upload_token,
+                    },
+                    //.json_data.values.page1[0].headers.edit_submit_field  
                 })
             }else{
                 console.log('page doesnot exist')
@@ -540,44 +619,155 @@ module.exports = {
     },
 
 
+    // USE THIS
+    getUploadRecordById: async (req, res) => {
+        console.log(req.params.record_id);
+        let upload_token;
+        let defaultFolder = ''
 
-    
-    submitUpload: (req, res)=>{
-        let record_id =  req.record_id
-        // only upload if the link has not expired and
-        // if the expected update fields arnt already updated
-        //get record_id details
-
-        getRecordById(record_id, (err, results)=>{
-            
-            if(err){
+        getDefaultFolder((err, res_all_replies) => {
+            if (err) {
                 console.log(err);
+              
+            } else {
+                defaultFolder = res_all_replies[0].all_replies
+                console.log('###############dddddddddddddds')
+                console.log(res_all_replies[0].all_replies)
+           
+            }
+        });
+    
+        const getRefreshTokenAndExchange = async () => {
+            try {
+                const result = await new Promise((resolve, reject) => {
+                    getRefreshAndExchangeForAccess(req.params.record_id, (err, result) => {
+                        if (err) {
+                            console.log(err);
+                            reject(err);
+                        } else {
+                            resolve(result);
+                        }
+                    });
+                });
+    
+                console.log('this is the refresh token: ' + result[0]['refresh_token']);
+    
+                if (result && result.length > 0) {
+                    let tok_data = JSON.stringify({
+                        refresh_token: result[0]['refresh_token'],
+                        access_token: result[0]['access_token'],
+                        expiry_date: result[0]['expiry_date'],
+                        id_token: result[0]['id_token'],
+                        token_type: result[0]['token_type'],
+                        scope: result[0]['scope'],
+                    });
+    
+                    console.log(tok_data);
+    
+                    var json = JSON.parse(tok_data);
+                    oauth3Client.setCredentials(json);
+                    google_refresh_token = result[0].refresh_token;
+    
+                    // Wrap the refreshAccessToken function in a Promise
+                    const tokens = await new Promise((resolve, reject) => {
+                        oauth3Client.refreshAccessToken((err, tokens) => {
+                            if (err) {
+                                console.error(err);
+                                reject(err);
+                            } else {
+                                resolve(tokens);
+                            }
+                        });
+                    });
+    
+                    upload_token = tokens.access_token;
+                    console.log(upload_token);
+                }
+            } catch (error) {
+                console.error(error);
+                throw error;
+            }
+        };
+    
+        const getRecordAndSendResponse = async () => {
+            try {
+                const results = await new Promise((resolve, reject) => {
+                 
+                    getUploadRecordById(req.params.record_id, (err, results) => {
+                        if (err) {
+                            console.log(err);
+                            reject(err);
+                        } else {
+                            resolve(results);
+                        }
+                    });
+                });
+         
+    
+                if (results && results.id) {
+                    console.log('page exist');
+                    console.log(
+                        {
+                            recordData: results,
+                            uploadToken: upload_token,
+                            allReplies: defaultFolder
+                        }
+                    );
+                    return res.status(200).json({
+                        status: 200,
+                        success: 1,
+                        data: {
+                            recordData: results,
+                            uploadToken: upload_token,
+                            allReplies: defaultFolder
+                        },
+                        // .json_data.values.page1[0].headers.edit_submit_field
+                    });
+                } else {
+                    console.log('page does not exist');
+                    return res.status(401).json({
+                        status: 404,
+                        error: 1,
+                        message: 'Page does not exist',
+                    });
+                }
+            } catch (error) {
+                console.error(error);
                 return res.status(401).json({
                     status: 401,
                     error: 1,
-                    message : err,
-                })
+                    message: error.message,
+                });
             }
-            if(results && results.id){
-                let date1 = new Date();
-                let date2 = new Date(results.expiry_date);
-                console.log('date1:'+date1)
-                console.log('date2:'+date2)
-                if(date1 > date2 ){
-                    return res.status(402).json({
-                        status:402,
-                        error:1,
-                        message: 'Expired',
-                    })
-                }
-            }
-        })
+        };
+    
+        // Call the functions sequentially
+        getRefreshTokenAndExchange()
+            .then(getRecordAndSendResponse)
+            .catch((error) => {
+                console.error(error);
+                return res.status(400).json({
+                    status: 400,
+                    error: 1,
+                    message: error.message,
+                });
+            });
+    },
+    
+
+
+    
+    submitReplies: (req, res)=>{
+        let record_id =  req.body.record_id
+        // only upload if the link has not expired and
+        // if the expected update fields arnt already updated
+        //get record_id details
  
-        console.log(record_id)
+
         function sendEmail(){
             
         }
-        submitUpload(record_id, (err, results)=>{
+        submitFormReplies(req.body, (err, results)=>{
             if(err){
                 console.log(err);
                 return res.status(400).json({
@@ -586,17 +776,12 @@ module.exports = {
                     message : err,
                 })
             }
-            let rez = []
-            results.forEach(ress => {
-                rez.push(ress)
-            });
-            let js = JSON.stringify(rez)
-            // console.log(js)
             sendEmail();
             return res.status(200).json({
                 status: 200,
                 success: 1,
-                data : rez  
+                submit_id: results
+                  
             })
         })
     },

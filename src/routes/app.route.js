@@ -5,10 +5,8 @@ const upload = multer();
 const {login, createUser, getMe} = require('../controllers/AuthController');
 const {checkToken} = require("../middlewares/ValidateToken");
 const {getGoogleData, checkLinkExpire} = require("../middlewares/Generals");
-const {addRecord, getRecord, getSubmissionById,getUploadRecordById, getRecordById, getSettingById, submitUpload, refresh} = require('../controllers/CreateController');
+const {addRecord, updateRecord, getRecord, getSubmissionById,getUploadRecordById, getRecordById, getSettingById, submitReplies, refresh} = require('../controllers/CreateController');
 const { submitAndUpdate, checkOnline } = require('../controllers/SubmitController');
-
-
 
 
 // check token valid 
@@ -20,6 +18,9 @@ router.get('/check', checkToken, getMe)
 // is passing the right access token 
 // getGoogleData middleware also gets the google access from the DB
 router.post('/create', checkToken, getGoogleData, addRecord)
+
+// getGoogleData middleware also gets the google access from the DB
+router.put('/update', checkToken, getGoogleData, updateRecord)
 
 // get all of a users rcords upload request 
 router.get('/getrecords', checkToken, getRecord)
@@ -39,7 +40,6 @@ router.get('/getsettingbyidnoauth/:id', getSettingById)
 router.get('/refresh', refresh)
 
 // router.get('/getsettingbyidnoauth/:id', getSettingById)
-
 // run this code to check the status of the resumable upload,
 // how much byte has been uploaded and
 // where to continue from.
@@ -48,11 +48,11 @@ router.post('/checkonline', checkOnline)
 
 // check if record is expired or is completed.
 // check this using middleware.
-// if it is completed or expired dont submit, return status 301 or 303
-router.post('/submitAndUpdate',checkLinkExpire, submitAndUpdate)
+// submit the image data url and downloadable url and update the record field with this
+router.put('/submitAndUpdate', submitAndUpdate)
 
-// this route isnt functional, discard
-router.post('/submitupload', upload.single('file'), submitUpload)
+// This route submits the form replies to the database
+router.post('/submitReplies',checkLinkExpire, submitReplies)
 
 
 

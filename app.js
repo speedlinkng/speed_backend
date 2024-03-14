@@ -2,6 +2,7 @@ const express = require('express')
 const app = express()
 const path = require('path');
 const appRoute = require('./src/routes/app.route');
+const zoomRoute = require('./src/routes/zoom.route');
 const userRoute = require('./src/routes/user.route');
 const googleRoute = require('./src/routes/google.route');
 const admin = require('./src/routes/admin.route');
@@ -29,6 +30,7 @@ app.use(express.urlencoded({extended: true}));
 app.use(express.json()) 
 app.use("/api/users", userRoute)
 app.use("/api/app", appRoute)
+app.use("/api/zoom", zoomRoute)
 app.use("/api/google", googleRoute)
 app.use("/api/admin", admin)
 app.use("/api/pay", pay)

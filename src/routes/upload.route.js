@@ -1,11 +1,9 @@
 const express = require('express');
 const router = express.Router();
-const {login, createUser, getMe} = require('../controllers/AuthController');
 const {checkToken} = require("../middlewares/ValidateToken");
 const {getGoogleData, checkLinkExpire} = require("../middlewares/Generals");
 const {addRecord, getRecord, getRecordById, getSettingById, submitUpload, refresh} = require('../controllers/CreateController');
-const {saveToPostgress} = require('../controllers/SaveToProgressController');
-const { submitAndUpdate, checkOnline } = require('../controllers/UploadController');
+const { submitAndUpdate, checkOnline } = require('../controllers/SubmitController');
 
 
 // save upload request
@@ -20,10 +18,6 @@ router.get('/getUploadRequest', checkToken, getRecord)
 // get url record by id
 router.get('/getUploadRequestByurl/:id', checkToken, getRecordById)
 
-// get these records and settings details when the user is trying to upload files
-router.get('/getrecordbyidnoauth/:id', getRecordById)
-router.get('/getsettingbyidnoauth/:id', getSettingById)
-router.post('/refresh', refresh)
 
 // check if record is expired or is completed.
 // check this using middleware.

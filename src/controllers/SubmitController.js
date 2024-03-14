@@ -1,19 +1,7 @@
-const {genSaltSync, hashSync, compareSync, compare} = require("bcrypt")
 const {storeToken, ifexist, updateToken, defaultOauth2Data, myStorage, newStorage} = require('../services/google.services')
-const {sign} = require("jsonwebtoken")
-const express = require('express');
-const fs = require('fs');
-const {Readable} = require('stream');
 const request = require("request");
-const {google} = require('googleapis');
-const {GoogleAuth} = require('google-auth-library');
-const path = require('path');
-const process = require('process');
 const dotenv = require('dotenv');
-const mime = require('mime');
-const axios = require('axios');
-const { checkToken } = require("../middlewares/ValidateToken");
-const {submitUpload} = require('../services/create.services');
+const {getSubmittedRecordById, submitAndUpdate} = require('../services/submit.services');
 dotenv.config();
 
 module.exports = {
@@ -53,10 +41,14 @@ module.exports = {
          })  
     },
 
-    submitAndUpdate: async (req, res) => {
-
+      submitAndUpdate: async (req, res) => {
+        /* Update image data into submitted_Records record
+          For the imaes you can update it even if the link is expired, 
+          this helps when people are submitting on deadline but images or file were large
+        */
         // console.log(req.body)
-        submitUpload(req.body, (err, results)=>{
+        let submit_id =  req.body.submit_id
+        submitAndUpdate(req.body, (err, results)=>{
 
             if(err){
                 // console.log(err);
@@ -68,19 +60,17 @@ module.exports = {
                 })
             }
 
-            function sendEmail(){
+            // function sendEmail(){
                 
-            }
-            const mailSent = sendEmail();
-            
+            // }
+            // const mailSent = sendEmail();
+            console.log('send success')
             return res.status(200).json({
                 success: 1,
-                data : 'updated successfully',
+                data : 'updated successfully ..',
             })
-
+          
         })
-
-        // GET ACCESS TOKEN
        
     }
 }

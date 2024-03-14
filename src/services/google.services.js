@@ -1,16 +1,17 @@
 // const pool = require('../models/DB');
-const pool = require('../models/PGDB');
+const pgpool = require('../models/PGDB');
 const shortid = require("shortid");
 const date = require('date-and-time');
 
 module.exports = {
 
-    storeToken: (tokens,email, storageEmail, user_id, callback)=>{
+    storeToken: (tokens,email, storageEmail, user_id, role, allReplies, callback)=>{
         const currentDate = new Date();
         const oneMoreDay = date.format(date.addDays(currentDate, +1), 'YYYY/MM/DD HH:mm:ss'); 
+        let status;
 
-        pool.query(
-            `insert into user_google(refresh_token, access_token, expiry_date, id_token, token_type, scope, email, storage_email, user_id, role, expire_next) values($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)`,
+        pgpool.query(
+            `insert into user_google(refresh_token, access_token, expiry_date, id_token, token_type, scope, email, storage_email, user_id, role, expire_next, all_replies) values($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)`,
             [
                 tokens.refresh_token,
                 tokens.access_token,
@@ -21,8 +22,9 @@ module.exports = {
                 email,
                 storageEmail,
                 user_id,
-                'user',
+                role,
                 oneMoreDay,
+                allReplies
 
             ],
             (err, res, fields) =>{
@@ -45,7 +47,7 @@ module.exports = {
     getGoogleData: (access, callback) =>{
   
 
-        pool.query(
+        pgpool.query(
             `select * from user_google where user_id= $1`,
             [
                 access.user_id 
@@ -62,7 +64,7 @@ module.exports = {
     },
 
     defaultOauth2Data: callback =>{
-        pool.query(
+        pgpool.query(
             `select * from user_google where role='default'`,
 
             (err, res, fields) =>{
@@ -76,7 +78,7 @@ module.exports = {
     },
 
     myStorage: (user_id, callback) =>{
-        pool.query(
+        pgpool.query(
             `select * from user_google where user_id=$1`,
             [
                 user_id
@@ -92,7 +94,7 @@ module.exports = {
     },
 
     newStorage: (user_id, callback) =>{
-        pool.query(
+        pgpool.query(
             `select * from user_google where user_id=$1`,
             [
                 user_id
@@ -108,7 +110,7 @@ module.exports = {
     },
 
     ifexist: (email, callback) =>{
-        pool.query(
+        pgpool.query(
             `select * from user_google where email=$1`,
             [
                 email
@@ -123,24 +125,56 @@ module.exports = {
         )
     },
 
-    updateToken: (tokens, email, storage, callback) =>{
-        console.log('storage: '+storage)
-        pool.query(
-            `update user_google set refresh_token=$1, access_token=$2, storage_email=$3, expiry_date=$4 where email=$5`,
-            [
-                tokens.refresh_token,
-                tokens.access_token,
-                storage,
-                tokens.expiry_date,
-                email
-            ],
-            (err, res, fields) =>{
-                if(err){
-                    return callback(err);
+    updateToken: async (tokens, email, storage, role, allReplies, callback) =>{
+        if(role == 'default'){
+           let out =  await removeDefault()
+            updateAll()
+        }else{
+             updateAll()
+        }
+    
+        async function updateAll(){
+            pgpool.query(
+                `update user_google set refresh_token=$1, access_token=$2, storage_email=$3, expiry_date=$4, role = $5, all_replies = $6 WHERE email=$7`,
+                [
+                    tokens.refresh_token,
+                    tokens.access_token,
+                    storage,
+                    tokens.expiry_date,
+                    role,
+                    allReplies,
+                    email
+                ],
+                (err, res, fields) =>{
+                    // console.log(res)
+                    // console.log('++++++=')
+                    if(err){
+                        return callback(err);
+                    }
+                  
+                  
+                    return callback(null, res.rows)
                 }
-                return callback(null, res.rows)
-            }
 
-        )
+            )
+        }
+        async function removeDefault(){
+            console.log('remove default')
+            pgpool.query(
+                `update user_google set role = $1`,
+                [
+                    'user'
+                ],
+                (err, res, fields) =>{
+                    console.log(res)
+                    if(err){
+                        return 'error'
+                    }
+                    return 'success'
+                }
+    
+            )
+        }
+      
     },
 }

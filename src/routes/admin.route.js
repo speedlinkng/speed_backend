@@ -2,6 +2,9 @@ const express = require('express');
 const router = express.Router();
 const {ifAdmin} = require("../middlewares/ValidateToken");
 const {
+    changeUserPassword, 
+} = require('../controllers/AuthController');
+const {
     getAllUsers, 
     getAllRecords, 
     searchUser,
@@ -30,6 +33,7 @@ router.get('/getTotalCompletedRecordCount', ifAdmin, getTotalCompletedRecordCoun
 router.get('/getTotalByteUploaded', ifAdmin, getTotalByteUploaded)
 router.get('/getTotalSubscribers', ifAdmin, getTotalSubscribers)
 router.get('/getTotalAmount', ifAdmin, getTotalAmount)
+router.post('/changeUserPassword', ifAdmin, changeUserPassword)
 
 
 // Protect Admin

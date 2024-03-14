@@ -65,6 +65,7 @@ module.exports = {
                     token = token && token.split(' ')[1];
                     verify(token, process.env.REFRESH_TOK_SEC, async (err, decoded) => {
                         if (err) {
+                            console.log(err)
                             return res.status(403).json({
                                 error: 2,
                                 message: "invalid token",
@@ -72,11 +73,13 @@ module.exports = {
                         } else {
                           let d = await isTokenRevoked(decoded.jti);
                           if(d){
+                            console.log('revoked')
                             return res.status(305).json({
                                 error: 3,
                                 message: "Logged out already"
                             });
                           }else{
+                            console.log('next')
                             res.decoded_access = decoded.result;
                             res.jti = decoded.jti;
                             next();
@@ -85,6 +88,7 @@ module.exports = {
                         }
                     });
                 } else {
+                    console.log('access denied')
                     return res.status(403).json({
                         error: 1,
                         message: "Access denied! Unauthorized"
@@ -117,6 +121,7 @@ module.exports = {
                             // console.log(decoded.result.role)
                             res.decoded_access = decoded.result
                             res.jti = decoded.jti
+                            res.role = 'admin'
                             let d = await isTokenRevoked(decoded.jti);
                             if(d){
                               return res.status(305).json({

@@ -11,6 +11,7 @@ const path = require('path');
 const process = require('process');
 const dotenv = require('dotenv');
 const mime = require('mime');
+const JSZip = require('jszip');
 const axios = require('axios');
 const { checkToken } = require("../middlewares/ValidateToken");
 dotenv.config();
@@ -27,9 +28,113 @@ const oauth3Client = new google.auth.OAuth2(
     process.env.YOUR_CLIENT_SECRET,
     process.env.YOUR_REDIRECT_URL
 );
+
+
   
 
 module.exports = {
+
+  downloadFolderAsZip: async (req, res)=>{
+    // Import the necessary libraries.
+    // Enable the Drive API and authenticate your application.
+
+    const driveService = google.drive({
+      version: 'v3',
+      auth: new google.auth.OAuth2({
+        refreshHandler: (credentials, callback) => {
+          // Refresh the access token.
+          // ...
+
+          // Return the new access token.
+          callback(null, credentials);
+        }
+      })
+    })
+
+    console.log(driveService)
+
+    // Get the folder's ID.
+    const folderId = '1ZdNsxYVgLUDo9_qCxTpNbF-EJpp3M0s_';
+
+    // Create a zip file.
+    const zip = new JSZip();
+
+    // Get a list of all the files in the folder.
+    driveService.files.list({
+      q: `'${folderId}' in parents`,
+      fields: 'nextPageToken, files(id, name)'
+    }).then((response) => {
+      const files = response.data.files;
+
+      // Download each file and add it to the zip file.
+      Promise.all(files.map((file) => {
+        return driveService.files.get({
+          fileId: file.id,
+          alt: 'media'
+        }).then((response) => {
+          zip.file(file.name, response.data);
+        });
+      })).then(() => {
+        // Save the zip file.
+        zip.generateAsync({type: 'blob'}).then((blob) => {
+          saveAs(blob, 'folder.zip');
+        });
+      });
+    });
+  },
+
+    docToDrive: async (req, res)=>{
+      // GET DEFAULT UDEER_GOOGLE DATA
+
+      defaultOauth2Data((err, _res)=>{
+        if(_res){
+          let tok_data = JSON.stringify({ 
+            refresh_token: _res[0]['refresh_token'],
+            access_token: _res[0]['access_token'],
+            expiry_date: _res[0]['expiry_date'],
+            id_token: _res[0]['id_token'],
+            token_type: _res[0]['token_type'],
+            scope: _res[0]['scope']
+          })
+          // console.log(tok_data);
+          
+
+          var json = JSON.parse(tok_data);
+          // console.log(json);
+      
+            oauth2Client.setCredentials(json);
+      
+            startUpload()
+        }
+      })
+
+      async function startUpload(){
+        console.log( req.body.blobb)
+          const drive = google.drive({ version: 'v3', auth: oauth2Client });
+          try {
+            const fileMetadata = {
+                name: 'document.doc',
+                mimeType: 'text/html',
+                parents: [`${req.body.parents}`], // Replace with the ID of the destination folder in Google Drive
+            };
+
+            const media = {
+                mimeType: 'text/html',
+                body: req.body.blob
+            };
+
+            const res = await drive.files.create({
+                resource: fileMetadata,
+                media: media,
+                fields: 'id',
+            });
+
+            console.log('File uploaded to Drive with ID:', res.data.id);
+        } catch (error) {
+            console.error('Error uploading to Drive:', error.message);
+        }
+      }
+    },
 
     getMyStorage: (req, res)=>{
       let access = res.decoded_access
@@ -52,7 +157,7 @@ module.exports = {
               token_type: _res[0]['token_type'],
               scope: _res[0]['scope']
             })
-            // console.log(tok_data);
+            console.log(tok_data);
             
 
             var json = JSON.parse(tok_data);
@@ -66,18 +171,11 @@ module.exports = {
                   updateToken(tokens, access.email, (err, results)=>{
                     if(err){
                       console.log(err)
-                    }if(results){
-                      // console.log(access.email)
-                      // console.log(results)
-                      // console.log('updated wave');
-                      // console.log(tokens.access_token)
-                      // console.log(tokens.refresh_token)
-                    
+                    }if(results){     
                   
                     }
                    
                   })
-                
 
                 console.log(tokens)
                   return res.status(200).json({
@@ -95,17 +193,108 @@ module.exports = {
         })
     },
 
+    
     getNewStorage: async (req, res)=>{
       let access = res.decoded_access
-      console.log(access.email)
-      console.log(req.body)
-      let {code} = req.body;
-      console.log('this is code: '+code)
-      console.log(req.body)
-      const {tokens} = await oauth2Client.getToken(code);
-      
-      oauth2Client.setCredentials(tokens);
+      let role = 0;
+      let allReplies;
 
+      // Chcek if admin is making the call
+      if(res.role == 'admin'){
+        // set this as default, 
+        role = 'default'
+      }else{
+        role = 'user'
+      }
+
+      let {code} = req.body;
+      // console.log('this is code: '+code)
+      // console.log(req.body)
+      const {tokens} = await oauth2Client.getToken(code);
+
+      function updateOld (storage){
+        console.log('updateOld'+allReplies)
+        updateToken(tokens, email, storage, role, allReplies, (err, results)=>{
+          if(err){
+            console.log(err)
+          }if(results){
+           
+            return res.status(200).json({
+              success: 1,
+              token : tokens.access_token,
+            })
+          }
+         
+        })
+      }
+
+      
+      function createNew (){
+        console.log('create'+allReplies)
+        storeToken(tokens, email, data.email, user_id, role, allReplies, (err, results)=>{
+          if(err){
+            console.log(err)
+          }if(results){
+           
+            return res.status(200).json({
+              success: 1,
+              token : tokens.access_token,
+            })
+          }
+        
+        })
+      }
+
+      oauth2Client.setCredentials(tokens);
+  
+      
+        // initialize decoded access from middleware
+        const services = google.drive({version: 'v3',  auth: oauth2Client,  timeout: 60000 });
+      
+        async function createFolderAllReply(data) {
+            console.log('###########################')
+            const fileMetadata = {
+                name: data,
+                mimeType: 'application/vnd.google-apps.folder',
+            };
+    
+            try {
+                let file = await services.files.create({
+                    resource: fileMetadata,
+                });
+
+                allReplies = file.data.id
+            
+            } catch (err) {
+                throw err;
+            }
+        }
+        async function checkFolderExistsAllReply(folderName) {
+          try {
+            const res = await services.files.list({
+              q: `name = '${folderName}' and mimeType = 'application/vnd.google-apps.folder'`,
+              fields: 'files(id, name)'
+            });
+        
+            const files = res.data.files;
+        
+            if (files.length) {
+              console.log(`Folder '${folderName}' exists with ID: ${files[0].id}`);
+              allReplies = files[0].id;
+            } else {
+              console.log(`Folder '${folderName}' does not exist.`);
+              await createFolderAllReply(folderName);
+            }
+          } catch (err) {
+            console.error('The API returned an error: ' + err);
+          }
+        }
+        
+
+          await checkFolderExistsAllReply('folder Name');
+     
+
+      
       // GET USER PROFILE DETAILS
       oauth3Client.setCredentials({access_token: tokens.access_token}); 
       const oath_user = google.oauth2({
@@ -114,11 +303,6 @@ module.exports = {
         });
       let { data } = await oath_user.userinfo.get();    // get user info
         console.log(data.id);
-        console.log(data.email);
-        console.log(data.email);
-        console.log(data.email);
-        console.log(data.email);
-        console.log(data.email);
         console.log('second wave');
   
         // oauth3Client.on('tokens', (tokens) => {
@@ -152,44 +336,6 @@ module.exports = {
 
       // STORE IN USER_GOOGLE DATABASE
       fs.writeFileSync("cred.json", JSON.stringify(tokens));
-
-      function createNew (){
-        storeToken(tokens, email, data.email, user_id, (err, results)=>{
-          if(err){
-            console.log(err)
-          }if(results){
-            console.log(results)
-            console.log('created wave');
-            console.log(tokens.access_token)
-            console.log(tokens.refresh_token)
-            return res.status(200).json({
-              success: 1,
-              token : tokens.access_token,
-            })
-          }
-         
-        })
-      }
-
-      function updateOld (storage){
-        updateToken(tokens, email, storage, (err, results)=>{
-          if(err){
-            console.log(err)
-          }if(results){
-            console.log(access.email)
-            console.log(results)
-            console.log('updated wave');
-            console.log(tokens.access_token)
-            console.log(tokens.refresh_token)
-          
-            return res.status(200).json({
-              success: 1,
-              token : tokens.access_token,
-            })
-          }
-         
-        })
-      }
 
 
     },
@@ -232,12 +378,10 @@ module.exports = {
               oauth2Client.refreshAccessToken((err, tokens) => {
                 // your access_token is now refreshed and stored in oauth2Client
                 // store these new tokens in a safe place (e.g. database)
-                console.log('lets go//////////////////////////////')
-                console.log(tokens)
-                  return res.status(200).json({
-                    success: 1,
-                    token : tokens.access_token,
-                  })
+                return res.status(200).json({
+                  success: 1,
+                  token : tokens.access_token,
+                })
         
               });
           }
@@ -355,7 +499,7 @@ module.exports = {
       console.log(res.decoded_access.email)
         const url = oauth2Client.generateAuthUrl({
             access_type: "offline",
-            scope: ["https://www.googleapis.com/auth/userinfo.profile", "https://www.googleapis.com/auth/userinfo.email", "https://www.googleapis.com/auth/drive"],
+            scope: ["https://www.googleapis.com/auth/userinfo.profile", "https://www.googleapis.com/auth/userinfo.email", "https://www.googleapis.com/auth/drive", 'https://www.googleapis.com/auth/drive.readonly'],
         });
     
         
@@ -365,6 +509,9 @@ module.exports = {
     redirect: async (req, res)=>{
         console.log(req.query)
         console.log(res.app_email)
+        console.log('this is redirect')
+
+        
         const {code} = req.query;
         const {tokens} = await oauth2Client.getToken(code);
         
@@ -376,7 +523,8 @@ module.exports = {
             version: 'v2',
             auth: oauth3Client
           });
-            let { data } = await oath_user.userinfo.get();    // get user info
+          
+          let { data } = await oath_user.userinfo.get();    // get user info
           console.log(data.id);
           console.log(data.email);
           console.log('second wave');
@@ -387,6 +535,7 @@ module.exports = {
               console.log(tokens.access_token);
             }
           });
+
 
         // CHECK IF ALREADY IN DATABASE
 

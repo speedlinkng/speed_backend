@@ -80,22 +80,25 @@ POST http://localhost:5000/api/users/login
 Content-Type: application/json
  
 {
-    "email": "iso@gmail.com",
-    "password": "123456"
+    "email": "rol@gmail.com",
+    "password": "1111111"
 
 }
 
 ###
 
-POST http://localhost:5000/api/users/login
+POST http://localhost:5000/api/users
 Content-Type: application/json
 # Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyZXN1bHQiOnsiaWQiOjgsImZpcnN0TmFtZSI6IkRpdmluZSIsImxhc3ROYW1lIjoiSXNvIiwiZ2VuZGVyIjoibSIsImVtYWlsIjoidGVzdEBnbWlsLmNvbSIsIm51bWJlciI6MjE0NzQ4MzY0NywiY3JlYXRlZF9hdCI6IjAwMDAtMDAtMDAgMDA6MDA6MDAiLCJnb29nX3JlZnJlc2hfdG9rZW4iOm51bGwsImFjY2Vzc190b2tlbiI6bnVsbCwicGxhbiI6bnVsbCwic3RhdHVzIjpudWxsLCJzZXNzaW9uX3VyaSI6bnVsbCwiY291bnRfdXBsb2FkcyI6bnVsbCwiYnl0ZXMgX3RvdGFsIjpudWxsLCJ1c2VyX2lkIjpudWxsfSwiaWF0IjoxNjk0MDIwMDQ3LCJleHAiOjE2OTQwMjM2NDd9.HySHe9tztCnRGzt0GrG_x6X-YCurjMXj7n2D8eT8Mlw
 
 {
-    "email": "test@gmil.com",
+    "number": "09079417401",
+    "first_name": "Divine",
+    "last_name": "Iso",
+    "email": "test6@gmil.com",
     "name": "ubong",
-    "password": "1234567",
-    "passwordConfirmation": "1234567"
+    "password": "CypherConcern@$9095",
+    "passwordConfirmation": "CypherConcern@$9095"
 }
 
 ###
@@ -176,3 +179,75 @@ Content-Type: application/json
 # Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyZXN1bHQiOnsiaWQiOjgsImZpcnN0TmFtZSI6IkRpdmluZSIsImxhc3ROYW1lIjoiSXNvIiwiZ2VuZGVyIjoibSIsImVtYWlsIjoidGVzdEBnbWlsLmNvbSIsIm51bWJlciI6MjE0NzQ4MzY0NywiY3JlYXRlZF9hdCI6IjAwMDAtMDAtMDAgMDA6MDA6MDAiLCJnb29nX3JlZnJlc2hfdG9rZW4iOm51bGwsImFjY2Vzc190b2tlbiI6bnVsbCwicGxhbiI6bnVsbCwic3RhdHVzIjpudWxsLCJzZXNzaW9uX3VyaSI6bnVsbCwiY291bnRfdXBsb2FkcyI6bnVsbCwiYnl0ZXMgX3RvdGFsIjpudWxsLCJ1c2VyX2lkIjpudWxsfSwiaWF0IjoxNjk0MDIwMDQ3LCJleHAiOjE2OTQwMjM2NDd9.HySHe9tztCnRGzt0GrG_x6X-YCurjMXj7n2D8eT8Mlw
 
 ###
+
+POST http://localhost:5000/api/users/forgot
+Content-Type: application/json
+
+{
+    "email": "drrowly99@gmil.com"
+}
+
+# Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyZXN1bHQiOnsiaWQiOjgsImZpcnN0TmFtZSI6IkRpdmluZSIsImxhc3ROYW1lIjoiSXNvIiwiZ2VuZGVyIjoibSIsImVtYWlsIjoidGVzdEBnbWlsLmNvbSIsIm51bWJlciI6MjE0NzQ4MzY0NywiY3JlYXRlZF9hdCI6IjAwMDAtMDAtMDAgMDA6MDA6MDAiLCJnb29nX3JlZnJlc2hfdG9rZW4iOm51bGwsImFjY2Vzc190b2tlbiI6bnVsbCwicGxhbiI6bnVsbCwic3RhdHVzIjpudWxsLCJzZXNzaW9uX3VyaSI6bnVsbCwiY291bnRfdXBsb2FkcyI6bnVsbCwiYnl0ZXMgX3RvdGFsIjpudWxsLCJ1c2VyX2lkIjpudWxsfSwiaWF0IjoxNjk0MDIwMDQ3LCJleHAiOjE2OTQwMjM2NDd9.HySHe9tztCnRGzt0GrG_x6X-YCurjMXj7n2D8eT8Mlw
+
+###
+
+
+GET http://localhost:5000/api/users/verifyrecovery/5fb8c2c4-472f-4604-a50d-e5927c8a5eb60
+Content-Type: application/json
+
+###
+
+POST http://localhost:5000/api/admin/changeUserPassword
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyZXN1bHQiOnsiaWQiOjEsImZpcnN0bmFtZSI6IiIsImxhc3RuYW1lIjoiIiwiZW1haWwiOiJpc29AZ21haWwuY29tIiwibnVtYmVyIjoiMDkwNzk0MTc0MDEiLCJjcmVhdGVkX2F0IjoiMjAyMy0xMC0zMVQyMDo0MjozOS4wMDBaIiwicmVjb3ZlcnlfaWQiOiIyNGRiNzMyNi1mNGRlLTQwODEtOWViOC0zOGQxM2IwNWE2ZDgiLCJhY2Nlc3NfdG9rZW4iOm51bGwsInBsYW4iOjIsInN0YXR1cyI6IkFjdGl2ZSIsInNlc3Npb25fdXJpIjpudWxsLCJjb3VudF91cGxvYWRzIjowLCJieXRlc190b3RhbCI6bnVsbCwidXNlcl9pZCI6Ijg2MDJiNDJkLTU1OTUtNDlmOC04N2Q1LWMxZGIxOGVkOGNlZCIsInJvbGUiOiJhZG1pbiIsIm5leHRfcGF5bWVudF9kYXRlIjoiMjAyMy0xMS0xMVQxMzo1NjowMC4wMDBaIiwidXBkYXRlZF9hdCI6IjIwMjQtMDItMDhUMDk6Mzg6MTMuMzg5WiJ9LCJqdGkiOiI3YjQ4YWQxZTc3YTk0NzVhIiwiaWF0IjoxNzA5Mzk1MTQ0LCJleHAiOjE3MDkzOTg3NDR9.heJaLOfOPumXn9old24_VYtBEGrsxpLk0ASg8pnZLto
+
+{
+    "userEmail": "iso@gmail.com",
+    "userPassword": "123456"
+}
+
+###
+POST http://localhost:5000/api/users/setNewPassword 
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyZXN1bHQiOnsiaWQiOjEsImZpcnN0bmFtZSI6IiIsImxhc3RuYW1lIjoiIiwiZW1haWwiOiJpc29AZ21haWwuY29tIiwibnVtYmVyIjoiMDkwNzk0MTc0MDEiLCJjcmVhdGVkX2F0IjoiMjAyMy0xMC0zMVQyMDo0MjozOS4wMDBaIiwicmVjb3ZlcnlfaWQiOiIyNGRiNzMyNi1mNGRlLTQwODEtOWViOC0zOGQxM2IwNWE2ZDgiLCJhY2Nlc3NfdG9rZW4iOm51bGwsInBsYW4iOjIsInN0YXR1cyI6IkFjdGl2ZSIsInNlc3Npb25fdXJpIjpudWxsLCJjb3VudF91cGxvYWRzIjowLCJieXRlc190b3RhbCI6bnVsbCwidXNlcl9pZCI6Ijg2MDJiNDJkLTU1OTUtNDlmOC04N2Q1LWMxZGIxOGVkOGNlZCIsInJvbGUiOiJhZG1pbiIsIm5leHRfcGF5bWVudF9kYXRlIjoiMjAyMy0xMS0xMVQxMzo1NjowMC4wMDBaIiwidXBkYXRlZF9hdCI6IjIwMjQtMDItMDhUMDk6Mzg6MTMuMzg5WiJ9LCJqdGkiOiI3YjQ4YWQxZTc3YTk0NzVhIiwiaWF0IjoxNzA5Mzk1MTQ0LCJleHAiOjE3MDkzOTg3NDR9.heJaLOfOPumXn9old24_VYtBEGrsxpLk0ASg8pnZLto
+
+{
+    "oldPassword": "123456M",
+    "newPassword": "123456"
+}
+
+###
+
+POST http://localhost:5000/api/app/submitReplies
+Content-Type: application/json
+
+{
+    "userEmail": "drrowly99@gmail.com",
+    "userPassword": "123456"
+}
+###
+
+GET http://localhost:5000/api/zoom/
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyZXN1bHQiOnsiaWQiOjgsImZpcnN0bmFtZSI6IkRpdmluZSIsImxhc3RuYW1lIjoiSXNvIiwiZW1haWwiOiJyb2xAZ21haWwuY29tIiwibnVtYmVyIjoiMDkwNzk0MTc0MDEiLCJjcmVhdGVkX2F0IjoiMjAyNC0wMy0wM1QwNzo0MjoxOS41OTlaIiwicmVjb3ZlcnlfaWQiOm51bGwsImFjY2Vzc190b2tlbiI6bnVsbCwicGxhbiI6MSwic3RhdHVzIjpudWxsLCJzZXNzaW9uX3VyaSI6bnVsbCwiY291bnRfdXBsb2FkcyI6MCwiYnl0ZXNfdG90YWwiOm51bGwsInVzZXJfaWQiOiJiYzFiNjVkMy1hZjU0LTQ5ZmYtYjM3Yi02ZTBkMThjNjBhYmQiLCJyb2xlIjoidXNlciIsIm5leHRfcGF5bWVudF9kYXRlIjpudWxsLCJ1cGRhdGVkX2F0IjpudWxsfSwianRpIjoiYmU0NjBmZGJkNDM2MTY0ZCIsImlhdCI6MTcwOTQ2NzA1NiwiZXhwIjoxNzA5NDcwNjU2fQ.x9ng6p2Tzj01XXEHBzbLtqtOCZT45cKD6Y1Cs_RTZec
+
+###
+
+POST http://localhost:5000/api/google/docToDrive
+Content-Type: application/json
+
+{
+    "blob": "blob",
+    "parents": "14dTWcAdet0GOuAi_KA9jUW0xn3LWkslM"
+}
+###
+
+POST http://localhost:5000/api/google/downloadFolderAsZip
+Content-Type: application/json
+
+{
+    "blob": "blob",
+    "parents": "14dTWcAdet0GOuAi_KA9jUW0xn3LWkslM"
+}
+###
+1ZdNsxYVgLUDo9_qCxTpNbF-EJpp3M0s_

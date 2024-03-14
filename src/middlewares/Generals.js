@@ -5,7 +5,7 @@ const shortid = require("shortid");
 const dotenv = require('dotenv');
 const date = require('date-and-time');
 const { getGoogleData } = require('../services/google.services');
-const { getRecordById } = require('../services/create.services');
+const { getSubmittedRecordById } = require('../services/submit.services');
 
 const oauth2Client = new google.auth.OAuth2(
     process.env.YOUR_CLIENT_ID,
@@ -17,7 +17,7 @@ module.exports = {
     checkLinkExpire: (req, res, next) => {
         console.log('checkLinkExpire')
         console.log(req.body.record_id)
-        getRecordById(req.body.record_id, (err, results)=>{ 
+        getSubmittedRecordById(req.body.record_id, (err, results)=>{ 
             if(err){
                 console.log(err);
                 return res.status(400).json({
@@ -32,7 +32,7 @@ module.exports = {
                 let date2 = new Date(results.expiry_date);
                 
                 if(date1 > date2 ){
-                    
+                    console.log('expired');
                     return res.status(301).json({
                         status:301,
                         error:1,

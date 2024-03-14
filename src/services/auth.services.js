@@ -1,18 +1,16 @@
-// const pool = require('../models/DB');
-const pool = require('../models/PGDB');
+const pgpool = require('../models/PGDB');
 const crypto = require("crypto")
 const { v4: uuidv4 } = require('uuid');
 
 // Generate a new UUID
 const uniqueId = uuidv4();
-
 module.exports = {
 
     register: (data, callback)=>{
 
         console.log(data)
-        pool.query(
-            `insert into users(firstName, lastName, email, password, number, user_id) values($1,$1,$1,$1,$1,$1)`,
+        pgpool.query(
+            `insert into users(firstName, lastName, email, password, number, user_id) values($1,$2,$3,$4,$5,$6)`,
             [
                 data.first_name,
                 data.last_name,
@@ -31,10 +29,10 @@ module.exports = {
     },
 
     getUserByUserEmail: (email, callback) =>{
-        pool.query(
+        pgpool.query(
             `select * from users where email = $1`,
             [
-                email 
+                email
             ],
             (err, res, fields) =>{
                 if(err){
@@ -48,7 +46,7 @@ module.exports = {
 
 
     getMe: (email, callback) =>{
-        pool.query(
+        pgpool.query(
             `select * from users where email = $1`,
             [
                 email 
@@ -64,8 +62,8 @@ module.exports = {
     },
 
     logout: (jti,tkn, callback) =>{
-        pool.query(
-            `insert into revoked_token(token, jti) values($1,$1)`,
+        pgpool.query(
+            `insert into revoked_token(token, jti) values($1,$2)`,
             [    
                 tkn,
                 jti
@@ -80,9 +78,155 @@ module.exports = {
         )
     },
 
+    checkEmailExists: async (email,try_, callback) => {
+      
+            pgpool.query(
+                `select * from users where email = $1`,
+                [email],
+                (err, res, fields) =>{
+                    if(err){
+                        return callback(err);
+                    }
+                    if(try_ !== 2){
+                        setRecoverId()
+                    }
+                   
+                    return callback(null, res.rows)
+                }
+
+            )
+        
+
+        function setRecoverId(){
+            const verifyId_ = uniqueId
+            pgpool.query(
+                `update users set recovery_id = $1 WHERE email = $2`, 
+                [verifyId_, email],
+                (err, res, fields) =>{
+                    if(err){
+                        return callback(err);
+                    }
+                    console.log('work')
+                    // console.log(res.rowCount)
+                    if(res.rowCount = 1){
+                        return '1'
+                        
+                    }
+                
+                }
+    
+            )
+        }
+   
+    },
+    
+
+
+    updateChangedPassword: (password, user_id, callback) =>{
+        const currentDate = new Date();
+        pgpool.query(
+            `update users set password = $1, updated_at = $2 WHERE user_id = $3`, 
+            [    
+                password,
+                currentDate,
+                user_id
+            ],
+            (err, res, fields) =>{
+                if(err){
+                    return callback(err);
+                }
+                return callback(null, res.rows[0])
+            }
+
+        )
+    },
+
+
+    matchRecovery: (recovery_id, callback) => {
+        pgpool.query(
+            'SELECT * FROM users WHERE recovery_id = $1',
+            [recovery_id],
+            (err, res) => {
+                if (err) {
+                    return callback(err);
+                }
+    
+                if (res.rows.length > 0) {
+                    // Recovery_id matches for the given email
+                    return callback(null, {success:true, data:res.rows})
+                } else {
+                    // No matching recovery_id for the email
+                    return callback(null, { success: false});
+                }
+            }
+        );
+    },
+    
+    
+    checkOldPassword: (oldPassword, email, callback) =>{
+       
+        pgpool.query(
+            `select * from users where email = $1`,
+            [    
+                email
+            ],
+            (err, res, fields) =>{
+                if(err){
+                    return callback(err);
+                }
+         
+                return callback(null, res.rows[0])
+            }
+
+        )
+
+    },
+
+    setNewPassword: (password,email, callback) =>{
+        const currentDate = new Date();
+        pgpool.query(
+            `update users set password = $1, updated_at = $2 where email = $3`, 
+            [    
+                password,
+                currentDate,
+                email
+            ],
+            (err, res, fields) =>{
+                if(err){
+                    return callback(err);
+                }
+                return callback(null, res.rows[0])
+            }
+
+        )
+    },
+
+    set_NewPhoneNumber: (phoneNumber,email, callback) =>{
+        const currentDate = new Date();
+        pgpool.query(
+            `update users set number = $1, updated_at = $2 where email = $3`, 
+            [    
+                phoneNumber,
+                currentDate,
+                email
+            ],
+            (err, res, fields) =>{
+                if(err){
+                    return callback(err);
+                }
+                return callback(null, res.rows[0])
+            }
+
+        )
+    },
+
+    
+
+    
+
     checkRevoke: (jti, callback) =>{
  
-        pool.query(
+        pgpool.query(
             `select * from revoked_token where jti = $1`,
             [
                 jti 
