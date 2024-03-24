@@ -13,11 +13,11 @@ const pool = require('./src/models/DB');
 const pgpool = require('./src/models/PGDB');
 
 dotenv.config();
-const corsOptions ={
-   origin:process.env.FRONTEND_URL, 
-   credentials:true,            //access-control-allow-credentials:true
-   optionSuccessStatus:200,
-}
+const corsOptions = {
+  origin: [process.env.FRONTEND_URL, 'https://speedlink-frontend.onrender.com'],
+  credentials: true,
+  optionSuccessStatus: 200,
+};
 
 // trial
 const {validateLogin} = require("./src/middlewares/ValidateMiddleware")
