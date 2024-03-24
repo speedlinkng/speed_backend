@@ -14,7 +14,7 @@ const pgpool = require('./src/models/PGDB');
 
 dotenv.config();
 const corsOptions = {
-  origin: [process.env.FRONTEND_URL, 'https://speedlink-frontend.onrender.com'],
+  origin: [process.env.FRONTEND_URL, process.env.OTHER_FRONTEND_URL],
   credentials: true,
   optionSuccessStatus: 200,
 };
