@@ -161,7 +161,7 @@ Content-Type: application/json
 ###
 POST http://localhost:5000/api/app/create
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyZXN1bHQiOnsiaWQiOjIsImZpcnN0bmFtZSI6ImRpdmluZSIsImxhc3RuYW1lIjoiRWRldCIsImVtYWlsIjoiZHJyb3dseTk5QGdtYWlsLmNvbSIsIm51bWJlciI6IjA5MDc5NDE3NDAxIiwiY3JlYXRlZF9hdCI6IjIwMjMtMTEtMTBUMTk6NTQ6NDQuMDAwWiIsImdvb2dfcmVmcmVzaF90b2tlbiI6bnVsbCwiYWNjZXNzX3Rva2VuIjpudWxsLCJwbGFuIjoxLCJzdGF0dXMiOm51bGwsInNlc3Npb25fdXJpIjpudWxsLCJjb3VudF91cGxvYWRzIjowLCJieXRlc190b3RhbCI6bnVsbCwidXNlcl9pZCI6ImMwMjdmNWEzLTRhYzItNDkzMC05MTVlLTJhOTIyZTI1NjdiYyIsInJvbGUiOiJ1c2VyIiwibmV4dF9wYXltZW50X2RhdGUiOm51bGx9LCJqdGkiOiI0Zjc0YTZiNGFkM2IxNGU3IiwiaWF0IjoxNzA1MDQzMzMxLCJleHAiOjE3MDUwNDY5MzF9.7LlNA-gQhZsNa8sZ-VZzFAiz1b7cTLKTvU1eR12gR0Y
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyZXN1bHQiOnsiaWQiOjgsImZpcnN0bmFtZSI6IkRpdmluZSIsImxhc3RuYW1lIjoiSXNvIiwiZW1haWwiOiJyb2xAZ21haWwuY29tIiwibnVtYmVyIjoiMDkwNzk0MTc0MDEiLCJjcmVhdGVkX2F0IjoiMjAyNC0wMy0wM1QwNzo0MjoxOS41OTlaIiwicmVjb3ZlcnlfaWQiOm51bGwsImFjY2Vzc190b2tlbiI6bnVsbCwicGxhbiI6MSwic3RhdHVzIjpudWxsLCJzZXNzaW9uX3VyaSI6bnVsbCwiY291bnRfdXBsb2FkcyI6MCwiYnl0ZXNfdG90YWwiOm51bGwsInVzZXJfaWQiOiJiYzFiNjVkMy1hZjU0LTQ5ZmYtYjM3Yi02ZTBkMThjNjBhYmQiLCJyb2xlIjoidXNlciIsIm5leHRfcGF5bWVudF9kYXRlIjpudWxsLCJ1cGRhdGVkX2F0IjpudWxsfSwianRpIjoiZmM0Yzc0MjRjMWU2OWIyMyIsImlhdCI6MTcxMDUwNDEzOCwiZXhwIjoxNzEwNTA3NzM4fQ.gGgu1v0Hie1QZJOTg6euWMQSnQqrkiDnYFJpMs49bMU
 
 {
     "name": "test@gmil.com",
@@ -169,7 +169,7 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyZXN1bHQiOnsiaWQiO
     "folder_id": "1234567",
     "subfolder": "1234567",
     "drive_email": "1234567",
-    "preferred": "0",
+    "preferred": "1",
     "user_id": "1234567"
 }
 
@@ -242,12 +242,17 @@ Content-Type: application/json
 }
 ###
 
-POST http://localhost:5000/api/google/downloadFolderAsZip
+GET http://localhost:5000/api/google/downloadFolderAsZip/12/1ZdNsxYVgLUDo9_qCxTpNbF-EJpp3M0s_/rolandiso150@gmail.com
 Content-Type: application/json
 
-{
-    "blob": "blob",
-    "parents": "14dTWcAdet0GOuAi_KA9jUW0xn3LWkslM"
-}
+# {
+#     "user_google_id": "12",
+#     "folder": "1ZdNsxYVgLUDo9_qCxTpNbF-EJpp3M0s_",
+#     "storage_email": "rolandiso150@gmail.com"
+# }
 ###
-1ZdNsxYVgLUDo9_qCxTpNbF-EJpp3M0s_
+GET http://localhost:5000/api/app/sendmail
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyZXN1bHQiOnsiaWQiOjgsImZpcnN0bmFtZSI6IkRpdmluZSIsImxhc3RuYW1lIjoiSXNvIiwiZW1haWwiOiJyb2xAZ21haWwuY29tIiwibnVtYmVyIjoiMDkwNzk0MTc0MDEiLCJjcmVhdGVkX2F0IjoiMjAyNC0wMy0wM1QwNzo0MjoxOS41OTlaIiwicmVjb3ZlcnlfaWQiOm51bGwsImFjY2Vzc190b2tlbiI6bnVsbCwicGxhbiI6MSwic3RhdHVzIjpudWxsLCJzZXNzaW9uX3VyaSI6bnVsbCwiY291bnRfdXBsb2FkcyI6MCwiYnl0ZXNfdG90YWwiOm51bGwsInVzZXJfaWQiOiJiYzFiNjVkMy1hZjU0LTQ5ZmYtYjM3Yi02ZTBkMThjNjBhYmQiLCJyb2xlIjoidXNlciIsIm5leHRfcGF5bWVudF9kYXRlIjpudWxsLCJ1cGRhdGVkX2F0IjpudWxsfSwianRpIjoiYmU0NjBmZGJkNDM2MTY0ZCIsImlhdCI6MTcwOTQ2NzA1NiwiZXhwIjoxNzA5NDcwNjU2fQ.x9ng6p2Tzj01XXEHBzbLtqtOCZT45cKD6Y1Cs_RTZec
+
+###

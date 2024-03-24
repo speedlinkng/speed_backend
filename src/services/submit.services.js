@@ -27,29 +27,78 @@ getSubmittedRecordById: (r_id, callback)=>{
 
 
 submitFormReplies:(body, callback)=>{
-    
-    const currentDate = new Date();
-    pgpool.query(
-        `insert into submitted_records(submitted_data, created_at, drive_email, record_id, status, submitted_id) values($1,$2,$3,$4,$5,$6)`,
-        [
-            body.json_replies,
-            currentDate,
-            body.drive_email,
-            body.record_id,
-            body.status,
-            uniqueId
-        ],
-       
-        (err, res, fields) =>{   
-            if(err){
-                return callback(err);
+    // get user id
+    function getUserId(){
+        pgpool.query(
+            `select user_id from form_records where record_id = $1`,
+            [
+                body.record_id 
+            ],
+           
+            (err, res, fields) =>{
+                if(err){
+                    return callback(err);
+                }
+                   
+                else if(res.rows.length > 0){
+                   
+                    getUserDetails(res.rows)         
+                }  
             }
-            console.log(res.rows)
-            console.log('@@@@@@@@@@@@@@@@@@@@@@@@@@@@@')
-            return callback(null, uniqueId)
-        }
+    
+        )
+    }
 
-    )
+    function getUserDetails(uid){
+
+        pgpool.query(
+            `select * from users where user_id = $1`,
+            [
+                uid[0].user_id 
+            ],
+           
+            (err, res, fields) =>{
+                // console.log(res.rows)
+                if(err){
+                    return callback(err);
+                }
+                
+                else if(res.rows.length > 0) {
+                    res.rows.push({'uniqueId':uniqueId});
+                    return callback(null, res.rows);
+                  }
+                
+
+            }
+        )
+    }
+
+    function submitForm(){
+        const currentDate = new Date();
+        pgpool.query(
+            `insert into submitted_records(submitted_data, created_at, drive_email, record_id, status, submitted_id) values($1,$2,$3,$4,$5,$6)`,
+            [
+                body.json_replies,
+                currentDate,
+                body.drive_email,
+                body.record_id,
+                body.status,
+                uniqueId
+            ],
+        
+            (err, res, fields) =>{   
+                if(err){
+                    return callback(err);
+                }
+                console.log(res.rows)
+                console.log('@@@@@@@@@@@@@@@@@@@@@@@@@@@@@')
+                getUserId()
+            }
+
+        )
+    }
+    submitForm()
+
 },
 
 submitAndUpdate: async (body, callback) => {

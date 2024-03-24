@@ -79,7 +79,7 @@ module.exports = {
                                 message: "Logged out already"
                             });
                           }else{
-                            console.log('next')
+                            //console.log('next')
                             res.decoded_access = decoded.result;
                             res.jti = decoded.jti;
                             next();

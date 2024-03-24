@@ -95,7 +95,7 @@ module.exports = {
         if(body.preferred == 0){
             // 'speedlink Access'
             pgpool.query(
-                'SELECT refresh_token,storage_email, id FROM user_google WHERE role = $1 ORDER BY date_created DESC LIMIT 1',
+                'SELECT * FROM user_google WHERE role = $1 ORDER BY date_created DESC LIMIT 1',
                 [
                     'default' 
                 ],
@@ -171,7 +171,7 @@ module.exports = {
         // )
     },
 
-    createRecord: (data,folder_id, google_refresh_token,google_storage_email, record_id, user_id, userGoogleRow_id, callback)=>{
+    createRecord: (data,folder_id, ADDFTFR, record_id, user_id, userGoogleRow_id, callback)=>{
         if(data.file_type == 'custom_exe'){
            let custom_type = data.custom_type 
         }else{
@@ -184,14 +184,33 @@ module.exports = {
         const oneMoreDay = date.format(date.addDays(currentDate, +1), 'YYYY/MM/DD HH:mm:ss'); 
    
         pgpool.query(
-            `insert into form_records(user_id,status, preferred_drive, record_id, google_refresh_token, storage_email, expiry_date, record_data, folder_id, user_google_id) values($1,$2,$3,$4,$5,$6,$7,$8,$9, $10)`,
+            `insert into form_records(user_id,
+                status, 
+                preferred_drive, 
+                record_id, 
+                google_refresh_token,
+                google_access,
+                google_expiry_date,
+                google_id_token,
+                google_token_type,
+                google_scope,
+                storage_email, 
+                expiry_date, 
+                record_data, 
+                folder_id, 
+                user_google_id) values($1,$2,$3,$4,$5,$6,$7,$8,$9, $10, $11, $12, $13, $14,$15)`,
             [
                 user_id,
                 'active',
                 data.preferred,
                 record_id, 
-                google_refresh_token,
-                google_storage_email,//record id
+                ADDFTFR.refresh_token,
+                ADDFTFR.access_token,
+                ADDFTFR.expiry_date,
+                ADDFTFR.id_token,
+                ADDFTFR.token_type,
+                ADDFTFR.scope,
+                ADDFTFR.storage_email,
                 oneMoreDay,
                 jsonData,
                 folder_id,

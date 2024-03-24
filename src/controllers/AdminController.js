@@ -234,8 +234,7 @@ module.exports = {
 
 
     updateUser: (req, res)=>{
-        console.log( req.params.id,)
-        console.log(req)
+        
         updateUser(req.body, req.params.id, (err, results)=>{
             
             if(err){      
@@ -246,7 +245,7 @@ module.exports = {
                 })
             }
             else if(results){                 
-                console.log(results)
+                // console.log(results)
                 return res.status(200).json({
                     success: 1,
                     data : results,
@@ -274,7 +273,7 @@ module.exports = {
                 })
             }
             else if(results ){                 
-                console.log(results)
+                // console.log(results)
                 return res.status(200).json({
                     success: 1,
                     data : results,
@@ -301,8 +300,9 @@ module.exports = {
                     message : err,
                 })
             }
-            else if(results ){                 
-                console.log(results)
+            else if(results){                 
+                console.log('record count',results)
+                
                 return res.status(200).json({
                     success: 1,
                     data : results,

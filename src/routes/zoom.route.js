@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const {checkToken} = require("../middlewares/ValidateToken");
-const { Authorize, callback, meeting, redirect} = require('../controllers/ZoomController');
+const { Authorize, callback, meeting, refresh, recording} = require('../controllers/ZoomController');
 
 
 
@@ -9,7 +9,8 @@ const { Authorize, callback, meeting, redirect} = require('../controllers/ZoomCo
 router.get('/', checkToken, Authorize)
 router.get('/callback/:user_id', callback)
 router.get('/meeting', meeting)
-router.get('/redirect', redirect)
+router.get('/refresh',checkToken, refresh)
+router.get('/recordings',checkToken, recording)
 
 
 

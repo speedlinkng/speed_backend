@@ -1,5 +1,5 @@
 const {createRecord,updateRecord, getRecord, getSubmissionById, getUploadRecordById, getRecordById, getSettingById, getRefreshTokenGoogle, getRefreshAndExchangeForAccess, updateexpired, getDefaultFolder} = require('../services/create.services');
-const {getSubmittedRecordById, submitAndUpdate, submitFormReplies} = require('../services/submit.services');
+const {getSubmittedRecordById, submitAndUpdate} = require('../services/submit.services');
 const {v4:uuidv4} = require("uuid")
 const request = require("request");
 const crypt = require("crypto")
@@ -9,6 +9,9 @@ const date = require('date-and-time');
 const dotenv = require('dotenv');
 const fs = require('fs');
 const { OAuth2Client } = require('google-auth-library');
+const cron = require('node-cron');
+const sendMail = require('../middlewares/emailMiddleware');
+
 dotenv.config();
 const oauth3Client = new google.auth.OAuth2(
     process.env.YOUR_CLIENT_ID,
@@ -21,6 +24,12 @@ const oauth3Client = new google.auth.OAuth2(
 
 
 module.exports = {
+
+
+    sendmail: (req, res)=>{
+        
+        cron.schedule('*/1 * * * *', sendMail());
+    },
 
     refresh: (req, res)=>{
         //read refresh token from DB
@@ -53,11 +62,6 @@ module.exports = {
             // }
         // })
 
-        // let read = fs.readFileSync('cred.json');
-        // let json = JSON.parse(read);
-        // console.log(json);
-
-        //   refreshAccessToken()
         return;
     },
 
@@ -92,14 +96,16 @@ module.exports = {
         // initialize decoded access from middleware
         let access =  res.decoded_access
         let json = JSON.parse(res.tok_data);
-        console.log(req.body)
+   
         oauth3Client.setCredentials(json);
+
 
         // initialize services
         const service = google.drive({version: 'v3',  auth: oauth3Client});
+
         const body = req.body
         const page1Data = body.values.page1;
-        // console.log(page1Data);
+        let allDriveDataForThisFormRequest;
         const pages = Object.keys(body.values);
 
   
@@ -112,9 +118,7 @@ module.exports = {
                 console.log(`Unique field names for ${pageName}: ${uniqueFieldNames}`);
                 // Perform your action for each page here
                 // You can access the data for the current page using pageData
-            });
-            
-
+            });  
             console.log(`There are ${pages.length} pages in the JSON file.`);
             // Access each page data using data.values[pageName]
         } else {
@@ -128,51 +132,53 @@ module.exports = {
         let google_refresh_token = '' 
         let userGoogleRow_id = ''
         let record_id = shortid()
-       
-        // console.log(oauth3Client)
 
     
-       
-console.log('check exist')
-console.log(folder_id)
-    if(folder_id != ''){
-        // This means the user selected a google folder that already exists
-        // In this case, skip checkFolderExists and createFolder
-        console.log('true')
-        console.log('true')
-        firstQuery(folder_id)
-    }else{
-        console.log('else')
-        console.log('else')
+        if(folder_id != ''){
+            // This means the user selected a google folder that already exists
+            // In this case, skip checkFolderExists and createFolder
+            console.log('true')
+            console.log('true')
+            firstQuery(folder_id)
+        }else{
+            console.log('else')
+            console.log('else')
 
-        checkFolderExists(folder)
-    }
+            checkFolderExists(folder)
+        }
 
-    // return check if folder already exists, if it dosent, create one
-    async function checkFolderExists(folder_name) {
-        console.log('_______))))))))))))))))')
-        console.log(folder_name)
-        service.files.list(
-            {
-              q: `name = '${folder_name}' and mimeType = 'application/vnd.google-apps.folder'`,
-              fields: 'files(id, name)',
-            },
-            (err, res) => {
-              if (err) return console.error('The API returned an error: ' + err);
-              const files = res.data.files;
-              if (files.length) {
-                // createSubFolder(files[0].id)
-                console.log(`Folder '${folder_name}' exists with ID: ${files[0].id}`);
-                firstQuery(files[0].id)
-              } else {
-                console.log(`Folder '${folder_name}' does not exist.`);
-                createFolder(folder_name)
-              }
-            }
-          );
-    }
+        // return check if folder already exists, if it dosent, create one
+        async function checkFolderExists(folder_name) {
+            console.log('_______))))))))))))))))')
 
-    
+            service.files.list(
+                {
+                q: `name = '${folder_name}' and mimeType = 'application/vnd.google-apps.folder'`,
+                fields: 'files(id, name)',
+                },
+                (err, res) => {
+                if (err){
+                    console.error('The API returned an error: ' + err);
+                    return res.status(400).json({
+                        status: 400,
+                        error: 1,
+                        message : err,
+                    })
+                }
+                const files = res.data.files;
+                if (files.length) {
+                    // createSubFolder(files[0].id)
+                    console.log(`Folder '${folder_name}' exists with ID: ${files[0].id}`);
+                    firstQuery(files[0].id)
+                } else {
+                    console.log(`Folder '${folder_name}' does not exist.`);
+                    createFolder(folder_name)
+                }
+                }
+            );
+        }
+
+        
         // Create SUB FOLDERS if it dosent already exists
         async function createSubFolder(id) {
             fileMetadata = {
@@ -213,7 +219,7 @@ console.log(folder_id)
                 // fields: 'id',
             });
             console.log('first FOLDER Id:', file.data.id);
-    
+
             firstQuery(file.data.id)
             // return file.data.id;
             } catch (err) {
@@ -223,6 +229,7 @@ console.log(folder_id)
 
         }
 
+
         function firstQuery(new_folder_id){
             console.log('folder_id 2')
             console.log(access.user_id)
@@ -230,11 +237,10 @@ console.log(folder_id)
             // FIRST GET THE RELATIVE REFRESH_TOKEN IN USER_GOOGLE FOR THIS USER
             // this is not needed 
             getRefreshTokenGoogle(access.user_id, body, (err, google_res)=>{
-                console.log('@@@@@@@@@@@@@@@@@@@@@@@@')
-                console.log(body.preferred )
-                console.log(new_folder_id)
+                
+        
                 if(err){
-                   
+                    
                     return res.status(400).json({
                         status: 400,
                         error: 1,
@@ -246,11 +252,18 @@ console.log(folder_id)
                     google_refresh_token = google_res[0].refresh_token;      
                     google_storage_email = google_res[0].storage_email;
                     userGoogleRow_id = google_res[0].id
-                    // console.log('store_email 1:'+google_storage_email)      
-                    // console.log(`get refresh token from usergoogle ${google_refresh_token}`)
+                    allDriveDataForThisFormRequest = google_res[0]
+                    console.log('@@@@@@@@@@@@@@@@@@@@@@@@')
+                    console.log(allDriveDataForThisFormRequest)
+
+                    /*
+                        we need to store all the google google drive account data for this form_record on the form record
+                        so we parse google_res[0] to the services file for storage
+                    */
+
                     secondQuery(new_folder_id, google_storage_email)
                 }else{
-    
+
                     return res.status(300).json({
                         status: 300,
                         error: 1,
@@ -261,10 +274,11 @@ console.log(folder_id)
             })
         }
 
+
         function secondQuery(new_folder_id, google_storage_email){
             console.log('store_email 2:'+new_folder_id) 
             // console.log('b_token is:' +body.b_token) 
-            createRecord(body, new_folder_id, google_refresh_token, google_storage_email, record_id, access.user_id, userGoogleRow_id, (err, results)=>{
+            createRecord(body, new_folder_id, allDriveDataForThisFormRequest, record_id, access.user_id, userGoogleRow_id, (err, results)=>{
                 if(err){
                     console.log(err);
                     return res.status(400).json({
@@ -279,15 +293,13 @@ console.log(folder_id)
                     success: 1,
                     data : results,
                     id: record_id,
-                   
+                    
                 })
                 }
-    
+
             })
         }
-       
-        // createFolder(folder)
-        // return 'ok'
+
     },
     
     getSettingById:(req, res)=>{
@@ -621,18 +633,19 @@ console.log(folder_id)
 
     // USE THIS
     getUploadRecordById: async (req, res) => {
-        console.log(req.params.record_id);
+       // console.log(req.params.record_id);
         let upload_token;
         let defaultFolder = ''
 
         getDefaultFolder((err, res_all_replies) => {
+           // console.log(res_all_replies)
             if (err) {
                 console.log(err);
               
             } else {
                 defaultFolder = res_all_replies[0].all_replies
-                console.log('###############dddddddddddddds')
-                console.log(res_all_replies[0].all_replies)
+                // console.log('###############dddddddddddddds')
+                // console.log(res_all_replies[0].all_replies)
            
             }
         });

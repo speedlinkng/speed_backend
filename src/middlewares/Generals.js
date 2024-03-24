@@ -15,8 +15,8 @@ const oauth2Client = new google.auth.OAuth2(
 
 module.exports = {
     checkLinkExpire: (req, res, next) => {
-        console.log('checkLinkExpire')
-        console.log(req.body.record_id)
+        // console.log('checkLinkExpire')
+        // console.log(req.body.record_id)
         getSubmittedRecordById(req.body.record_id, (err, results)=>{ 
             if(err){
                 console.log(err);
@@ -58,7 +58,8 @@ module.exports = {
     getGoogleData:  (req, res, next) => {
         let access =  res.decoded_access
         let tok_data = ''
-            getGoogleData(access,(err, _res)=>{
+        // console.log(req.body.preferred)
+            getGoogleData(access, req.body.preferred, (err, _res)=>{
                 if(err){
                     console.log(err);
                     return res.status(500).json({

@@ -44,33 +44,56 @@ module.exports = {
         )
     },
 
-    getGoogleData: (access, callback) =>{
+    getGoogleData: (access,preferred, callback) =>{
   
+        if(preferred == 1){
+            pgpool.query(
+                `select * from user_google where user_id= $1`,
+                [
+                    access.user_id 
+                ],
+    
+                (err, res, fields) =>{
+                    if(err){
+                        return callback(err);
+                    }
+                    return callback(null, res.rows)
+                }
+    
+            )
+        }else{
+            pgpool.query(
+                `select * from user_google where role = $1`,
+                [
+                    'default'
+                ],
+    
+                (err, res, fields) =>{
+                    if(err){
+                        return callback(err);
+                    }
+                    console.log(res.rows)
+                    return callback(null, res.rows)
+                }
+    
+            )
+        }
+        
+    },
 
+    oath2fromForm: (record_id, callback) =>{
+   
         pgpool.query(
-            `select * from user_google where user_id= $1`,
+            `select * from form_records where record_id = $1 `,
             [
-                access.user_id 
+                record_id,   
             ],
 
             (err, res, fields) =>{
                 if(err){
                     return callback(err);
                 }
-                return callback(null, res.rows)
-            }
-
-        )
-    },
-
-    defaultOauth2Data: callback =>{
-        pgpool.query(
-            `select * from user_google where role='default'`,
-
-            (err, res, fields) =>{
-                if(err){
-                    return callback(err);
-                }
+                console.log(res.rows)
                 return callback(null, res.rows)
             }
 

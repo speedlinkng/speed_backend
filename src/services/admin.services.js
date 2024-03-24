@@ -1,5 +1,5 @@
 // const pool = require('../models/DB');
-const pool = require('../models/PGDB');
+const pgpool = require('../models/PGDB');
 const crypto = require("crypto")
 const { v4: uuidv4 } = require('uuid');
 
@@ -10,12 +10,13 @@ const uniqueId = uuidv4();
 module.exports = {
 
     getAllUsers: (callback)=>{
-        pool.query(
+        pgpool.query(
             `select * from users`,
             (err, res, fields) =>{
                 if(err){
                     return callback(err);
                 }
+                console.log(res.rows)
                 return callback(null, res.rows)
             }
 
@@ -23,8 +24,8 @@ module.exports = {
     },
 
     getAllRecords: (callback) =>{
-        pool.query(
-            `select * from records`,
+        pgpool.query(
+            `select * from form_records`,
             (err, res, fields) =>{
                 if(err){
                     return callback(err);
@@ -37,7 +38,7 @@ module.exports = {
 
 
     searchUser: (searchTerm, callback) => {
-        pool.query(
+        pgpool.query(
             `SELECT * FROM users WHERE user_id = $1 OR firstName LIKE $2 OR lastName LIKE $3 OR email LIKE $4`,
             [searchTerm, `%${searchTerm}%`, `%${searchTerm}%`, `%${searchTerm}%`],
             (err, res, fields) => {
@@ -50,7 +51,7 @@ module.exports = {
     },
 
     searchRecord: (searchTerm, callback) => {
-        pool.query(
+        pgpool.query(
             `SELECT * FROM records WHERE user_id = $1 OR id LIKE $2 OR record_name LIKE $3 OR sender_name LIKE $4 OR file_type LIKE $5 OR record_id LIKE $6 OR file_name LIKE $7 OR sender_email LIKE $8 OR description LIKE $9`,
             [searchTerm, `%${searchTerm}%`, `%${searchTerm}%`, `%${searchTerm}%`, `%${searchTerm}%`,`%${searchTerm}%`,`%${searchTerm}%`,`%${searchTerm}%`,`%${searchTerm}%`,`%${searchTerm}%`],
             (err, res, fields) => {
@@ -64,7 +65,11 @@ module.exports = {
 
     updateUser: (body, a_id, callback) => {
         console.log(body)
-        pool.query(
+        if (body.e_status ? body.e_status : undefined);
+        if (body.e_plan ? body.e_plan : undefined);
+        if (body.e_lastname ? body.e_lastname : undefined);
+        if (body.e_firstname ? body.e_firstname : undefined);
+        pgpool.query(
             'UPDATE users set status=$1, plan=$2, lastName=$3, firstName=$4 WHERE email = $5',            
             [
                 body.e_status,
@@ -83,26 +88,28 @@ module.exports = {
     },
 
     getTotalUserCount: (callback) => {
-        pool.query(
+        pgpool.query(
             `SELECT COUNT(*) AS userCount FROM users`,
             (err, res, fields) => {
                 if (err) {
                     return callback(err);
                 }
-                const userCount = res.rows[0].userCount;
+                const userCount = res.rows[0].usercount;
+             
                 return callback(null, userCount);
             }
         );
     },
     
     getTotalRecordCount: (callback) => {
-        pool.query(
-            `SELECT COUNT(*) AS recordCount FROM records`,
+        pgpool.query(
+            `SELECT COUNT(*) AS recordCount FROM form_records`,
             (err, res, fields) => {
                 if (err) {
                     return callback(err);
                 }
-                const recordCount = res.rows[0].recordCount;
+                const recordCount = res.rows[0].recordcount;
+       
                 return callback(null, recordCount);
             }
         );
@@ -110,7 +117,7 @@ module.exports = {
     },
 
     getTotalCompletedRecordCount: (callback) => {
-        pool.query(
+        pgpool.query(
             `SELECT COUNT(*) AS recordCount FROM records WHERE status = 'completed'`,
             (err, res, fields) => {
                 if (err) {
@@ -125,7 +132,7 @@ module.exports = {
 
 
     getTotalByteUploaded: (callback) => {
-        pool.query(
+        pgpool.query(
             `SELECT SUM(file_size) AS totalBytesUploaded FROM records`,
             (err, res, fields) => {
                 if (err) {
@@ -158,7 +165,7 @@ module.exports = {
     },
 
     getTotalSubscribers: (callback) => {
-        pool.query(
+        pgpool.query(
             `SELECT SUM(file_size) AS totalBytesUploaded FROM records`,
             (err, res, fields) => {
                 if (err) {
@@ -173,7 +180,7 @@ module.exports = {
     },
 
     getTotalAmount: (callback) => { // Amount total of subscribed users to date
-        pool.query(
+        pgpool.query(
             `SELECT SUM(amount) AS totalAmount FROM subscribers`,
             (err, res, fields) => {
                 if (err) {

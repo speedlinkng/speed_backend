@@ -45,7 +45,7 @@ router.post('/newstorage', checkToken, getNewStorage)
 // change default drive ifAdmin
 router.post('/changeDriveMail', checkToken, ifAdmin, getNewStorage)
 router.post('/docToDrive', docToDrive)
-router.get('/downloadFolderAsZip', downloadFolderAsZip)
+router.get('/downloadFolderAsZip/:record_id/:user_google_id/:folder/:storage_email', downloadFolderAsZip)
 
 
 

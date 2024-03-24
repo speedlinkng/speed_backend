@@ -3,6 +3,11 @@ const {genSaltSync, hashSync, compareSync, compare} = require("bcrypt")
 const {sign} = require("jsonwebtoken")
 const jwt = require("jsonwebtoken")
 const crypto = require('crypto');
+const nodemailer = require('nodemailer');
+const cron = require('node-cron');
+const sendMail = require('../middlewares/emailMiddleware');
+
+
 
 module.exports = {
 
@@ -126,7 +131,16 @@ module.exports = {
                 if(result && result.length > 0){
                    
                     console.log(result[0])
-                    // SEND RECOVERY EMAIL
+                     // SEND RECOVERY EMAIL
+                    // schedule email sending
+             
+                    let mesg = `<div>
+                    <p>Hello,</p> 
+                        <p>You initiated a password recovery rocess on our platform, kindly click the this <a href="${process.env.FRONTEND_URL}/auth/verify/${result[0].recovery_id}">${process.env.FRONTEND_URL}/auth/verify/${result[0].recovery_id}</a> to recover your password</p>
+                    </div>`
+              
+                    sendMail(email, 'Recover Your f Password', mesg);
+
                     return res.status(200).json({
                         success: 1,
                         data : result[0],
@@ -295,7 +309,7 @@ module.exports = {
             return res.status(200).json({
                 success:1,
                 data : {
-                    name:`${results.firstName} ${results.lastName}`,
+                    name:`${results.firstname} ${results.lastname}`,
                     email:results.email,
                     gender:results.gender,
                     plan:results.plan,

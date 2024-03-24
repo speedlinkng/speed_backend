@@ -1,7 +1,8 @@
 const {storeToken, ifexist, updateToken, defaultOauth2Data, myStorage, newStorage} = require('../services/google.services')
 const request = require("request");
 const dotenv = require('dotenv');
-const {getSubmittedRecordById, submitAndUpdate} = require('../services/submit.services');
+const sendMail = require('../middlewares/emailMiddleware');
+const {getSubmittedRecordById, submitAndUpdate, submitFormReplies} = require('../services/submit.services');
 dotenv.config();
 
 module.exports = {
@@ -41,36 +42,79 @@ module.exports = {
          })  
     },
 
-      submitAndUpdate: async (req, res) => {
-        /* Update image data into submitted_Records record
-          For the imaes you can update it even if the link is expired, 
-          this helps when people are submitting on deadline but images or file were large
-        */
-        // console.log(req.body)
-        let submit_id =  req.body.submit_id
-        submitAndUpdate(req.body, (err, results)=>{
 
-            if(err){
-                // console.log(err);
-                console.log('err');
-                return res.status(400).json({
-                    status: 400,
-                    error: 1,
-                    message : err,
-                })
-            }
+    submitReplies: (req, res)=>{
+      let record_id =  req.body.record_id
+      /* get the userId from the record_id
+        then get the username from the users table through the user_id gotten from the form_record query th
+        This is to help us send mail to the right person
+      */
 
-            // function sendEmail(){
-                
-            // }
-            // const mailSent = sendEmail();
-            console.log('send success')
-            return res.status(200).json({
-                success: 1,
-                data : 'updated successfully ..',
-            })
+
+      function sendEmail(){
           
-        })
-       
-    }
+      }
+      submitFormReplies(req.body, (err, results)=>{
+          if(err){
+              console.log(err);
+              return res.status(400).json({
+                  status: 400,
+                  error: 1,
+                  message : err,
+              })
+          }
+
+        // console.log(results)
+   
+        
+          // Get the name of the form's creator
+        
+          let mesg = `<div>
+          <p>Hello ${results[0].firstname},</p> 
+              <p>A submissin has been made to your form titled ...</p>
+          </div>`
+    
+          sendMail(results[0].email, 'Form Submission', mesg);
+          return res.status(200).json({
+              status: 200,
+              success: 1,
+              submit_id: results[1].uniqueId
+                
+          })
+      })
+  },
+
+  submitAndUpdate: async (req, res) => {
+      /* Update image data into submitted_Records record
+        For the imaes you can update it even if the link is expired, 
+        this helps when people are submitting on deadline but images or file were large
+      */
+      // console.log(req.body)
+      let submit_id =  req.body.submit_id
+      console.log(submit_id)
+      submitAndUpdate(req.body, (err, results)=>{
+
+          if(err){
+              // console.log(err);
+              console.log('err');
+              return res.status(400).json({
+                  status: 400,
+                  error: 1,
+                  message : err,
+              })
+          }
+
+          // function sendEmail(){
+              
+          // }
+          // const mailSent = sendEmail();
+          console.log('send success')
+          return res.status(200).json({
+              success: 1,
+              data : 'updated successfully ..',
+          })
+        
+      })
+      
+  }
 }

@@ -5,8 +5,8 @@ const upload = multer();
 const {login, createUser, getMe} = require('../controllers/AuthController');
 const {checkToken} = require("../middlewares/ValidateToken");
 const {getGoogleData, checkLinkExpire} = require("../middlewares/Generals");
-const {addRecord, updateRecord, getRecord, getSubmissionById,getUploadRecordById, getRecordById, getSettingById, submitReplies, refresh} = require('../controllers/CreateController');
-const { submitAndUpdate, checkOnline } = require('../controllers/SubmitController');
+const {addRecord, updateRecord, getRecord, getSubmissionById,getUploadRecordById, getRecordById, getSettingById, refresh, sendmail} = require('../controllers/CreateController');
+const { submitAndUpdate, checkOnline, submitReplies } = require('../controllers/SubmitController');
 
 
 // check token valid 
@@ -53,6 +53,9 @@ router.put('/submitAndUpdate', submitAndUpdate)
 
 // This route submits the form replies to the database
 router.post('/submitReplies',checkLinkExpire, submitReplies)
+
+//This route is for mails
+router.get('/sendmail', sendmail)
 
 
 
