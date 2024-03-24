@@ -13,11 +13,11 @@ const pool = require('./src/models/DB');
 const pgpool = require('./src/models/PGDB');
 
 dotenv.config();
-const corsOptions ={
-   origin:process.env.FRONTEND_URL, 
-   credentials:true,            //access-control-allow-credentials:true
-   optionSuccessStatus:200,
-}
+// const corsOptions ={
+//    origin:process.env.FRONTEND_URL, 
+//    credentials:true,            //access-control-allow-credentials:true
+//    optionSuccessStatus:200,
+// }
 
 // trial
 const {validateLogin} = require("./src/middlewares/ValidateMiddleware")
@@ -25,7 +25,7 @@ const userSchema = require("./src/validations/UserValidation");
 const { checkToken } = require('./src/middlewares/ValidateToken');
 
 
-app.use(cors(corsOptions))
+// app.use(cors(corsOptions))
 app.use(express.urlencoded({extended: true}));
 app.use(express.json()) 
 app.use("/api/users", userRoute)
