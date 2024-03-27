@@ -34,161 +34,161 @@ const oauth3Client = new google.auth.OAuth2(
 
 module.exports = {
 
-  downloadFolderAsZip: async (req, res)=>{
-  
-    const user_google_id = parseInt(req.params.user_google_id);
-    const folder = req.params.folder
-    const storage_email = req.params.storage_email
-    const record_id = req.params.record_id
-    console.log(req.params.record_id)
-    console.log(folder)
-    console.log('######')
-    let access = '' 
+    downloadFolderAsZip: async (req, res)=>{
+    
+      const user_google_id = parseInt(req.params.user_google_id);
+      const folder = req.params.folder
+      const storage_email = req.params.storage_email
+      const record_id = req.params.record_id
+      console.log(req.params.record_id)
+      console.log(folder)
+      console.log('######')
+      let access = '' 
 
-    // get user_google record from DB
-    oath2fromForm(record_id, (err, res) =>{
-      if(res){
-        let tok_data = JSON.stringify({ 
-          refresh_token: res[0]['google_refresh_token'],
-          access_token: res[0]['google_access'],
-          expiry_date: res[0]['google_expiry_date'],
-          id_token: res[0]['google_id_token'],
-          token_type: res[0]['google_token_type'],
-          scope: res[0]['google_scope']
-        })
+      // get user_google record from DB
+      oath2fromForm(record_id, (err, res) =>{
+        if(res){
+          let tok_data = JSON.stringify({ 
+            refresh_token: res[0]['google_refresh_token'],
+            access_token: res[0]['google_access'],
+            expiry_date: res[0]['google_expiry_date'],
+            id_token: res[0]['google_id_token'],
+            token_type: res[0]['google_token_type'],
+            scope: res[0]['google_scope']
+          })
 
-        var json = JSON.parse(tok_data);
-        oauth2Client.setCredentials(json); 
-        oauth2Client.refreshAccessToken((err, tokens) => {
-          if (err) {
-              console.error('Error refreshing access token:', err);
-          } else {
-            console.log(tokens.access_token)
-            dos(tokens.access_token)
-             
-          }
-      });
+          var json = JSON.parse(tok_data);
+          oauth2Client.setCredentials(json); 
+          oauth2Client.refreshAccessToken((err, tokens) => {
+            if (err) {
+                console.error('Error refreshing access token:', err);
+            } else {
+              console.log(tokens.access_token)
+              dos(tokens.access_token)
+              
+            }
+        });
 
-      }
-      if(err){
-        console.log(err);
-        return res.status(401).json({
-            error: 1,
-            message: err
-        })
-      }
-    })
-
-    async function dos(access_token){
-     
-      // await createZipFile(access_token)
-      // return
-      return res.status(200).json({
-        success: 1,
-        token : access_token,
+        }
+        if(err){
+          console.log(err);
+          return res.status(401).json({
+              error: 1,
+              message: err
+          })
+        }
       })
 
-      // send access token to front end for download
-  }
+      async function dos(access_token){
+      
+        // await createZipFile(access_token)
+        // return
+        return res.status(200).json({
+          success: 1,
+          token : access_token,
+        })
 
- 
-  
-  async function createZipFile(tokens) {
- 
-  
-      const driveService = google.drive({ version: 'v3', auth: oauth2Client });
-  
-      const folderId = '1yrwXRmIVjOpnMlCgIiHOE6TuqkKlBQGC';
-      const zip = new JSZip();
-  
-      async function fetchFilesAndSubfolders(folderId, zipFolder) {
-          const response = await driveService.files.list({
-              q: `'${folderId}' in parents and trashed = false`,
-              fields: 'nextPageToken, files(id, name, mimeType)'
-          });
-  
-          const items = response.data.files;
-  
-          for (const item of items) {
-              if (item.mimeType === 'application/vnd.google-apps.folder') {
-                  // If it's a folder, create a subfolder in the zip and recursively fetch its contents
-                  const subZipFolder = zipFolder.folder(item.name);
-                  await fetchFilesAndSubfolders(item.id, subZipFolder);
-              } else {
-                  // If it's a file, add it to the current zip folder
-                  const fileResponse = await driveService.files.get({
-                      fileId: item.id,
-                      alt: 'media'
-                  });
-                  zipFolder.file(item.name, fileResponse.data);
-              }
-          }
-      }
-  
-      try {
-          await fetchFilesAndSubfolders(folderId, zip);
-          const content = await zip.generateAsync({ type: 'nodebuffer' });
-          fs.writeFileSync('folder.zip', content);
-          console.log('Zip file saved successfully.');
-      } catch (error) {
-          console.error('Error creating zip file:', error);
-      }
-  }
-  
-  // Example usage
-  const tokens = {
-      // Replace with actual token data
-  };
-  
-  
+        // send access token to front end for download
+    }
 
-  async function createZipFiless(tokens) {
-      // Use the tokens to authorize requests to Google Drive API
-      const driveService = google.drive({ version: 'v3', auth: oauth2Client });
-  
-      // Get the folder's ID.
-      const folderId = '1yrwXRmIVjOpnMlCgIiHOE6TuqkKlBQGC';
-  
-      // Create a zip file.
-      const zip = new JSZip();
-  
-      // Further operations using the refreshed access token
-      // For example, you can list files, upload files, etc.
-  
-      driveService.files.list({
-          q: `'${folderId}' in parents`,
-          fields: 'nextPageToken, files(id, name)'
-      }).then((response) => {
-          const files = response.data.files;
-  
-          // Download each file and add it to the zip file.
-          Promise.all(files.map((file) => {
-              return driveService.files.get({
-                  fileId: file.id,
-                  alt: 'media'
-              }).then((response) => {
-                  zip.file(file.name, response.data);
-              });
-          })).then(() => {
-              // Generate the zip file asynchronously
-              zip.generateAsync({ type: 'nodebuffer' }).then((content) => {
-                  // Save the zip file to the local filesystem
-                  fs.writeFileSync('folder.zip', content);
-                  console.log('Zip file saved successfully.');
-              }).catch((err) => {
-                  console.error('Error generating zip file:', err);
-              });
-          });
-      }).catch((err) => {
-          console.error('Error listing files:', err);
-      });
-  }
-  
   
     
+    async function createZipFile(tokens) {
+  
     
-   
-  },
+        const driveService = google.drive({ version: 'v3', auth: oauth2Client });
+    
+        const folderId = '1yrwXRmIVjOpnMlCgIiHOE6TuqkKlBQGC';
+        const zip = new JSZip();
+    
+        async function fetchFilesAndSubfolders(folderId, zipFolder) {
+            const response = await driveService.files.list({
+                q: `'${folderId}' in parents and trashed = false`,
+                fields: 'nextPageToken, files(id, name, mimeType)'
+            });
+    
+            const items = response.data.files;
+    
+            for (const item of items) {
+                if (item.mimeType === 'application/vnd.google-apps.folder') {
+                    // If it's a folder, create a subfolder in the zip and recursively fetch its contents
+                    const subZipFolder = zipFolder.folder(item.name);
+                    await fetchFilesAndSubfolders(item.id, subZipFolder);
+                } else {
+                    // If it's a file, add it to the current zip folder
+                    const fileResponse = await driveService.files.get({
+                        fileId: item.id,
+                        alt: 'media'
+                    });
+                    zipFolder.file(item.name, fileResponse.data);
+                }
+            }
+        }
+    
+        try {
+            await fetchFilesAndSubfolders(folderId, zip);
+            const content = await zip.generateAsync({ type: 'nodebuffer' });
+            fs.writeFileSync('folder.zip', content);
+            console.log('Zip file saved successfully.');
+        } catch (error) {
+            console.error('Error creating zip file:', error);
+        }
+    }
+    
+    // Example usage
+    const tokens = {
+        // Replace with actual token data
+    };
+    
+    
+
+    async function createZipFiless(tokens) {
+        // Use the tokens to authorize requests to Google Drive API
+        const driveService = google.drive({ version: 'v3', auth: oauth2Client });
+    
+        // Get the folder's ID.
+        const folderId = '1yrwXRmIVjOpnMlCgIiHOE6TuqkKlBQGC';
+    
+        // Create a zip file.
+        const zip = new JSZip();
+    
+        // Further operations using the refreshed access token
+        // For example, you can list files, upload files, etc.
+    
+        driveService.files.list({
+            q: `'${folderId}' in parents`,
+            fields: 'nextPageToken, files(id, name)'
+        }).then((response) => {
+            const files = response.data.files;
+    
+            // Download each file and add it to the zip file.
+            Promise.all(files.map((file) => {
+                return driveService.files.get({
+                    fileId: file.id,
+                    alt: 'media'
+                }).then((response) => {
+                    zip.file(file.name, response.data);
+                });
+            })).then(() => {
+                // Generate the zip file asynchronously
+                zip.generateAsync({ type: 'nodebuffer' }).then((content) => {
+                    // Save the zip file to the local filesystem
+                    fs.writeFileSync('folder.zip', content);
+                    console.log('Zip file saved successfully.');
+                }).catch((err) => {
+                    console.error('Error generating zip file:', err);
+                });
+            });
+        }).catch((err) => {
+            console.error('Error listing files:', err);
+        });
+    }
+    
+    
+      
+      
+    
+    },
 
     docToDrive: async (req, res)=>{
       // GET DEFAULT UDEER_GOOGLE DATA
@@ -358,10 +358,10 @@ module.exports = {
         // initialize decoded access from middleware
         const services = google.drive({version: 'v3',  auth: oauth2Client,  timeout: 60000 });
       
-        async function createFolderAllReply(data) {
+        async function createFolderAllReply(name) {
             console.log('###########################')
             const fileMetadata = {
-                name: data,
+                name: name,
                 mimeType: 'application/vnd.google-apps.folder',
             };
     
@@ -398,7 +398,7 @@ module.exports = {
         }
         
 
-          await checkFolderExistsAllReply('folder Name');
+          await checkFolderExistsAllReply('FORM SUBMISSION');
      
 
       

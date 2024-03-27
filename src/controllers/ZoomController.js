@@ -179,12 +179,34 @@ recording: async (req, res)=>{
     await getMeetingRecordings()
       .then(recordings => {
           if (recordings) {
-              console.log('Meeting recordings:' );
+            const playUrls = [];
+            const downloadUrls = [];
+              // console.log('Meeting recordings:',  recordings.meetings[0].recording_files);
+             
+              // const recordingFiles = recordings.meetings[0].recording_files;
+              //  playUrls = JSON.stringify(recordingFiles.map(file => file.play_url));
+              //  downloadUrl = JSON.stringify(recordingFiles.map(file => file.download_url));
+
+            
               
+              recordings.meetings.flatMap(meeting => {
+                meeting.recording_files.map(file => {
+                  playUrls.push(file.play_url); // Push play_url to the array
+                });
+                meeting.recording_files.map(file => {
+                  downloadUrls.push(file.download_url); // Push play_url to the array
+                });
+              });
+
+              console.log(downloadUrls)
+              console.log(playUrls)
+
               return res.status(200).json({
                 status: 200,
                 success: 1,
                 data : recordings,
+                play :  playUrls,
+                download :  downloadUrls
             })
           } else {
               console.log('Failed to fetch meeting recordings.');

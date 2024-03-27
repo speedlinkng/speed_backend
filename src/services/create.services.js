@@ -111,7 +111,7 @@ module.exports = {
         if(body.preferred == 1){
             // 'my Access'
             pgpool.query(
-                'SELECT refresh_token,storage_email, id FROM user_google WHERE user_id = $1 ORDER BY date_created DESC LIMIT 1',
+                'SELECT * FROM user_google WHERE user_id = $1 ORDER BY date_created DESC LIMIT 1',
                 [
                     user_id 
                 ],

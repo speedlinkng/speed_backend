@@ -64,7 +64,7 @@ module.exports = {
               })
           }
 
-        // console.log(results)
+        // console.log('submitting')
    
         
           // Get the name of the form's creator

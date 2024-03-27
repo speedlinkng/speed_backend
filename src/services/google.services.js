@@ -57,6 +57,7 @@ module.exports = {
                     if(err){
                         return callback(err);
                     }
+                    console.log('user google selected')
                     return callback(null, res.rows)
                 }
     
