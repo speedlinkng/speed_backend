@@ -636,18 +636,18 @@ module.exports = {
         let upload_token;
         let defaultFolder = ''
 
-        getDefaultFolder((err, res_all_replies) => {
-           // console.log(res_all_replies)
-            if (err) {
-                console.log(err);
+        // getDefaultFolder((err, res_all_replies) => {
+        //    // console.log(res_all_replies)
+        //     if (err) {
+        //         console.log(err);
               
-            } else {
-                defaultFolder = res_all_replies[0].all_replies
-                // console.log('###############dddddddddddddds')
-                // console.log(res_all_replies[0].all_replies)
+        //     } else {
+        //         defaultFolder = res_all_replies[0].all_replies
+        //         // console.log('###############dddddddddddddds')
+        //         // console.log(res_all_replies[0].all_replies)
            
-            }
-        });
+        //     }
+        // });
     
         const getRefreshTokenAndExchange = async () => {
             try {
@@ -665,6 +665,7 @@ module.exports = {
                 console.log('this is the refresh token: ' + result[0]['refresh_token']);
     
                 if (result && result.length > 0) {
+                    defaultFolder = result[0]['all_replies']
                     let tok_data = JSON.stringify({
                         refresh_token: result[0]['refresh_token'],
                         access_token: result[0]['access_token'],

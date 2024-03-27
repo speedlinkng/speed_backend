@@ -127,6 +127,8 @@ module.exports = {
 
 
     getDefaultFolder:(callback)=>{
+        // get default from either admin with role = default OR
+        // get default from user with role 0
         pgpool.query(
             'SELECT all_replies FROM user_google WHERE role = $1 LIMIT 1',         
             [

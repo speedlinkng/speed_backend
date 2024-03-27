@@ -90,7 +90,7 @@ submitFormReplies:(body, callback)=>{
                 if(err){
                     return callback(err);
                 }
-                console.log(res.rows)
+                console.log(res)
                 console.log('@@@@@@@@@@@@@@@@@@@@@@@@@@@@@')
                 getUserId()
             }

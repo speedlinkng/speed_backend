@@ -50,10 +50,6 @@ module.exports = {
         This is to help us send mail to the right person
       */
 
-
-      function sendEmail(){
-          
-      }
       submitFormReplies(req.body, (err, results)=>{
           if(err){
               console.log(err);
@@ -89,7 +85,7 @@ module.exports = {
         For the imaes you can update it even if the link is expired, 
         this helps when people are submitting on deadline but images or file were large
       */
-      // console.log(req.body)
+      console.log('submit and update')
       let submit_id =  req.body.submit_id
       console.log(submit_id)
       submitAndUpdate(req.body, (err, results)=>{
