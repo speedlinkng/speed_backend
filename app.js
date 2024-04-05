@@ -35,85 +35,86 @@ app.use("/api/google", googleRoute)
 app.use("/api/admin", admin)
 app.use("/api/pay", pay)
 
-app.get('/testcon', (req, res) => {
-    async function getClient() {
-        try {
-          const client = await pgpool.connect();
-          console.log('Acquired a client from the pool');
-          return client;
-        } catch (error) {
-          console.error('Error acquiring client from the pool', error);
-          throw error;
-        }
-      }
-      getClient()
+// app.get('/testcon', (req, res) => {
+//     async function getClient() {
+//         try {
+//           const client = await pgpool.connect();
+//           console.log('Acquired a client from the pool');
+//           return client;
+//         } catch (error) {
+//           console.error('Error acquiring client from the pool', error);
+//           throw error;
+//         }
+//       }
+//       getClient()
 
       
-      async function getRecords() {
+//       async function getRecords() {
 
-            pgpool.query(
-                "SELECT json_data->'field[0-9]+$' FROM example_jsonb",
-                [],
-                (err, res, fields) => {
-                  if (err) {
-                    console.error(err);
-                    return;
-                  }
-                  console.log(
-                    "Fetched all fields with numbers at their end:",
-                    res.rows
-                  );
-                }
-              );
+//             pgpool.query(
+//                 "SELECT json_data->'field[0-9]+$' FROM example_jsonb",
+//                 [],
+//                 (err, res, fields) => {
+//                   if (err) {
+//                     console.error(err);
+//                     return;
+//                   }
+//                   console.log(
+//                     "Fetched all fields with numbers at their end:",
+//                     res.rows
+//                   );
+//                 }
+//               );
 
 
-          // Check different rows of the JSONB record for a specific name
-            pgpool.query(
-                "SELECT json_data FROM example_jsonb WHERE json_data->'field3'->'page_header' = $1",
-                ["Say Form 2"],
-                (err, res, fields) => {
-                if (err) {
-                    console.error(err);
-                    return;
-                }
-                console.log("Found rows with the specified name:", res.rows);
-                }
-            );
+//           // Check different rows of the JSONB record for a specific name
+//             pgpool.query(
+//                 "SELECT json_data FROM example_jsonb WHERE json_data->'field3'->'page_header' = $1",
+//                 ["Say Form 2"],
+//                 (err, res, fields) => {
+//                 if (err) {
+//                     console.error(err);
+//                     return;
+//                 }
+//                 console.log("Found rows with the specified name:", res.rows);
+//                 }
+//             );
             
-            // Count records that exist inside the JSONB data
-            pgpool.query("SELECT COUNT(*) FROM example_jsonb", [], (err, res, fields) => {
-                if (err) {
-                  console.error(err);
-                  return;
-                }
-                console.log("Total number of records:", res.rows[0].count);
-              });
-      }
-      getRecords()
+//             // Count records that exist inside the JSONB data
+//             pgpool.query("SELECT COUNT(*) FROM example_jsonb", [], (err, res, fields) => {
+//                 if (err) {
+//                   console.error(err);
+//                   return;
+//                 }
+//                 console.log("Total number of records:", res.rows[0].count);
+//               });
+//       }
+//       getRecords()
 
-  });
+//   });
 // Express Middleware for serving static files
 app.use(express.static(path.join(__dirname, 'public')));
 
-app.post('/login', validateLogin(userSchema), function(req, res) {
-    // res.redirect('view/index.html');
-    res.json(req.body);
-});
+// app.post('/login', validateLogin(userSchema), function(req, res) {
+//     // res.redirect('view/index.html');
+//     res.json(req.body);
+// });
 
 app.get('/', function(req, res) {
+  res.send(`server Backend is running on this URL ${process.env.PORT}`);
     // res.redirect('view/index.html');
-    async function getClient() {
-      try {
-        const client = await pgpool.connect();
-        console.log('Acquired a client from the pool');
-        res.send('server Backend is running on this URL');
-        return client;
-      } catch (error) {
-        console.error('Error acquiring client from the pool', error);
-        throw error;
-      }
-    }
-    getClient()
+    // async function getClient() {
+    //   try {
+    //     const client = await pgpool.connect();
+    //     console.log('Acquired a client from the pool');
+    //     res.send('server Backend is running on this URL');
+    //     return client;
+    //   } catch (error) {
+    //     console.error('Error acquiring client from the pool', error);
+    //     throw error;
+    //   }
+    // }
+    // getClient()
     
 });
 
