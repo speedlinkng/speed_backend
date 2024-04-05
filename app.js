@@ -101,20 +101,20 @@ app.use(express.static(path.join(__dirname, 'public')));
 // });
 
 app.get('/', function(req, res) {
-  res.send(`server Backend is running on this URL ${process.env.PORT}`);
+  // res.send(`server Backend is running on this URL ${process.env.PORT}`);
     // res.redirect('view/index.html');
-    // async function getClient() {
-    //   try {
-    //     const client = await pgpool.connect();
-    //     console.log('Acquired a client from the pool');
-    //     res.send('server Backend is running on this URL');
-    //     return client;
-    //   } catch (error) {
-    //     console.error('Error acquiring client from the pool', error);
-    //     throw error;
-    //   }
-    // }
-    // getClient()
+    async function getClient() {
+      try {
+        const client = await pgpool.connect();
+        console.log('Acquired a client from the pool');
+        res.send('server Backend is running on this URL');
+        return client;
+      } catch (error) {
+        console.error('Error acquiring client from the pool', error);
+        throw error;
+      }
+    }
+    getClient()
     
 });
 
