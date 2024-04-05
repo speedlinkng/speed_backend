@@ -111,7 +111,7 @@ app.get('/', function(req, res) {
         return client;
       } catch (error) {
         console.error('Error acquiring client from the pool', error);
-        res.send('error was received');
+        res.send('error was received'+error);
         throw error;
       }
     }
