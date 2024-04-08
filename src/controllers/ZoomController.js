@@ -278,7 +278,7 @@ callback: async (req, res)=>{
     
     } catch (error) {
       console.error('Error exchanging code for token:', error.message);
-      res.status(500).send('Error exchanginsg code for token');
+      res.status(500).send('Error exchanging code for token', error.message);
     }
 },
 
