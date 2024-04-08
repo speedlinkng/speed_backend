@@ -76,7 +76,7 @@ Content-Type: application/json
 
 ###
 
-POST http://localhost:5000/api/users/login
+POST http://13.60.11.19:5000/api/users/login
 Content-Type: application/json
  
 {
@@ -87,7 +87,7 @@ Content-Type: application/json
 
 ###
 
-POST http://localhost:5000/api/users
+POST http://13.60.11.19:5000/api/users
 Content-Type: application/json
 # Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyZXN1bHQiOnsiaWQiOjgsImZpcnN0TmFtZSI6IkRpdmluZSIsImxhc3ROYW1lIjoiSXNvIiwiZ2VuZGVyIjoibSIsImVtYWlsIjoidGVzdEBnbWlsLmNvbSIsIm51bWJlciI6MjE0NzQ4MzY0NywiY3JlYXRlZF9hdCI6IjAwMDAtMDAtMDAgMDA6MDA6MDAiLCJnb29nX3JlZnJlc2hfdG9rZW4iOm51bGwsImFjY2Vzc190b2tlbiI6bnVsbCwicGxhbiI6bnVsbCwic3RhdHVzIjpudWxsLCJzZXNzaW9uX3VyaSI6bnVsbCwiY291bnRfdXBsb2FkcyI6bnVsbCwiYnl0ZXMgX3RvdGFsIjpudWxsLCJ1c2VyX2lkIjpudWxsfSwiaWF0IjoxNjk0MDIwMDQ3LCJleHAiOjE2OTQwMjM2NDd9.HySHe9tztCnRGzt0GrG_x6X-YCurjMXj7n2D8eT8Mlw
 
@@ -95,7 +95,7 @@ Content-Type: application/json
     "number": "09079417401",
     "first_name": "Divine",
     "last_name": "Iso",
-    "email": "test6@gmil.com",
+    "email": "test7@gmil.com",
     "name": "ubong",
     "password": "CypherConcern@$9095",
     "passwordConfirmation": "CypherConcern@$9095"

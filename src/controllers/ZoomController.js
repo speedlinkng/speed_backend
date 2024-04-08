@@ -10,7 +10,7 @@ const refreshAccessToken = require('../middlewares/refreshZoomAccess');
 // const redirectURI = 'http://localhost:5000/api/zoom/callback'; // Update with your actual redirect URI
 const clientID = 'J1NkT84YTsu_ZhjGYLAbiQ';
 const clientSecret = 'lKLFc145Ekp570kcafjVW2XbUL87NH7i';
-const redirectURI = 'http://localhost:5000/api/zoom/callback'; // Update with your actual redirect URI
+const redirectURI = `${process.env.BACKEND_URL}/api/zoom/callback`; // Update with your actual redirect URI
 
 
 
@@ -65,7 +65,7 @@ refresh: (req, res)=>{
 
 Authorize: (req, res)=>{
   let access = res.decoded_access
-  const redirectURI_ = `http://localhost:5000/api/zoom/callback/${access.user_id}`; // Update with your actual redirect URI
+  const redirectURI_ = `${process.env.BACKEND_URL}/api/zoom/callback/${access.user_id}`; // Update with your actual redirect URI
   console.log(redirectURI_)  
   const authorizeURL = 'https://zoom.us/oauth/authorize';
     const queryParams = {
@@ -224,7 +224,7 @@ recording: async (req, res)=>{
 
 
 callback: async (req, res)=>{
-    const redirectURI_ = `http://localhost:5000/api/zoom/callback/${req.params.user_id}`; // Update with your actual redirect URI
+    const redirectURI_ = `${process.env.BACKEND_URL}/api/zoom/callback/${req.params.user_id}`; // Update with your actual redirect URI
     let zoom_user_id = '';
     const { code } = req.query;
 
