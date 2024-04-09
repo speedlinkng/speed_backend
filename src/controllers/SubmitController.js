@@ -71,6 +71,7 @@ module.exports = {
           </div>`
     
           sendMail(results[0].email, 'Form Submission', mesg);
+          console.log('submit ID WAS: ', results[1].uniqueId)
           return res.status(200).json({
               status: 200,
               success: 1,

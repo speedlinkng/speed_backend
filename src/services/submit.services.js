@@ -107,7 +107,9 @@ submitAndUpdate: async (body, callback) => {
     if(fileLinks.length < 1){
         fileLinks = [{default:null}];
     }
+    console.log('###########################################')
     console.log(body)
+    console.log('###########################################')
     console.log(body.submit_id)
     console.log(fileLinks.length)
     console.log(body.replyLinks)
