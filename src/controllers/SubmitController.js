@@ -100,10 +100,6 @@ module.exports = {
               })
           }
 
-          // function sendEmail(){
-              
-          // }
-          // const mailSent = sendEmail();
           console.log('send success')
           return res.status(200).json({
               success: 1,

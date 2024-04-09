@@ -81,7 +81,7 @@ module.exports = {
         })
     },
 
-
+    
     deleteUser: (req, res)=>{
         const data = req.body
         console.log(data.id)
@@ -107,7 +107,6 @@ module.exports = {
             })
         })
     },
-
 
 
     login: (req, res)=>{
