@@ -16,7 +16,7 @@ dotenv.config();
 const corsOptions = {
   origin: [process.env.FRONTEND_URL, 'http://sfts.speedlinkng.com' ],
   credentials: true,
-  optionSuccessStatus: 200,
+  optionsSuccessStatu: 200,
 };
 
 // trial

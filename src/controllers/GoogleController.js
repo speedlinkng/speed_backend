@@ -302,6 +302,7 @@ module.exports = {
 
     
     getNewStorage: async (req, res)=>{
+      console.log('started new service')
       let access = res.decoded_access
       let role = 0;
       let allReplies;
