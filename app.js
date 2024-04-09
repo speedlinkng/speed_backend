@@ -14,7 +14,7 @@ const pgpool = require('./src/models/PGDB');
 
 dotenv.config();
 const corsOptions = {
-  origin: [process.env.FRONTEND_URL, process.env.OTHER_FRONTEND_URL],
+  origin: [process.env.FRONTEND_URL, 'http://sfts.speedlinkng.com' ],
   credentials: true,
   optionSuccessStatus: 200,
 };
