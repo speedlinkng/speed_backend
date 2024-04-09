@@ -5,6 +5,7 @@ const sendMail = require('../middlewares/emailMiddleware');
 const {getSubmittedRecordById, submitAndUpdate, submitFormReplies} = require('../services/submit.services');
 dotenv.config();
 
+
 module.exports = {
 
     checkOnline:(req, res)=>{
@@ -71,11 +72,12 @@ module.exports = {
           </div>`
     
           sendMail(results[0].email, 'Form Submission', mesg);
-          console.log('submit ID WAS: ', results[0].uniqueId)
+          console.log('submit ID WAS: ', results.uniqueId)
+          console.log('submit ID again: ', results)
           return res.status(200).json({
               status: 200,
               success: 1,
-              submit_id: results[0].uniqueId
+              submit_id: results.uniqueId
                 
           })
       })
