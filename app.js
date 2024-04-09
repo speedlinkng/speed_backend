@@ -14,7 +14,7 @@ const pgpool = require('./src/models/PGDB');
 
 dotenv.config();
 // Whitelist specific origins
-const whitelist = [process.env.FRONTEND_URL, 'http://sfts.speedlinkng.com'];
+const whitelist = [process.env.FRONTEND_URL, 'http://sfts.speedlinkng.com', 'http://sftsadmin.speedlinkng.com'];
 
 const corsOptions = {
   origin: (origin, callback) => {
