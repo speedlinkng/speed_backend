@@ -4,7 +4,7 @@ const date = require('date-and-time');
 const crypto = require("crypto")
 const { v4: uuidv4 } = require('uuid');
 // Generate a new UUID
-const uniqueId = uuidv4();
+
 module.exports = {
 
 
@@ -26,7 +26,7 @@ getSubmittedRecordById: (r_id, callback)=>{
 },
 
 
-submitFormReplies:(body, callback)=>{
+submitFormReplies:(body,uniqueId, callback)=>{
     // get user id
     function getUserId(){
         pgpool.query(
@@ -64,7 +64,7 @@ submitFormReplies:(body, callback)=>{
                 }
                 
                 else if(res.rows.length > 0) {
-                    res.rows.push({'uniqueId':uniqueId});
+                   
                     return callback(null, res.rows);
                   }
                 

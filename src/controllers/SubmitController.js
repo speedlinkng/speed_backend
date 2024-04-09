@@ -46,12 +46,13 @@ module.exports = {
 
     submitReplies: (req, res)=>{
       let record_id =  req.body.record_id
+      const uniqueId = uuidv4();
       /* get the userId from the record_id
         then get the username from the users table through the user_id gotten from the form_record query th
         This is to help us send mail to the right person
       */
 
-      submitFormReplies(req.body, (err, results)=>{
+      submitFormReplies(req.body,uniqueId, (err, results)=>{
           if(err){
               console.log(err);
               return res.status(400).json({
@@ -72,12 +73,12 @@ module.exports = {
           </div>`
     
           sendMail(results[0].email, 'Form Submission', mesg);
-          console.log('submit ID WAS: ', results.uniqueId)
-          console.log('submit ID again: ', results)
+          console.log('submit ID WAS: ', uniqueId)
+       
           return res.status(200).json({
               status: 200,
               success: 1,
-              submit_id: results.uniqueId
+              submit_id: uniqueId
                 
           })
       })
