@@ -13,11 +13,22 @@ const pool = require('./src/models/DB');
 const pgpool = require('./src/models/PGDB');
 
 dotenv.config();
+// Whitelist specific origins
+const whitelist = [process.env.FRONTEND_URL, 'http://sfts.speedlinkng.com'];
+
 const corsOptions = {
-  origin: [process.env.FRONTEND_URL, 'http://sfts.speedlinkng.com' ],
-  credentials: true,
-  optionsSuccessStatu: 200,
+  origin: (origin, callback) => {
+    if (whitelist.indexOf(origin) !== -1 || !origin) { // Allow requests with no origin (like mobile apps) or from whitelist
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true, // Allow credentials
+  optionsSuccessStatus: 200, // Some legacy browsers choke on 204
 };
+
+app.use(cors(corsOptions));
 
 // trial
 const {validateLogin} = require("./src/middlewares/ValidateMiddleware")
@@ -25,7 +36,6 @@ const userSchema = require("./src/validations/UserValidation");
 const { checkToken } = require('./src/middlewares/ValidateToken');
 
 
-app.use(cors(corsOptions))
 app.use(express.urlencoded({extended: true}));
 app.use(express.json()) 
 app.use("/api/users", userRoute)
