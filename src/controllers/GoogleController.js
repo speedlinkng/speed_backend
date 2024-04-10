@@ -300,165 +300,23 @@ module.exports = {
         })
     },
 
-    getNewStorageGet: async (req, res)=>{
-      console.log(req.params)
-      console.log('started new service')
-      let access = res.decoded_access
-      let role = 0;
-      let allReplies;
-
-      // Chcek if admin is making the call
-      if(res.role == 'admin'){
-        // set this as default,  
-        role = 'default'
-      }else{
-        role = 'user'
-      }
-
-      let {code} = req.params;
-      console.log('this is code: '+code)
-      console.log(req.params)
-      const {tokens} = await oauth2Client.getToken(code);
-
-      function updateOld (storage){
-        console.log('updateOld'+allReplies)
-        updateToken(tokens, email, storage, role, allReplies, (err, results)=>{
-          if(err){
-            console.log(err)
-          }if(results){
-           
-            return res.status(200).json({
-              success: 1,
-              token : tokens.access_token,
-            })
-          }
-         
-        })
-      }
-
-      
-      function createNew (){
-        console.log('create'+allReplies)
-        storeToken(tokens, email, data.email, user_id, role, allReplies, (err, results)=>{
-          if(err){
-            console.log(err)
-          }if(results){
-           
-            return res.status(200).json({
-              success: 1,
-              token : tokens.access_token,
-            })
-          }
-        
-        })
-      }
-
-      oauth2Client.setCredentials(tokens);
-  
-      
-        // initialize decoded access from middleware
-        const services = google.drive({version: 'v3',  auth: oauth2Client,  timeout: 60000 });
-      
-        async function createFolderAllReply(name) {
-            console.log('###########################')
-            const fileMetadata = {
-                name: name,
-                mimeType: 'application/vnd.google-apps.folder',
-            };
     
-            try {
-                let file = await services.files.create({
-                    resource: fileMetadata,
-                });
-
-                allReplies = file.data.id
-            
-            } catch (err) {
-                throw err;
-            }
-        }
-        async function checkFolderExistsAllReply(folderName) {
-          try {
-            const res = await services.files.list({
-              q: `name = '${folderName}' and mimeType = 'application/vnd.google-apps.folder'`,
-              fields: 'files(id, name)'
-            });
-        
-            const files = res.data.files;
-        
-            if (files.length) {
-              console.log(`Folder '${folderName}' exists with ID: ${files[0].id}`);
-              allReplies = files[0].id;
-            } else {
-              console.log(`Folder '${folderName}' does not exist.`);
-              await createFolderAllReply(folderName);
-            }
-          } catch (err) {
-            console.error('The API returned an error: ' + err);
-          }
-        }
-        
-
-        await checkFolderExistsAllReply('FORM SUBMISSION');
-     
-
-      
-      // GET USER PROFILE DETAILS
-      oauth3Client.setCredentials({access_token: tokens.access_token}); 
-      const oath_user = google.oauth2({
-          version: 'v2',
-          auth: oauth3Client
-        });
-      let { data } = await oath_user.userinfo.get();    // get user info
-        console.log(data.id);
-        console.log('second wave');
-  
-
-      // CHECK IF ALREADY IN DATABASE
-      let email = access.email
-      let user_id = access.user_id
-      let storage = data.email
-      ifexist(email, (err, row)=>{
-        console.log(access.email)
-        if(err){
-
-        }else{
-     
-          if(row && row.length){
-            updateOld(storage)
-            console.log ('>>>>>>> email found')
-          }else{
-            createNew()
-            console.log('email <<<<<< not found')
-          }
-        }
-
-      })
-      console.log('done')
-
-      // STORE IN USER_GOOGLE DATABASE
-      fs.writeFileSync("cred.json", JSON.stringify(tokens));
-
-
-    },
-
     getNewStorage: async (req, res)=>{
-      console.log(req.body)
-      console.log('started new service')
+      console.log('yipotp')
       let access = res.decoded_access
       let role = 0;
       let allReplies;
 
       // Chcek if admin is making the call
       if(res.role == 'admin'){
-        // set this as default,  
+        // set this as default, 
         role = 'default'
       }else{
         role = 'user'
       }
 
       let {code} = req.body;
-      // console.log('this is code: '+code)
+      console.log('this is code: '+code)
       console.log(req.body)
       const {tokens} = await oauth2Client.getToken(code);
 
