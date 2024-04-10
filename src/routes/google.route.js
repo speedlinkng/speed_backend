@@ -42,7 +42,7 @@ router.get('/uploadchunk2', upload.single('file'), uploadchunks)
 router.get('/speedlinkaccess', checkToken, getDefaultAccess)
 router.get('/mystorage', checkToken, getMyStorage)
 router.post('/newstorage', checkToken, getNewStorage)
-router.get('/newstorage_get/:code/:scope', checkToken, getNewStorageGet)
+router.get('/newstorage_get/:code/:930', checkToken, getNewStorageGet)
 
 // change default drive ifAdmin
 router.post('/changeDriveMail', checkToken, ifAdmin, getNewStorage)

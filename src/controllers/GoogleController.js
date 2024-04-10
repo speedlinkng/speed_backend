@@ -316,7 +316,7 @@ module.exports = {
       }
 
       let {code} = req.params;
-      // console.log('this is code: '+code)
+      console.log('this is code: '+code)
       console.log(req.params)
       const {tokens} = await oauth2Client.getToken(code);
 

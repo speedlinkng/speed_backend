@@ -266,6 +266,6 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyZXN1bHQiOnsiaWQiO
     "scope": "scope",
     "code": "code",
     "prompt": "prompt",
-    "authuser": "authuser",
+    "authuser": "authuser"
 }
 ###
