@@ -300,8 +300,18 @@ module.exports = {
         })
     },
 
-    
+    getNewStorageGet: (req, res)=>{
+      console.log('get')
+      console.log(req.params.code)
+      console.log('working')
+      return res.status(200).json({
+        success: 1,
+        token : 'tokens.access_token',
+      })
+    },
+
     getNewStorage: async (req, res)=>{
+      console.log(req.body)
       console.log('started new service')
       let access = res.decoded_access
       let role = 0;
@@ -309,7 +319,7 @@ module.exports = {
 
       // Chcek if admin is making the call
       if(res.role == 'admin'){
-        // set this as default, 
+        // set this as default,  
         role = 'default'
       }else{
         role = 'user'
@@ -317,7 +327,7 @@ module.exports = {
 
       let {code} = req.body;
       // console.log('this is code: '+code)
-      // console.log(req.body)
+      console.log(req.body)
       const {tokens} = await oauth2Client.getToken(code);
 
       function updateOld (storage){
