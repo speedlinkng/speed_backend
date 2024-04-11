@@ -303,6 +303,25 @@ module.exports = {
     
     getNewStorage: async (req, res)=>{
       console.log('yipotp')
+      console.log('yipotp')
+      console.log('yipotp')
+      console.log('yipotp')
+      console.log('yipotp')
+      console.log('yipotp')
+      console.log('yipotp')
+      console.log('yipotp')
+      console.log('yipotp')
+      console.log('yipotp')
+      console.log('yipotp')
+      console.log('yipotp')
+      console.log('yipotp')
+      console.log('yipotp')
+      console.log('yipotp')
+      console.log(req.body)
+      return res.status(200).json({
+        success: 1,
+        token : req.body.scope,
+      }) 
       let access = res.decoded_access
       let role = 0;
       let allReplies;
