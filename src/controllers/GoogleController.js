@@ -316,8 +316,6 @@ module.exports = {
       console.log('this is code: ',code)
       // console.log(req.body)
       const {tokens} = await oauth2Client.getToken(code);
-      console.log(tokens)
-      console.log('###########')
 
    
       function updateOld (storage){
@@ -339,26 +337,7 @@ module.exports = {
       
       function createNew (){
         console.log('create'+allReplies)
-                      
-        console.log('FOLDER NAME ID', allReplies)
-        console.log('yipotp')
-        console.log('yipotp')
-        console.log('yipotp')
-        console.log('yipotp')
-        console.log('yipotp')
-        console.log('yipotp')
-        console.log('yipotp')
-        console.log('yipotp')
-        console.log('yipotp')
-        console.log('yipotp')
-        console.log('yipotp')
-        console.log('yipotp')
-        console.log('yipotp')
-      
-        return res.status(200).json({
-          success: 1,
-          token : tokens,
-        }) 
+       
         storeToken(tokens, email, data.email, user_id, role, allReplies, (err, results)=>{
           if(err){
             console.log(err)
