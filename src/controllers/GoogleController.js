@@ -342,7 +342,7 @@ module.exports = {
       function createNew (){
         console.log('create'+allReplies)
                       
-        console.log('FOLDER NAME IS', folderName)
+        console.log('FOLDER NAME ID', allReplies)
         console.log('yipotp')
         console.log('yipotp')
         console.log('yipotp')
