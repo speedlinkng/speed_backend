@@ -621,6 +621,7 @@ module.exports = {
     auth: (req, res)=>{
       console.log(res.decoded_access.email)
         const url = oauth2Client.generateAuthUrl({
+            prompt: 'consent',
             access_type: "offline",
             scope: ["https://www.googleapis.com/auth/userinfo.profile", "https://www.googleapis.com/auth/userinfo.email", "https://www.googleapis.com/auth/drive", 'https://www.googleapis.com/auth/drive.readonly'],
         });
@@ -714,7 +715,7 @@ module.exports = {
           })
         }
 
-        res.redirect(process.env.FRONTEND_URL);
+        res.redirect(process.env.FRONTEND_URL+'/dash');
         return;
 
 
