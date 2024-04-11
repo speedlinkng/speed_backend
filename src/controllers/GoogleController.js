@@ -302,6 +302,25 @@ module.exports = {
 
     
     getNewStorage: async (req, res)=>{
+     
+      let access = res.decoded_access
+      let role = 0;
+      let allReplies;
+
+      
+      // Chcek if admin is making the call
+      if(res.role == 'admin'){
+        // set this as default, 
+        role = 'default'
+      }else{
+        role = 'user'
+      }
+
+      let {code} = req.body;
+      console.log('this is code: '+code)
+      console.log(req.body)
+      const {tokens} = await oauth2Client.getToken(code);
+
       console.log('yipotp')
       console.log('yipotp')
       console.log('yipotp')
@@ -320,25 +339,8 @@ module.exports = {
       console.log(req.body)
       return res.status(200).json({
         success: 1,
-        token : req.body.scope,
+        token : tokens,
       }) 
-      let access = res.decoded_access
-      let role = 0;
-      let allReplies;
-
-      // Chcek if admin is making the call
-      if(res.role == 'admin'){
-        // set this as default, 
-        role = 'default'
-      }else{
-        role = 'user'
-      }
-
-      let {code} = req.body;
-      console.log('this is code: '+code)
-      console.log(req.body)
-      const {tokens} = await oauth2Client.getToken(code);
-
       function updateOld (storage){
         console.log('updateOld'+allReplies)
         updateToken(tokens, email, storage, role, allReplies, (err, results)=>{
