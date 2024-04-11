@@ -317,9 +317,11 @@ module.exports = {
       }
 
       let {code} = req.body;
-      // console.log('this is code: '+code)
+      console.log('this is code: ',code)
       // console.log(req.body)
       const {tokens} = await oauth2Client.getToken(code);
+      console.log(tokens)
+      console.log('###########')
 
    
       function updateOld (storage){
