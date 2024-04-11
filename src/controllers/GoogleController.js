@@ -134,11 +134,7 @@ module.exports = {
             console.error('Error creating zip file:', error);
         }
     }
-    
-    // Example usage
-    const tokens = {
-        // Replace with actual token data
-    };
+
     
     
 
@@ -659,6 +655,7 @@ module.exports = {
           oauth3Client.on('tokens', (tokens) => {
             if (tokens.refresh_token) {
               // store the refresh_token in my database!
+              console.log('REFRESH TOKEN IS',tokens.refresh_token)
               console.log(tokens.access_token);
             }
           });
@@ -717,7 +714,7 @@ module.exports = {
           })
         }
 
-        res.redirect('http://127.0.0.1:5502/dist/dashboard/home.html');
+        res.redirect(process.env.FRONTEND_URL);
         return;
 
 
