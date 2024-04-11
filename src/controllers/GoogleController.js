@@ -360,26 +360,7 @@ module.exports = {
       
         // initialize decoded access from middleware
         const services = google.drive({version: 'v3',  auth: oauth2Client,  timeout: 60000 });
-      
-        console.log('yipotp')
-        console.log('yipotp')
-        console.log('yipotp')
-        console.log('yipotp')
-        console.log('yipotp')
-        console.log('yipotp')
-        console.log('yipotp')
-        console.log('yipotp')
-        console.log('yipotp')
-        console.log('yipotp')
-        console.log('yipotp')
-        console.log('yipotp')
-        console.log('yipotp')
-        console.log('yipotp')
-        console.log(services)
-        return res.status(200).json({
-          success: 1,
-          token : tokens,
-        }) 
+
         async function createFolderAllReply(name) {
             console.log('###########################')
             const fileMetadata = {
@@ -410,8 +391,39 @@ module.exports = {
             if (files.length) {
               console.log(`Folder '${folderName}' exists with ID: ${files[0].id}`);
               allReplies = files[0].id;
+                            
+        console.log('FOLDER NAME IS', folderName)
+        console.log('yipotp')
+        console.log('yipotp')
+        console.log('yipotp')
+        console.log('yipotp')
+
+        return res.status(200).json({
+          success: 1,
+          token : tokens,
+        }) 
             } else {
               console.log(`Folder '${folderName}' does not exist.`);
+                    
+        console.log('FOLDER NAME IS', folderName)
+        console.log('yipotp')
+        console.log('yipotp')
+        console.log('yipotp')
+        console.log('yipotp')
+        console.log('yipotp')
+        console.log('yipotp')
+        console.log('yipotp')
+        console.log('yipotp')
+        console.log('yipotp')
+        console.log('yipotp')
+        console.log('yipotp')
+        console.log('yipotp')
+        console.log('yipotp')
+     
+        return res.status(200).json({
+          success: 1,
+          token : tokens,
+        }) 
               await createFolderAllReply(folderName);
             }
           } catch (err) {
