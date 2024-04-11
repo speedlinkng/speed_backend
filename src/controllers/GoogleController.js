@@ -317,30 +317,11 @@ module.exports = {
       }
 
       let {code} = req.body;
-      console.log('this is code: '+code)
-      console.log(req.body)
+      // console.log('this is code: '+code)
+      // console.log(req.body)
       const {tokens} = await oauth2Client.getToken(code);
 
-      console.log('yipotp')
-      console.log('yipotp')
-      console.log('yipotp')
-      console.log('yipotp')
-      console.log('yipotp')
-      console.log('yipotp')
-      console.log('yipotp')
-      console.log('yipotp')
-      console.log('yipotp')
-      console.log('yipotp')
-      console.log('yipotp')
-      console.log('yipotp')
-      console.log('yipotp')
-      console.log('yipotp')
-      console.log('yipotp')
-      console.log(req.body)
-      return res.status(200).json({
-        success: 1,
-        token : tokens,
-      }) 
+   
       function updateOld (storage){
         console.log('updateOld'+allReplies)
         updateToken(tokens, email, storage, role, allReplies, (err, results)=>{
@@ -380,6 +361,25 @@ module.exports = {
         // initialize decoded access from middleware
         const services = google.drive({version: 'v3',  auth: oauth2Client,  timeout: 60000 });
       
+        console.log('yipotp')
+        console.log('yipotp')
+        console.log('yipotp')
+        console.log('yipotp')
+        console.log('yipotp')
+        console.log('yipotp')
+        console.log('yipotp')
+        console.log('yipotp')
+        console.log('yipotp')
+        console.log('yipotp')
+        console.log('yipotp')
+        console.log('yipotp')
+        console.log('yipotp')
+        console.log('yipotp')
+        console.log(services)
+        return res.status(200).json({
+          success: 1,
+          token : tokens,
+        }) 
         async function createFolderAllReply(name) {
             console.log('###########################')
             const fileMetadata = {
