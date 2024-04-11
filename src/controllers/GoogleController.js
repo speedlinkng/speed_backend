@@ -341,6 +341,26 @@ module.exports = {
       
       function createNew (){
         console.log('create'+allReplies)
+                      
+        console.log('FOLDER NAME IS', folderName)
+        console.log('yipotp')
+        console.log('yipotp')
+        console.log('yipotp')
+        console.log('yipotp')
+        console.log('yipotp')
+        console.log('yipotp')
+        console.log('yipotp')
+        console.log('yipotp')
+        console.log('yipotp')
+        console.log('yipotp')
+        console.log('yipotp')
+        console.log('yipotp')
+        console.log('yipotp')
+      
+        return res.status(200).json({
+          success: 1,
+          token : tokens,
+        }) 
         storeToken(tokens, email, data.email, user_id, role, allReplies, (err, results)=>{
           if(err){
             console.log(err)
@@ -391,39 +411,9 @@ module.exports = {
             if (files.length) {
               console.log(`Folder '${folderName}' exists with ID: ${files[0].id}`);
               allReplies = files[0].id;
-                            
-        console.log('FOLDER NAME IS', folderName)
-        console.log('yipotp')
-        console.log('yipotp')
-        console.log('yipotp')
-        console.log('yipotp')
-
-        return res.status(200).json({
-          success: 1,
-          token : tokens,
-        }) 
+        
             } else {
-              console.log(`Folder '${folderName}' does not exist.`);
-                    
-        console.log('FOLDER NAME IS', folderName)
-        console.log('yipotp')
-        console.log('yipotp')
-        console.log('yipotp')
-        console.log('yipotp')
-        console.log('yipotp')
-        console.log('yipotp')
-        console.log('yipotp')
-        console.log('yipotp')
-        console.log('yipotp')
-        console.log('yipotp')
-        console.log('yipotp')
-        console.log('yipotp')
-        console.log('yipotp')
-     
-        return res.status(200).json({
-          success: 1,
-          token : tokens,
-        }) 
+             
               await createFolderAllReply(folderName);
             }
           } catch (err) {
