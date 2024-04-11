@@ -66,7 +66,7 @@ refresh: (req, res)=>{
 Authorize: (req, res)=>{
   let access = res.decoded_access
   const redirectURI_ = `${process.env.BACKEND_URL}/api/zoom/callback/${access.user_id}`; // Update with your actual redirect URI
-  console.log(redirectURI_)  
+  // console.log(redirectURI_)  
   const authorizeURL = 'https://zoom.us/oauth/authorize';
     const queryParams = {
       response_type: 'code',
@@ -75,7 +75,7 @@ Authorize: (req, res)=>{
     };
   
     const authorizationURL = `${authorizeURL}?${querystring.stringify(queryParams)}`;
-    console.log(authorizationURL)
+    // console.log(authorizationURL)
     // res.redirect(authorizationURL);
     return res.status(200).json({
       success: 1,
@@ -114,7 +114,7 @@ recording: async (req, res)=>{
   fetch_user_zoom(access.user_id, (err, results)=>{
 
     if(results.rowCount > 0){
-      console.log(results.rows[0].zoom_user_id)
+      // console.log(results.rows[0].zoom_user_id)
       // accessToken = results.rows.access_token 
       refreshToken = results.rows[0].refresh_token 
       zoomUserId =   results.rows[0].zoom_user_id 
@@ -137,7 +137,7 @@ recording: async (req, res)=>{
   async function getMeetingRecordings() {
     const fromDateTime = '2024-02-20T00:00:00Z'; // Specify your start date/time
     const toDateTime = '2024-03-19T23:59:59Z';   // Specify your end date/time
-    console.log('accessToken', accessToken)
+    // console.log('accessToken', accessToken)
     try {
         const response = await axios.get(`https://api.zoom.us/v2/users/${zoomUserId}/recordings`, {
             headers: {
@@ -160,13 +160,13 @@ recording: async (req, res)=>{
 
   async function runOtherFunctions(){
 
-    console.log('running other functions')
-    console.log(refreshToken)
+    // console.log('running other functions')
+    // console.log(refreshToken)
     await refreshAccessToken(clientID, clientSecret, refreshToken)
     .then(newAccessToken => {
         if (newAccessToken) {
             accessToken = newAccessToken
-            console.log('New access token:', newAccessToken);
+            // console.log('New access token:', newAccessToken);
         } else {
             console.log('Failed to refresh access token.');
         }
@@ -198,8 +198,8 @@ recording: async (req, res)=>{
                 });
               });
 
-              console.log(downloadUrls)
-              console.log(playUrls)
+              // console.log(downloadUrls)
+              // console.log(playUrls)
 
               return res.status(200).json({
                 status: 200,
