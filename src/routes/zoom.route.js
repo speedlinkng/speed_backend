@@ -8,7 +8,7 @@ const { Authorize, callback, meeting, refresh, recording} = require('../controll
 // get url record by id
 router.get('/', checkToken, Authorize)
 router.get('/callback/:user_id', callback)
-router.get('/meeting', meeting)
+router.get('/meeting',checkToken, meeting)
 router.get('/refresh',checkToken, refresh)
 router.get('/recordings',checkToken, recording)
 

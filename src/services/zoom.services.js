@@ -35,8 +35,6 @@ module.exports = {
                 if(err){
                     return callback(err);
                 }
-                
-
                     return callback(null, res)
                 
             }

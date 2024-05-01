@@ -3,6 +3,7 @@ const qs = require('querystring');
 
 
 async function refreshAccessToken(clientId, clientSecret, refreshToken) {
+    // console.log(refreshToken)
     try {
         // Encode client ID and client secret for Basic Authorization
         const credentials = Buffer.from(`${clientId}:${clientSecret}`).toString('base64');

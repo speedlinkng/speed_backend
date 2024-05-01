@@ -144,6 +144,8 @@ module.exports = {
         )
     },
 
+    
+
 
     updateexpired:(user_id, callback)=>{
         pgpool.query(
@@ -205,7 +207,7 @@ module.exports = {
                 user_id,
                 'active',
                 data.preferred,
-                record_id, 
+                data.page_url, 
                 ADDFTFR.refresh_token,
                 ADDFTFR.access_token,
                 ADDFTFR.expiry_date,
@@ -341,6 +343,22 @@ module.exports = {
             }
 
         )
+    },
+
+    checkForRequestid: (request_id, callback) => {
+        pgpool.query(
+            `SELECT COUNT(*) AS count FROM form_records WHERE record_id = $1`,
+            [request_id],
+            (err, res, fields) => {
+                if (err) {
+                    return callback(err);
+                }
+                const rowCount = res.rows[0].count;
+                // If rowCount is greater than 0, the request_id exists
+                const requestExists = rowCount > 0;
+                return callback(null, requestExists);
+            }
+        );
     },
 
    

@@ -5,7 +5,7 @@ const upload = multer();
 const {login, createUser, getMe} = require('../controllers/AuthController');
 const {checkToken} = require("../middlewares/ValidateToken");
 const {getGoogleData, checkLinkExpire} = require("../middlewares/Generals");
-const {addRecord, updateRecord, getRecord, getSubmissionById,getUploadRecordById, getRecordById, getSettingById, refresh, sendmail} = require('../controllers/CreateController');
+const {addRecord, updateRecord, getRecord, getSubmissionById,getUploadRecordById, getRecordById, getSettingById, refresh, sendmail, checkId} = require('../controllers/CreateController');
 const { submitAndUpdate, checkOnline, submitReplies } = require('../controllers/SubmitController');
 
 
@@ -56,6 +56,10 @@ router.post('/submitReplies',checkLinkExpire, submitReplies)
 
 //This route is for mails
 router.get('/sendmail', sendmail)
+
+//This route handles checks for form id, and returns a boolean if th id if found or not
+// it also has a middleware that does so as form is being submittd
+router.get('/checkId/:request_id',checkToken, checkId)
 
 
 

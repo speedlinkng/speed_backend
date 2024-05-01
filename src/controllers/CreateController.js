@@ -1,4 +1,4 @@
-const {createRecord,updateRecord, getRecord, getSubmissionById, getUploadRecordById, getRecordById, getSettingById, getRefreshTokenGoogle, getRefreshAndExchangeForAccess, updateexpired, getDefaultFolder} = require('../services/create.services');
+const {createRecord,updateRecord, getRecord, getSubmissionById, getUploadRecordById, getRecordById, getSettingById, getRefreshTokenGoogle, getRefreshAndExchangeForAccess, updateexpired, getDefaultFolder, checkForRequestid} = require('../services/create.services');
 const {getSubmittedRecordById, submitAndUpdate} = require('../services/submit.services');
 const {v4:uuidv4} = require("uuid")
 const request = require("request");
@@ -31,21 +31,31 @@ module.exports = {
         cron.schedule('*/1 * * * *', sendMail());
     },
 
-    refresh: (req, res)=>{
-        //read refresh token from DB
-        
-        // getUserOauth2Data((err, result)=>{
-        //     if(err){
-        //         console.log(err);
-        //         return res.status(401).json({
-        //             error: 1,
-        //             message: err
-                   
-        //         })
-        //     }
-        //     if(result){
-                // 1//03LpTiaHKt5U4CgYIARAAGAMSNwF-L9IrZoVd5nwRe2FiuEwzMuFAOKKbCx1w7oiVF0PBjTLdqSMtUgKbIF9VsN9Cd8LeFdK3PCo
-                // let refresh_token = result.google_refresh_token
+    checkId: (req, res) => {
+      
+        if (req.params.request_id !== null) {
+          
+            checkForRequestid(req.params.request_id, (err, results) => {
+                console.log(results)
+                return res.status(200).json({
+                    status: 200,
+                    success: 1,
+                    bool: results,
+                })
+                
+               
+            })
+        } else {
+            return res.status(400).json({
+                status: 400,
+                error: 1,
+                message: 'Expecting a parameter',
+            })
+        }
+    },
+
+    refresh:(req, res)=>{
+
                 let refresh_token = '1//03LpTiaHKt5U4CgYIARAAGAMSNwF-L9IrZoVd5nwRe2FiuEwzMuFAOKKbCx1w7oiVF0PBjTLdqSMtUgKbIF9VsN9Cd8LeFdK3PCo'
                 var read = fs.readFileSync('cred.json');
                 var json = JSON.parse(read);
@@ -291,7 +301,7 @@ module.exports = {
                     status: 200,
                     success: 1,
                     data : results,
-                    id: record_id,
+                    id: body.page_url,
                     
                 })
                 }
