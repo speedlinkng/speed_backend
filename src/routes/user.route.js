@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const {createUsers, getUserById, getUsers, updateUsers, deleteUser} = require('../controllers/UserController');
-const {login, createUser, logout, forgot, verifyrecovery, changeForgotPassword, setNewPassword, set_newPhoneNumber} = require('../controllers/AuthController');
+const {login, createUser, logout, forgot,activateUser, verifyrecovery, changeForgotPassword, setNewPassword, set_newPhoneNumber} = require('../controllers/AuthController');
 const {addRecord, getRecord} = require('../controllers/CreateController');
 const {checkToken, TRY, protectRoute, ifAdmin} = require("../middlewares/ValidateToken")
 
@@ -31,6 +31,7 @@ router.get('/getforupload/:record', getRecord)
 
 //verify the recovery id link in mail
 router.get('/verifyrecovery/:verify_id', verifyrecovery)
+router.get('/activateuser/:decodedUser', activateUser)
 
 //change the fogot password
 router.post('/changeForgotPassword', changeForgotPassword)

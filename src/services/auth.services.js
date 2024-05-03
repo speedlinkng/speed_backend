@@ -7,25 +7,69 @@ const uniqueId = uuidv4();
 module.exports = {
 
     register: (data, callback)=>{
-
-        console.log(data)
+        // If account is not activatedand is being registered in again, using same email address,
+        // Delete the old account and plug in the new one
         pgpool.query(
-            `insert into users(firstName, lastName, email, password, number, user_id) values($1,$2,$3,$4,$5,$6)`,
+            `select * from users where email = $1`,
             [
-                data.first_name,
-                data.last_name,
-                data.email,
-                data.password,
-                data.number,
-                uniqueId
+                data.email
             ],
             (err, res, fields) =>{
                 if(err){
                     return callback(err);
                 }
-                return callback(null, res.rows)
-            },
+               console.log(res.rows)
+                if (res.rowCount == 1 && res.rows[0].status === 'pending') {
+                    console.log('yes pending')
+                    pgpool.query(
+                    `delete from users where email = $1`,
+                    [
+                        data.email
+                    ])
+                }
+                console.log('@@@@@@@@@@@@@@')
+                console.log(res.rowCount)
+                if (res.rowCount == 1 && res.rows[0].status === 'activated') {
+                    console.log('user exists')
+                    return callback(null, res.rows[0], true) 
+                }
+                    console.log('user does not exist')
+                pgpool.query(
+                    `insert into users(firstName, lastName, email, password, number, user_id) values($1,$2,$3,$4,$5,$6)`,
+                    [
+                        data.first_name,
+                        data.last_name,
+                        data.email,
+                        data.password,
+                        data.number,
+                        uniqueId
+                    ],
+                    (err, res, fields) =>{
+                        if(err){
+                            return callback(err);
+                        }
+                        pgpool.query(
+                            `select * from users where email = $1`,
+                            [
+                                data.email
+                            ],
+                            (err, ress, fields) =>{
+                                if(err){
+                                    return callback(err);
+                                }
+                                console.log(ress.rows[0], 'this is')
+                                return callback(null, ress.rows[0], false)
+                            }
+                
+                        )
+                        
+                    },
+                )
+              
+            }
+
         )
+       
     },
 
     getUserByUserEmail: (email, callback) =>{
@@ -78,6 +122,36 @@ module.exports = {
         )
     },
 
+    setActivate: async (user_id, callback) => {
+      console.log('activeting ....')
+        pgpool.query(
+            `update users set status = $1 WHERE user_id = $2`, 
+            ['activated', user_id],
+            (err, res, fields) => {
+                if (err) {
+                    return callback(err);
+                }
+                console.log(user_id)
+                return callback(null, res.rows)
+            }
+
+        )
+    },
+    checkUserId: async (user_id, callback) => {
+      
+        pgpool.query(
+            `select * from users where user_id = $1`,
+            [user_id],
+            (err, res, fields) => {
+                if (err) {
+                    return callback(err);
+                }
+               
+                return callback(null, res.rows)
+            }
+
+        )
+    },
     checkEmailExists: async (email,try_, callback) => {
       
             pgpool.query(

@@ -1,9 +1,15 @@
 const express = require('express');
 const axios = require('axios');
+const { google } = require('googleapis');
 const querystring = require('querystring');
-const {save_user_zoom, if_exists, fetch_user_zoom} = require('../services/zoom.services');
+const {save_user_zoom, if_exists, fetch_user_zoom, store_recordings_data} = require('../services/zoom.services');
 const refreshAccessToken = require('../middlewares/refreshZoomAccess');
 
+const oauth3Client = new google.auth.OAuth2(
+  process.env.YOUR_CLIENT_ID,
+  process.env.YOUR_CLIENT_SECRET,
+  process.env.YOUR_REDIRECT_URL
+);
 
 // const clientID = 'J38UYpAXQlqlydq5dIn58Q';
 // const clientSecret = 'G3gbxPjt5GKRNEaMTsYRvpZFM2IlO7vY';
@@ -12,6 +18,76 @@ const clientID = 'J1NkT84YTsu_ZhjGYLAbiQ';
 const clientSecret = 'lKLFc145Ekp570kcafjVW2XbUL87NH7i';
 const redirectURI = `${process.env.BACKEND_URL}/api/zoom/callback`; // Update with your actual redirect URI
 
+
+// Function to download the file from the source
+async function downloadFile(url, onDownloadProgress) {
+    const response = await axios({
+        url,
+        method: 'GET',
+        responseType: 'stream',
+        onDownloadProgress,
+        timeout: 60000 // 60 seconds timeout
+    });
+    return response.data;
+}
+
+// Function to authenticate with Google Drive
+async function authenticateWithDrive() {
+  return google.drive({ version: 'v3', auth: oauth3Client });
+}
+
+// Function to upload the file to Google Drive
+async function uploadFile(drive, fileName, fileStream, onUploadProgress) {
+    const fileMetadata = {
+        name: fileName
+    };
+    const media = {
+        mimeType: 'application/octet-stream',
+        body: fileStream
+    };
+    const res = await drive.files.create({
+        resource: fileMetadata,
+        media: media,
+        fields: 'id',
+        onUploadProgress
+    });
+    console.log('File uploaded with ID:', res.data.id);
+}
+
+// Main function
+async function main() {
+
+  const sourceUrl = 'https://us06web.zoom.us/rec/download/4r8l7hGTmyFLBp1Q52dqeV1MzTBjLwpxeCc3JL3Pj1QGuS9Sc3AnWwqSFbYrwLpweF5LxKs65W45zmVR.GwH3wycwuuZsIEdb';
+    const fileName = 'Name_of_the_file_on_Google_Drive.mp4';
+
+    // Variables to track progress
+    let bytesDownloaded = 0;
+    let bytesUploaded = 0;
+
+    // Download progress callback
+    const onDownloadProgress = (progressEvent) => {
+        bytesDownloaded = progressEvent.loaded;
+        console.log(`Downloaded ${bytesDownloaded} bytes`);
+    };
+
+    // Upload progress callback
+    const onUploadProgress = (progressEvent) => {
+        bytesUploaded = progressEvent.bytesRead;
+        console.log(`Uploaded ${bytesUploaded} bytes`);
+    };
+
+    // Download the file from the source
+    const fileStream = await downloadFile(sourceUrl, onDownloadProgress);
+
+    // Authenticate with Google Drive
+    const drive = await authenticateWithDrive();
+
+    // Upload the file to Google Drive
+    await uploadFile(drive, fileName, fileStream, onUploadProgress);
+}
+
+// Execute main function
+// main().catch(console.error);
 
 
 async function getUserId(accessToken) {
@@ -33,37 +109,51 @@ async function getUserId(accessToken) {
 
 module.exports = {
 
-refresh: (req, res)=>{
+backup: (req, res)=>{
   let access = res.decoded_access
-  console.log(access)
-  if_exists(access.user_id, (err, results)=>{
-    if(err){
-      return res.status(400).json({
-         error: 1,
-         data : 'not exist',
-       })
-       console.log(err)
-    }
-    
-      
-    if(results.rowCount > 0){
-      // console.log('exists')
-      return res.status(200).json({
-        success: 1,
-        data : 'exists',
-      })
-    }else{
-      return res.status(400).json({
-        error: 1,
-        data : err,
-      })
-    }
-   
-
-  }) 
+  let tok_data = res.tok_data
+  console.log(tok_data)
+    console.log(access)
+    console.log('SORRRYYYYYYYYYYYYY')
+  let json = JSON.parse(tok_data);
+  oauth3Client.setCredentials(json); 
+  main().catch(console.error);
 
 },
 
+  
+refresh: (req, res)=>{
+  let access = res.decoded_access
+  console.log(access)
+    if_exists(access.user_id, (err, results)=>{
+      if(err){
+        return res.status(400).json({
+          error: 1,
+          data : 'not exist',
+        })
+        console.log(err)
+      }
+      
+        
+      if(results.rowCount > 0){
+        // console.log('exists')
+        return res.status(200).json({
+          success: 1,
+          data : 'exists',
+        })
+      }else{
+        return res.status(400).json({
+          error: 1,
+          data : err,
+        })
+      }
+    
+
+    }) 
+
+},
+
+  
 Authorize: (req, res)=>{
   let access = res.decoded_access
   const redirectURI_ = `${process.env.BACKEND_URL}/api/zoom/callback/${access.user_id}`; // Update with your actual redirect URI
@@ -84,7 +174,8 @@ Authorize: (req, res)=>{
   })
 },
 
-  meeting: async (req, res) => {
+
+meeting: async (req, res) => {
   
     let access = res.decoded_access
     var accessToken = '';
@@ -208,8 +299,6 @@ Authorize: (req, res)=>{
 },
 
 
-
-
 recording: async (req, res)=>{  
   let access = res.decoded_access
   var accessToken = '';
@@ -242,7 +331,8 @@ recording: async (req, res)=>{
     let allRecordings = []; // Accumulator array to store all recordings
     let today = new Date(); // Get current date object
     let fiveYearsAgo = new Date(today); // Get a copy of the current date
-    fiveYearsAgo.setFullYear(fiveYearsAgo.getFullYear() - 4); // Subtract 5 years
+    // fiveYearsAgo.setFullYear(fiveYearsAgo.getFullYear() - 4); // Subtract 5 years
+    fiveYearsAgo.setMonth(fiveYearsAgo.getMonth() - 2); // Subtract 6 months
     
     let hasMore = true; // Flag to track if there are more recordings to fetch
     
@@ -268,10 +358,10 @@ recording: async (req, res)=>{
                     from: fromDateTime.toISOString(),
                     to: toDateTime.toISOString(),
                 },
-                timeout: 5000, // Set timeout to 5 seconds (adjust as needed)
+                timeout: 10000, // Set timeout to 10 seconds (adjust as needed)
             });
 
-          console.log(response.data)
+        
             allRecordings.push(...response.data.meetings); // Append retrieved recordings
 
             hasMore = response.data.next_page_token !== undefined; // Check for next page token
@@ -284,7 +374,7 @@ recording: async (req, res)=>{
     }
 
     return allRecordings;
-}
+  }
 
 
 
@@ -324,16 +414,20 @@ recording: async (req, res)=>{
             const downloadUrls = [];
             
             // Iterate through each recording
-          recordings.forEach(recording => {
-              
+          recordings.forEach(recording => {  
+            // console.log('Start THIOS TEST')
+            // console.log(recording)
+              store_recordings_data(recording,access.user_id, (err, results) => { 
+
+              })
                 // Iterate through each recording file of the recording
-                recording.recording_files.forEach(file => {
+                recording.recording_files.forEach(file => {       
                     playUrls.push(file.play_url); // Push play_url to the array
                     downloadUrls.push(file.download_url); // Push download_url to the array
                 });
             });
 
-          // save all these data into a database
+     
 
             return res.status(200).json({
                 status: 200,
@@ -351,7 +445,7 @@ recording: async (req, res)=>{
         }
     })
     .catch(error => {
-        console.error('Error:', error);
+        // console.error('Error:', error);
         return res.status(400).json({
             status: 400,
             error: 1,
@@ -362,9 +456,6 @@ recording: async (req, res)=>{
   }
 
 },
-
-
-
 
 
 callback: async (req, res)=>{

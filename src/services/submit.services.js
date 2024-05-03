@@ -30,7 +30,7 @@ module.exports = {
           if (err) {
             return callback(err);
           } else if (res.rows.length > 0) {
-            updateCount(res.rows);
+            getUserDetails(res.rows);
           }
         }
       );
@@ -46,28 +46,28 @@ module.exports = {
           if (err) {
             return callback(err);
           } else if (res.rows.length > 0) {
-            return callback(null, res.rows);
+            updateCount(res.rows)
           }
         }
       );
     }
 
-    function updateCount(uid) {
+    function updateCount(userRows) {
       let count = 0;
       if (body.status !== "pending") {
         count = 1;
       }
       pgpool.query(
-        `update form_records set count_submissions=$1 WHERE record_id = $2 `,
-        [count_submissions + count, body.record_id],
+        `update form_records set count_submissions= count_submissions + $1 WHERE record_id = $2 `,
+        [count, body.record_id],
 
         (err, res, fields) => {
           // console.log(res.rows)
           if (err) {
             return callback(err);
           }
-
-          getUserDetails(res.rows);
+          return callback(null, userRows);
+     ;
         }
       );
     }

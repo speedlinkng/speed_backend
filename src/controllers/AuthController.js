@@ -1,4 +1,4 @@
-const {getUserByUserEmail, register, logout, checkRevoke, checkOldPassword, updateChangedPassword, checkEmailExists, matchRecovery, setNewPassword, set_NewPhoneNumber} = require('../services/auth.services');
+const {getUserByUserEmail, register, logout, checkRevoke, checkOldPassword, updateChangedPassword, checkEmailExists, matchRecovery, setNewPassword, set_NewPhoneNumber, setActivate, checkUserId} = require('../services/auth.services');
 const {genSaltSync, hashSync, compareSync, compare} = require("bcrypt")
 const {sign} = require("jsonwebtoken")
 const jwt = require("jsonwebtoken")
@@ -104,6 +104,39 @@ module.exports = {
     },
 
 
+    activateUser: (req, res) => {
+        let decoded_user = req.params.decodedUser;
+        console.log( req.params.decodedUser)
+        checkUserId(decoded_user.user_id, (err, results) => { 
+            if(err){
+                return res.status(400).json({
+                    success: err,
+                    message : 'DB connection error',
+                })
+            }
+            // now check if the result from the database matches the jwt results
+            else if (results.email === decoded_user.email) {
+                setActivate(decoded_user, (err, act) => { 
+                    if (err) {
+                        return res.status(400).json({
+                            success: err,
+                            message : 'DB connection error',
+                        })
+                    }
+                    return res.status(200).json({
+                        success: 1,
+                        data : act[0],
+                    }) 
+                })
+            } else {
+                return res.status(301).json({
+                    success: err,
+                    message : 'results dont match',
+                })
+            }
+        })
+    },
+
     forgot: (req, res)=>{
         let email = req.body.email;
         let recover_id = '';
@@ -136,10 +169,10 @@ module.exports = {
              
                     let mesg = `<div>
                     <p>Hello,</p> 
-                        <p>You initiated a password recovery rocess on our platform, kindly click the this <a href="${process.env.FRONTEND_URL}/auth/verify/${result[0].recovery_id}">${process.env.FRONTEND_URL}/auth/verify/${result[0].recovery_id}</a> to recover your password</p>
+                        <p>You initiated a password recovery process on our platform, kindly click the this <a href="${process.env.FRONTEND_URL}/auth/verify/${result[0].recovery_id}">${process.env.FRONTEND_URL}/auth/verify/${result[0].recovery_id}</a> to recover your password</p>
                     </div>`
               
-                    sendMail(email, 'Recover Your f Password', mesg);
+                    sendMail(email, 'Recover Your Password', mesg);
 
                     return res.status(200).json({
                         success: 1,
@@ -147,9 +180,7 @@ module.exports = {
                     })
                 }
             })
-               
-            
-           
+
         })
     },
 
@@ -251,21 +282,20 @@ module.exports = {
                 })
             }
             else{
-              
-                    const salt = genSaltSync(10);
-                    password = hashSync(password, salt)
-                    setNewPassword(password, access.email, (err, results)=>{
-                        if(err){
-                            return res.status(400).json({
-                                success: err,
-                                message : 'DB connection error',
-                            })
-                        }
-                        return res.status(200).json({
-                            success:1,
-                            message : 'password changed successfully',
-                        })       
-                    })
+                const salt = genSaltSync(10);
+                password = hashSync(password, salt)
+                setNewPassword(password, access.email, (err, results)=>{
+                    if(err){
+                        return res.status(400).json({
+                            success: err,
+                            message : 'DB connection error',
+                        })
+                    }
+                    return res.status(200).json({
+                        success:1,
+                        message : 'password changed successfully',
+                    })       
+                })
                 
             }
 
@@ -321,11 +351,11 @@ module.exports = {
     },
 
 
-    createUser: (req, res)=>{
+    createUser: (req, res) => {
         const body = req.body
         const salt = genSaltSync(10);
         body.password = hashSync(body.password, salt)
-        register(body, (err, results)=>{
+        register(body, (err, results, exists = false)=>{
             if(err){
                 console.log(err);
                 return res.status(400).json({
@@ -333,10 +363,37 @@ module.exports = {
                     message : err,
                 })
             }
-            return res.status(200).json({
-                success:1,
-                data : results,
-            })
+            if (exists) {
+                return res.status(401).json({
+                    error: 1,
+                    message:'User already exists'
+                })
+            }
+            results.password = undefined
+            results.recovery_id = undefined
+            const payload = {
+                result: results
+            };
+        
+            // Sign the payload to create the refresh token
+            const activateToken = jwt.sign(payload, 'your_refresh_token_secret', { expiresIn: '25m' }); // Expires in 7 days
+        
+            console.log(results.email)
+            let mesg = `
+                <div>
+                    <p>Hello,</p> 
+                        <p>Click the link below to activate your Speedlink account</p>
+                        <a href="${process.env.FRONTEND_URL}/auth/activate/${activateToken}"  style="display: inline-block; padding: 10px 20px; background-color: #4f46ES; color: #ffffff; text-decoration: none; border-radius: 5px;">
+                        <button>Activate Account</button></a>
+                        <p>This link will expire after 30 minutes</p>
+                </div>`
+           
+            if (sendMail(results.email, 'Activate Your Speedlink Account', mesg)) {
+                return res.status(200).json({
+                    success:1,
+                    data : results,
+                })   
+           }
         })
     },
 
@@ -382,11 +439,21 @@ module.exports = {
 
             if(result){
                 results.password = undefined
+                results.recovery_id = undefined
+               
                 
                 const accessToken = sign({result : results, jti: uniqueID}, process.env.REFRESH_TOK_SEC, {
                     expiresIn: "1h"
                 })
-
+                    console.log(typeof(results.status))
+                    console.log(results.status.trim())
+                if (results.status.trim() != "activated") {
+                    console.log('why no activated')
+                    return res.status(302).json({
+                        error:1,
+                        message : 'Account not activated',
+                    })
+                } 
                 return res.status(200).json({
                     success:1,
                     message : 'user loggedin successfully',

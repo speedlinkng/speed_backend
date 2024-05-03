@@ -27,7 +27,6 @@ module.exports = {
 
 
     sendmail: (req, res)=>{
-        
         cron.schedule('*/1 * * * *', sendMail());
     },
 
@@ -158,12 +157,10 @@ module.exports = {
 
         // return check if folder already exists, if it dosent, create one
         async function checkFolderExists(folder_name) {
-            console.log('_______))))))))))))))))')
-
             service.files.list(
                 {
-                q: `name = '${folder_name}' and mimeType = 'application/vnd.google-apps.folder'`,
-                fields: 'files(id, name)',
+                    q: `name = '${folder_name}' and mimeType = 'application/vnd.google-apps.folder'`,
+                    fields: 'files(id, name)',
                 },
                 (err, res) => {
                 if (err){
@@ -286,7 +283,7 @@ module.exports = {
 
         function secondQuery(new_folder_id, google_storage_email){
             console.log('store_email 2:'+new_folder_id) 
-            // console.log('b_token is:' +body.b_token) 
+            console.log('page URL IS is:',body.otherData.page_url) 
             createRecord(body, new_folder_id, allDriveDataForThisFormRequest, record_id, access.user_id, userGoogleRow_id, (err, results)=>{
                 if(err){
                     console.log(err);
@@ -301,7 +298,7 @@ module.exports = {
                     status: 200,
                     success: 1,
                     data : results,
-                    id: body.page_url,
+                    id: body.otherData.page_url,
                     
                 })
                 }
@@ -452,8 +449,7 @@ module.exports = {
     //                 console.log(element.status)
     //             }
     //         }
-            
-
+        
             
     //         // SET EXPIRED IN THE DB FOR RECORD
     //         results.forEach(element => {

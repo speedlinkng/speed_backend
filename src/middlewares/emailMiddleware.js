@@ -12,7 +12,7 @@ const transporter = nodemailer.createTransport({
     }
 });
 // Send email
-function sendMail(to, subject, message){
+async function sendMail(to, subject, message){
 
     // Email content
     const mailOptions = {
@@ -27,10 +27,13 @@ function sendMail(to, subject, message){
     transporter.sendMail(mailOptions, (error, info) => {
         if (error) {
             console.error('Error occurred while sending email:', error);
+            return false
         } else {
             console.log('Email successful:', info.response);
+            return true
         }
     });
+   
 }
 // Export the controller function
 module.exports =  sendMail;

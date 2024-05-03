@@ -42,6 +42,45 @@ module.exports = {
 
     },
 
+    store_recordings_data: (record,user_id, callback) => { 
+        // Check if the UUID already exists in the recording_data JSONB column
+        pgpool.query(
+            `SELECT id FROM zoom_recordings WHERE recording_data @> $1`,
+            [
+                { uuid: record.uuid }  
+            ],
+            (err, res) => {
+                if (err) {
+                    console.error('Error checking UUID in recording_data:', err);
+                    return callback(err);
+                }
+    
+                if (res.rows.length > 0) {
+                    // UUID already exists, do not insert
+                    console.log('UUID already exists in recording_data:', record.uuid);
+                    return callback(null, { message: 'UUID already exists in recording_data' });
+                } else {
+                    // UUID does not exist, proceed with the insertion
+                    pgpool.query(
+                        `INSERT INTO zoom_recordings(recording_data,user_id) VALUES ($1, $2)`,
+                        [
+                            record,
+                            user_id
+                        ],
+                        (err, res) => {
+                            if (err) {
+                                console.error('Error inserting recording_data:', err);
+                                return callback(err);
+                            }
+                            console.log('Recording data inserted successfully:', record);
+                            return callback(null, res);
+                        }
+                    );
+                }
+            }
+        );
+    }
+,    
     save_user_zoom:(zoomData,user_id,zoom_user_id,callback)=>{
 
         // check if account exist
