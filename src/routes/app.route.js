@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const multer = require('multer');
 const upload = multer();
-const {login, createUser, getMe} = require('../controllers/AuthController');
+const {login, createUser, getMe, getMeOnRefresh} = require('../controllers/AuthController');
 const {checkToken} = require("../middlewares/ValidateToken");
 const {getGoogleData, checkLinkExpire} = require("../middlewares/Generals");
 const {addRecord, updateRecord, getRecord, getSubmissionById,getUploadRecordById, getRecordById, getSettingById, refresh, sendmail, checkId} = require('../controllers/CreateController');
@@ -12,6 +12,7 @@ const { submitAndUpdate, checkOnline, submitReplies } = require('../controllers/
 // check token valid 
 // this endpoint runs frequently in the background after every login
 router.get('/check', checkToken, getMe)
+router.get('/checkonrefresh', checkToken, getMeOnRefresh)
 
 // Create upload request
 // observe the chcekToken middleware to see if the user is logged in and

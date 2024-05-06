@@ -323,6 +323,26 @@ module.exports = {
           
     },
 
+    getMeOnRefresh: (req, res)=>{
+        let access = res.decoded_access
+
+        getUserByUserEmail(access.email, (err, results)=>{
+            if(err){
+                // console.log(err);
+                return res.status(400).json({
+                    success: err,
+                    message : 'DB connection error',
+                })
+            }
+          
+            results.password = undefined
+            results.recovery_id = undefined
+            console.log(results)
+            return res.status(200).json({
+                results
+            })
+        })
+    },
 
     getMe: (req, res)=>{
         let access = res.decoded_access

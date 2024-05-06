@@ -100,7 +100,7 @@ module.exports = {
                 'Content-Type': 'application/json'
             },
             json: {
-                code: results.SUB_code,
+                code: results.sub_code,
                 token: results.email_token
             }
             };
@@ -119,10 +119,10 @@ module.exports = {
  
            
             const options = {
-                url: 'https://api.paystack.co/subscription/'+results.SUB_code,
+                url: 'https://api.paystack.co/subscription/'+results.sub_code,
                 method: 'GET',
                 headers: {
-                    Authorization: 'Bearer sk_test_143c3d3f8f72daacfcbbefadc281ad757f884686',
+                    Authorization: 'Bearer '+process.env.PAYSTACK_SEC_TEST,
                 },
             };
             console.log('confirm cancel')
@@ -249,7 +249,7 @@ module.exports = {
                     url: 'https://api.paystack.co/transaction/verify/'+sampleUrl.trxref,
                     method: 'GET',
                     headers: {
-                        Authorization: 'Bearer sk_test_5388c69b71e0348ae0fbc13d3fa337b26c7db7c3',
+                        Authorization: 'Bearer '+process.env.PAYSTACK_SEC_TEST,
                     },
                 };
 
@@ -266,8 +266,12 @@ module.exports = {
                         // console.log('Customer plan: '+sampleUrl.plan);
                         // res.send(responseData);
                         createSub(responseData, sampleUrl.trxref, sampleUrl.token)
-                    }else{
-                        res.send(responseData);
+                    } else {
+                        //----------------------------------
+                        // REDIECT to frontend
+                        res.redirect(`${process.env.FRONTEND_URL}/dash`)
+                        // res.redirect(url);
+                        // res.send(responseData);
                     }
                 }
                 });
@@ -280,7 +284,7 @@ module.exports = {
         async function createSub(responseData, ref, tkn) {
             return new Promise((resolve, reject) => {
                 const decoded = jwt.decode(tkn);
-                // console.log(decoded.user_id)
+                console.log('create_sub')
 
                 const params = {
                     customer: responseData.data.customer.customer_code , plan: sampleUrl.plan
@@ -320,7 +324,7 @@ module.exports = {
                                             message : 'An error occured',
                                         })
                                     }
-                                    res.redirect('http://localhost:4000/dash');
+                                    res.redirect(`${process.env.FRONTEND_URL}/dash`)
                                     // return res.status(200).json({
                                     //     success: 1,
                                     //     data : 'updated successfully',
@@ -335,7 +339,7 @@ module.exports = {
                                         message : 'An error occured',
                                     })
                                 }
-                                res.redirect('http://localhost:4000/dash');
+                                res.redirect(`${process.env.FRONTEND_URL}/dash`)
                                 // return res.status(200).json({
                                 //     success: 1,
                                 //     data : 'updated successfully',

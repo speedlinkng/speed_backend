@@ -49,7 +49,7 @@ module.exports = {
                 'UPDATE subscribers SET user_id = $1, plan = $2, payment_id = $3, trxref = $4, amount = $5, AUTH_code = $6, email_token = $7, SUB_code = $8, PLAN_code = $9, CUS_code = $10, status = $11, next_payment_date = $12 WHERE user_id = $13',
                 [
                     decoded.user_id,
-                    'plus',
+                    2,
                     uniqueId,
                     ref,
                     body.data.amount,
@@ -92,7 +92,7 @@ module.exports = {
     console.log(body)
     
         pool.query(
-            'insert into subscribers(user_id, plan, payment_id, trxref, amount, AUTH_code, email_token, SUB_code, PLAN_code, CUS_code, status, next_payment_date) values($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)',
+            'insert into subscribers(user_id, plan, payment_id, trxref, amount, AUTH_code, email_token, SUB_code, PLAN_code, CUS_code, status, next_payment_date, date_created, date_updated) values($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14)',
             [
                 decoded.user_id,
                 2,
@@ -106,6 +106,8 @@ module.exports = {
                 resData.data.customer.customer_code,
                 body.data.status,
                 body.data.next_payment_date,
+                new Date(),
+                new Date(),
             ],
             (err, res, fields) =>{
                 if(err){

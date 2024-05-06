@@ -365,7 +365,7 @@ backup: async (req, res) => {
       for (let i = 0; i < arrayOfFolders.length; i++) { 
         const {truth, files} = await checkBatchFolderExist(arrayOfFolders[i], null, service)
         if (truth == false) {
-          if (1 == 0) {
+          if (i == 0) {
             driveFolder = await createFolder(arrayOfFolders[i], service)
 
           } else {

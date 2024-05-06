@@ -63,6 +63,7 @@ module.exports = {
             try {
                 if (token) {
                     token = token && token.split(' ')[1];
+
                     verify(token, process.env.REFRESH_TOK_SEC, async (err, decoded) => {
                         if (err) {
                             console.log(err)
