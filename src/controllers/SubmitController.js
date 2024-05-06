@@ -64,13 +64,12 @@ module.exports = {
           }
 
           // console.log('submitting')
-   
-        
           // Get the name of the form's creator
         
           let mesg = `<div>
           <p>Hello ${results[0].firstname},</p> 
-              <p>A submissin has been made to your form titled ...</p>
+              <p>A submission has been made to the form request you created, titled: <b>${req.body.title}</b></p>
+              <p>Visit your dashboard to see the details <b><a href="${process.env.FRONTEND_URL}/dash">${process.env.FRONTEND_URL}/dash</a></b></p>
           </div>`
     
           sendMail(results[0].email, 'Form Submission', mesg);

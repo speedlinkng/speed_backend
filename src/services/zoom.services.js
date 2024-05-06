@@ -4,6 +4,46 @@ const date = require('date-and-time');
 
 module.exports = {
 
+    updateBackupStatusForUser: (user_id, truthy, callback) => {
+        console.log('TRUETH', truthy)
+        pgpool.query(
+            `update users set backup_in_progress=$1 WHERE user_id=$2`,
+            [
+                truthy,       
+                user_id,
+            ],
+            (err, res, fields) =>{
+                if (err) {
+                    console.log(err)
+                    return callback(err);
+                }
+                console.log(res.rowCount)
+                return callback(null, res.rowCount)
+            }
+
+        )
+    },
+
+    fetchBackupEvent:(access,callback)=>{
+
+        // check if account exist
+        pgpool.query(
+            `select * from zoom_recordings where backup_status = $1 AND user_id = $2`,
+            [
+                'completed',
+                access.user_id
+            ],
+            (err, res, fields) =>{
+                if(err){
+                    return callback(err);
+                }
+                return callback(null, res.rowCount)
+            }
+
+        )
+    },
+
+
     if_exists:(user_id,callback)=>{
 
         // check if account exist
@@ -41,8 +81,65 @@ module.exports = {
         )
 
     },
+    fetchRecordsForBackup: (access, callback) => {
+        pgpool.query(
+            `SELECT * FROM zoom_recordings WHERE user_id = $1 AND backup_status = $2`,
+            [
+                access.user_id,
+                'pending'
+            ],
+            (err, res, fields) => { 
+                if(err){
+                    return callback(err);
+                }
 
-    store_recordings_data: (record,user_id, callback) => { 
+                return callback(null, res.rows)
+
+            }
+        )
+    },
+
+    update_zoom_recordings: (user_id, record_id, callback) => {
+        console.log('updat DB')
+        pgpool.query(
+            `update zoom_recordings set backup_status=$1 WHERE id=$2`,
+            [
+                'completed',
+                record_id,
+            
+                
+            ],
+            (err, res, fields) =>{
+
+                if(err){
+                    return callback(err);
+                }
+              
+              
+                return callback(null, res.rows)
+            }
+
+        )
+    },
+
+    checkDrive: (access, callback) => {
+        pgpool.query(
+            `SELECT * FROM user_zoom WHERE user_id = $1`,
+            [
+                access.user_id
+            ],
+            (err, res, fields) => { 
+                if(err){
+                    return callback(err);
+                }
+
+                return callback(null, res.rows)
+
+            }
+        )
+    },
+
+    store_recordings_data: (record,user_id,size,batch_id, callback) => { 
         // Check if the UUID already exists in the recording_data JSONB column
         pgpool.query(
             `SELECT id FROM zoom_recordings WHERE recording_data @> $1`,
@@ -57,15 +154,18 @@ module.exports = {
     
                 if (res.rows.length > 0) {
                     // UUID already exists, do not insert
-                    console.log('UUID already exists in recording_data:', record.uuid);
+                    // console.log('UUID already exists in recording_data:', record.uuid);
                     return callback(null, { message: 'UUID already exists in recording_data' });
                 } else {
+                    // console.log(record)
                     // UUID does not exist, proceed with the insertion
                     pgpool.query(
-                        `INSERT INTO zoom_recordings(recording_data,user_id) VALUES ($1, $2)`,
+                        `INSERT INTO zoom_recordings(recording_data,user_id, size, batch_id) VALUES ($1, $2, $3, $4)`,
                         [
                             record,
-                            user_id
+                            user_id,
+                            size,
+                            batch_id
                         ],
                         (err, res) => {
                             if (err) {

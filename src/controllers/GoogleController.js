@@ -1,5 +1,5 @@
 const {genSaltSync, hashSync, compareSync, compare} = require("bcrypt")
-const {storeToken, ifexist, updateToken, defaultOauth2Data, oath2fromForm, myStorage, newStorage} = require('../services/google.services')
+const {storeToken, ifexist, updateToken, defaultOauth2Data, oath2fromForm, myStorage, newStorage, updateUserZoom} = require('../services/google.services')
 const {sign} = require("jsonwebtoken")
 const express = require('express');
 const fs = require('fs');
@@ -235,7 +235,8 @@ module.exports = {
       }
     },
 
-    getMyStorage: (req, res)=>{
+  getMyStorage: (req, res) => {
+
       let access = res.decoded_access
       console.log(access.email)
       console.log(access.user_id)
@@ -292,12 +293,91 @@ module.exports = {
         })
     },
 
-    
-    getNewStorage: async (req, res)=>{
-     
+  
+    getUserBackupDrive: async(req, res) => {
+      // ----------------------------------------------------------------
+      // Check if this request is coming for backup or from filestorage using utility
+      // ----------------------------------------------------------------
+      // if uility says its coming frm backup, update user_zoom table
       let access = res.decoded_access
       let role = 0;
-      let allReplies;
+      let createdFolder;
+      let preferred = 1
+
+      async function createFolderAllReply(name) {
+   
+        const fileMetadata = {
+            name: name,
+            mimeType: 'application/vnd.google-apps.folder',
+        };
+
+        try {
+            let file = await services.files.create({
+                resource: fileMetadata,
+            });
+
+            createdFolder = file.data.id
+        
+        } catch (err) {
+            throw err;
+        }
+      }
+
+      async function checkFolderExistsAllReply(folderName) {
+      try {
+        const res = await services.files.list({
+          q: `name = '${folderName}' and mimeType = 'application/vnd.google-apps.folder'`,
+          fields: 'files(id, name)'
+        });
+    
+        const files = res.data.files;
+    
+        if (files.length) {
+          console.log(`Folder '${folderName}' exists with ID: ${files[0].id}`);
+          createdFolder = files[0].id;
+    
+        } else {
+         
+          await createFolderAllReply(folderName);
+        }
+      } catch (err) {
+        console.error('The API returned an error: ' + err);
+      }
+      }
+      
+      
+      let {code} = req.body;
+      console.log('this is code: ',code)
+      // console.log(req.body)
+      const { tokens } = await oauth2Client.getToken(code);
+      oauth2Client.setCredentials(tokens);
+       
+      const services = google.drive({version: 'v3',  auth: oauth2Client,  timeout: 60000 });
+  
+      await checkFolderExistsAllReply('Zoom Backup By Speedlink');
+
+      // update user_zoom with the credentials provided
+      let driveCredentials = JSON.stringify(tokens)
+      updateUserZoom(driveCredentials, access,createdFolder,preferred, (err, row) => { 
+        if (err) {
+          console.log('an error occured'+err.message)
+          return res.status(401).json({
+            error: 1,
+            message: err   
+          })
+        }
+        return res.status(200).json({
+          success: 1,
+          token : tokens.access_token,
+        })
+
+      })
+      
+
+
+    },
+    
+    getNewStorage: async (req, res)=>{
 
       
       // Chcek if admin is making the call
@@ -395,7 +475,7 @@ module.exports = {
         }
         
 
-          await checkFolderExistsAllReply('FORM SUBMISSION');
+        await checkFolderExistsAllReply('FORM SUBMISSION');
      
 
       

@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const {checkToken} = require("../middlewares/ValidateToken");
 const {getGoogleData} = require("../middlewares/Generals");
-const { Authorize, callback, meeting, refresh, recording, backup} = require('../controllers/ZoomController');
+const { Authorize, callback, meeting, refresh, recording, backup, fetchBackupEvent} = require('../controllers/ZoomController');
 
 
 
@@ -10,9 +10,10 @@ const { Authorize, callback, meeting, refresh, recording, backup} = require('../
 router.get('/', checkToken, Authorize)
 router.get('/callback/:user_id', callback)
 router.get('/meeting',checkToken, meeting)
-router.post('/backup',checkToken,getGoogleData, backup)
+router.post('/backup',checkToken, getGoogleData, backup)
 router.get('/refresh',checkToken, refresh)
 router.get('/recordings',checkToken, recording)
+router.get('/fetchBackupEvent',checkToken, fetchBackupEvent)
 
 
 

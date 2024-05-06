@@ -17,7 +17,8 @@ const {
     getMyStorage,
     getNewStorage,
     docToDrive,
-    downloadFolderAsZip
+    downloadFolderAsZip,
+    getUserBackupDrive
     } = require('../controllers/GoogleController');
 const { checkToken, checkTokenUrl } = require('../middlewares/ValidateToken');
 const { validateEmail, ifAdmin } = require('../middlewares/ValidateToken');
@@ -41,6 +42,7 @@ router.get('/uploadchunk2', upload.single('file'), uploadchunks)
 router.get('/speedlinkaccess', checkToken, getDefaultAccess)
 router.get('/mystorage', checkToken, getMyStorage)
 router.post('/newstorage', checkToken, getNewStorage)
+router.post('/getUserBackupDrive', checkToken, getUserBackupDrive)
 
 // change default drive ifAdmin
 router.post('/changeDriveMail', checkToken, ifAdmin, getNewStorage)

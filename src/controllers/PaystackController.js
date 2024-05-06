@@ -1,6 +1,6 @@
 const express = require('express');
 const {genSaltSync, hashSync, compareSync, compare} = require("bcrypt")
-const {saveSubscriber,updateSubscriber, checkSubscriber } = require('../services/paystack.service')
+const {saveSubscriber,updateSubscriber, checkSubscriber, updateUser } = require('../services/paystack.service')
 const jwt = require("jsonwebtoken")
 const fs = require('fs');
 const {Readable} = require('stream');
@@ -15,7 +15,7 @@ dotenv.config();
 function encryptData(data) {
     const secretKey = process.env.SECRET_KEY;
 
-    // Set the expiration time for the token (e.g., 30 seconds)
+    // Set the expiration time for the token 
     const expiresIn = '5m';
     
     const token_ = jwt.sign({user_id: data.user_id}, secretKey, { expiresIn });
@@ -33,7 +33,7 @@ function encrypt(text, key) {
   }
   
   // Decryption
-  function decrypt(data, key) {
+function decrypt(data, key) {
     const iv = Buffer.from(data.iv, 'hex');
     const decipher = crypto.createDecipheriv('aes-256-cbc', Buffer.from(key), iv);
     let decrypted = decipher.update(data.encryptedData, 'hex', 'utf8');
@@ -45,6 +45,22 @@ function encrypt(text, key) {
 
 
 module.exports = {
+
+    toFree: (req, res) => {
+        updateUser(access, (err, results) => { 
+            if(err){
+                console.log(err);
+                return res.status(400).json({
+                    success: err,
+                    message : 'An error occured',
+                })
+            }
+            return res.status(200).json({
+                success: 1,
+                message : 'Updated to free version',
+            })
+        })  
+    },
 
     cancel:(req, res)=>{
 
@@ -80,7 +96,7 @@ module.exports = {
             url: 'https://api.paystack.co/subscription/disable',
             method: 'POST',
             headers: {
-                Authorization: 'Bearer sk_test_143c3d3f8f72daacfcbbefadc281ad757f884686',
+                Authorization: 'Bearer '+process.env.PAYSTACK_SEC_TEST,
                 'Content-Type': 'application/json'
             },
             json: {
@@ -124,6 +140,12 @@ module.exports = {
                 // confirmCancel()
                 console.log(body);
                 console.log('no subscription found - confirmed');
+                updateUser(results, (err, comeback) => { 
+                    if (err) {
+                        console.log(err)
+                    }
+
+                })
 
                 return res.status(200).json({
                     success: 1,
@@ -149,7 +171,7 @@ module.exports = {
         const app = express();
         
         // Replace with your Paystack secret key
-        const PAYSTACK_SECRET_KEY = 'sk_test_143c3d3f8f72daacfcbbefadc281ad757f884686';
+        const PAYSTACK_SECRET_KEY = process.env.PAYSTACK_SEC_KEY;
 
         if (req.method !== 'POST' || !req.get('X-Paystack-Signature')) {
             res.status(400).end();
@@ -184,13 +206,13 @@ module.exports = {
 
 
             // Append the 'body' variable to package.json
-    fs.appendFile('package.json', body, (err) => {
+    fs.appendFile('sub.json', body, (err) => {
         if (err) {
-        console.error('Error appending to package.json:', err);
+        console.error('Error appending to sub.json:', err);
         } else {
-        console.log('Appended to package.json');
+        console.log('Appended to sub.json');
         // Now, let's read the content from package.json
-        fs.readFile('package.json', 'utf8', (readErr, data) => {
+        fs.readFile('sub.json', 'utf8', (readErr, data) => {
             if (readErr) {
             console.error('Error reading package.json:', readErr);
             } else {
@@ -219,7 +241,7 @@ module.exports = {
     verify:(req, res)=>{
 
         const sampleUrl = req.query;
-        // console.log(sampleUrl.trxref)
+        console.log(sampleUrl.trxref)
         async function verify() {
             try {
 
@@ -268,7 +290,7 @@ module.exports = {
                     url: 'https://api.paystack.co/subscription',
                     method: 'POST',
                     headers: {
-                        Authorization: 'Bearer sk_test_5388c69b71e0348ae0fbc13d3fa337b26c7db7c3',
+                        Authorization: 'Bearer '+process.env.PAYSTACK_SEC_TEST,
                         'Content-Type': 'application/json',
                     },
                     json: params,
@@ -334,7 +356,7 @@ module.exports = {
     paystack:(req, res)=>{
         const plan_type = req.query.plan_type;
         let access =  res.decoded_access
-
+        console.log(access)
 
         const encryptedData = encryptData(access);
         console.log('Encrypted Data:', encryptedData);
@@ -347,11 +369,11 @@ module.exports = {
                     url: 'https://api.paystack.co/transaction/initialize',
                     method: 'POST',
                     headers: {
-                        Authorization: 'Bearer sk_test_5388c69b71e0348ae0fbc13d3fa337b26c7db7c3',
+                        Authorization: 'Bearer '+process.env.PAYSTACK_SEC_TEST,
                         'Content-Type': 'application/json',
                     },
                     json: {
-                        email: 'customer@email.com',
+                        email: access.email,
                         first_name: 'Divine ',
                         first_name: 'iso',
                         amount: 200000,
@@ -389,7 +411,7 @@ module.exports = {
                     url: 'https://api.paystack.co/plan',
                     method: 'POST',
                     headers: {
-                        Authorization: 'Bearer sk_test_5388c69b71e0348ae0fbc13d3fa337b26c7db7c3',
+                        Authorization: 'Bearer '+process.env.PAYSTACK_SEC_TEST,
                         'Content-Type': 'application/json',
                     },
                     json: params,

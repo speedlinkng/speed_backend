@@ -45,7 +45,8 @@ module.exports = {
     },
 
     getGoogleData: (access,preferred, callback) =>{
-  
+        // if preferred is 1 = get users drive data
+        // if preferred is 0 get default drive
         if(preferred == 1){
             pgpool.query(
                 `select * from user_google where user_id= $1`,
@@ -101,6 +102,8 @@ module.exports = {
         )
     },
 
+
+
     myStorage: (user_id, callback) =>{
         pgpool.query(
             `select * from user_google where user_id=$1`,
@@ -143,6 +146,29 @@ module.exports = {
                 if(err){
                     return callback(err);
                 }
+                return callback(null, res.rows)
+            }
+
+        )
+    },
+
+    updateUserZoom: (credentials, access, createdFolder, preferred, callback) => {
+        pgpool.query(
+            `update user_zoom set drive_credentials=$1, drive_folder=$2, drive_type=$3 WHERE user_id=$4`,
+            [
+                credentials,
+                createdFolder,
+                preferred,
+                access.user_id,
+                
+            ],
+            (err, res, fields) =>{
+
+                if(err){
+                    return callback(err);
+                }
+              
+              
                 return callback(null, res.rows)
             }
 

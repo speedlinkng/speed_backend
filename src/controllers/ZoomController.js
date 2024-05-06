@@ -1,9 +1,16 @@
 const express = require('express');
+// const WebSocket = require('ws');
 const axios = require('axios');
 const { google } = require('googleapis');
 const querystring = require('querystring');
-const {save_user_zoom, if_exists, fetch_user_zoom, store_recordings_data} = require('../services/zoom.services');
+const {save_user_zoom, if_exists, fetch_user_zoom, store_recordings_data, checkDrive, fetchRecordsForBackup, update_zoom_recordings, fetchBackupEvent, updateBackupStatusForUser} = require('../services/zoom.services');
 const refreshAccessToken = require('../middlewares/refreshZoomAccess');
+const { v4: uuidv4 } = require('uuid');
+const app = express();
+const http = require('http');
+const server = http.createServer(app); 
+const io = require('socket.io')(server);
+
 
 const oauth3Client = new google.auth.OAuth2(
   process.env.YOUR_CLIENT_ID,
@@ -37,28 +44,32 @@ async function authenticateWithDrive() {
 }
 
 // Function to upload the file to Google Drive
-async function uploadFile(drive, fileName, fileStream, onUploadProgress) {
-    const fileMetadata = {
-        name: fileName
-    };
-    const media = {
-        mimeType: 'application/octet-stream',
-        body: fileStream
-    };
-    const res = await drive.files.create({
-        resource: fileMetadata,
-        media: media,
-        fields: 'id',
-        onUploadProgress
-    });
+async function uploadFile(drive, fileName, fileStream, onUploadProgress, downloadFolder_id) {
+  const fileMetadata = {
+    name: fileName,
+    parents: [downloadFolder_id] // Replace folderId with the ID of the folder you want to upload the file to
+};
+const media = {
+    mimeType: 'application/octet-stream',
+    body: fileStream
+};
+const res = await drive.files.create({
+    resource: fileMetadata,
+    media: media,
+    fields: 'id',
+    onUploadProgress
+});
+  
+    // UPDATE DB BACKUP STATUS WITH 
+
     console.log('File uploaded with ID:', res.data.id);
 }
 
 // Main function
-async function main() {
+async function main(download_url, file_name, downloadFolder_id) {
 
-  const sourceUrl = 'https://us06web.zoom.us/rec/download/4r8l7hGTmyFLBp1Q52dqeV1MzTBjLwpxeCc3JL3Pj1QGuS9Sc3AnWwqSFbYrwLpweF5LxKs65W45zmVR.GwH3wycwuuZsIEdb';
-    const fileName = 'Name_of_the_file_on_Google_Drive.mp4';
+  const sourceUrl = download_url ;
+    const fileName = file_name ;
 
     // Variables to track progress
     let bytesDownloaded = 0;
@@ -83,7 +94,9 @@ async function main() {
     const drive = await authenticateWithDrive();
 
     // Upload the file to Google Drive
-    await uploadFile(drive, fileName, fileStream, onUploadProgress);
+  await uploadFile(drive, fileName, fileStream, onUploadProgress, downloadFolder_id);
+  console.log('UPDATE DB RECORDS')
+
 }
 
 // Execute main function
@@ -109,22 +122,294 @@ async function getUserId(accessToken) {
 
 module.exports = {
 
-backup: (req, res)=>{
+  // GET ALL RECORDINGS FROM ZOOM AND SAVE ALL FROM 4 YEARS BACK
+  // --------------------------------
+  // Authenticate user to know whch drive they want to use for Backup
+  // --------------------------------
+  // GET ALL RECORDINGS FROM THE DB
+  // --------------------------------
+  // CREATE folders in google drive for each record
+  // --------------------------------
+  // Save the folders id created for each record in the database
+  // --------------------------------
+  // Backup each record to the google drive folder
+
+
+  fetchBackupEvent: async (req, res) => {
+    let access = res.decoded_access
+    fetchBackupEvent(access,(err, results) => { 
+      if (err) { 
+        console.error('Error fetching backup event:', err);
+        res.status(500).json({ error: 'Error fetching backup event' });
+        return;
+      }
+      io.emit('backupEvent', results);
+      res.status(200).json({ message: 'Backup event fetched successfully', data: results });
+    })
+},
+backup: async (req, res) => {
+
   let access = res.decoded_access
-  let tok_data = res.tok_data
-  console.log(tok_data)
-    console.log(access)
-    console.log('SORRRYYYYYYYYYYYYY')
-  let json = JSON.parse(tok_data);
-  oauth3Client.setCredentials(json); 
-  main().catch(console.error);
+    let tok_data = res.tok_data
+    let credentials = ''
+    let file_id = ''
+    let getTopicId;
+    console.log(tok_data)
+    // console.log(access)
+
+    async function checkBatchFolderExist(targetFolder, driveFolder, service) {
+      return new Promise((resolve, reject) => {
+        // console.log(targetFolder)
+          service.files.list(
+              {
+                  q: `name = '${targetFolder.replace(/'/g, "\\'")}' and mimeType = 'application/vnd.google-apps.folder'`,
+                  fields: 'files(id, name)',
+              },
+              (err, res) => {
+                  if (err) {
+                      console.error('The API returned an error: ' + err);
+                      reject(err);
+                  } else {
+                      const files = res.data.files;
+                      if (files.length) {
+                          console.log('files and folders exist.');
+                          resolve({truth: true, files: files[0].id});
+                      } else {
+                          console.log(`Folder does not exist.`);
+                          resolve({truth:false, files: null});
+                      }
+                  }
+              }
+          );
+      });
+    }
+
+    async function createFolder(targetFolder, service) {
+      return new Promise((resolve, reject) => {
+        // console.log(targetFolder)
+          const fileMetadata = {
+              'name': targetFolder,
+              'mimeType': 'application/vnd.google-apps.folder'
+          };
+          service.files.create({
+              resource: fileMetadata,
+              // fields: 'id',
+          }, (err, file) => {
+              if (err) {
+                  console.error('Error creating subfolder:', err);
+                  reject(err);
+              } else {
+                  // console.log('SUB FOLDER Id:', file.data.id);
+                  resolve(file.data.id);
+              }
+          });
+      });
+    }
+  
+    async function createSubfolder(targetFolder, parentFolder, service) {
+      return new Promise((resolve, reject) => {
+        // console.log(targetFolder)
+          const fileMetadata = {
+              'name': targetFolder,
+              'parents': [parentFolder],
+              'mimeType': 'application/vnd.google-apps.folder'
+          };
+          service.files.create({
+              resource: fileMetadata,
+              // fields: 'id',
+          }, (err, file) => {
+              if (err) {
+                  console.error('Error creating subfolder:', err);
+                  reject(err);
+              } else {
+                  // console.log('SUB FOLDER Id:', file.data.id);
+                  resolve(file.data.id);
+              }
+          });
+      });
+    }
+    
+    async function createFoldersForRecords(access, driveFolder, service) {
+      // ----------------------------------------------------------------
+      // Loop through all the record DB for this user
+      // ----------------------------------------------------------------
+      // and create folders for each of them inside the atch subfolder
+   
+        fetchRecordsForBackup(access, async (err, results) => {
+          if (err) {
+            return res.status(400).json({
+              error: 1,
+              data: err.message,
+            })
+          }
+      
+          // -----------------------------------
+          // Create a subfolder BatchedRecord
+          console.log(results)
+          const {truth, files} = await checkBatchFolderExist('BATCH_'+results[0].batch_id, driveFolder, service)
+          if (truth == false) {
+            let createdSubFolder = await createSubfolder('BATCH_'+results[0].batch_id, driveFolder, service)
+            // get the file id
+            file_id = createdSubFolder
+          } else {
+            file_id = files
+            // console.log('trues',file_id)
+            // get th fileid directly
+          }
+          console.log('WAIT A MINUTE',results.length)
+         
+          const promises = results.map(async (record, index) => {
+           
+            const {truth, files} = await checkBatchFolderExist(record.recording_data.topic, file_id, service)
+            
+            if (truth == false) {
+               getTopicId = await createSubfolder(record.recording_data.topic, file_id, service)
+           
+            } else { 
+               getTopicId = files
+         
+            }
+            // console.log(record)
+            // console.log(record.recording_data.id)
+            // console.log(record.recording_data.topic)
+            return { topicId: getTopicId, index, record};
+            // --------------------------------
+         
+          })
+
+          // update user backup status
+          // --------------------------------
+          updateBackupStatusForUser(access.user_id, true, async (err, results) => { 
+            if (err) {
+              console.log(err);
+            }
+          })
+
+           // Wait for all promises to resolve
+          const results_ = await Promise.all(promises);
+          let f_name = ''
+          const limitedFiles = results_.slice(0, 2);
+          await Promise.all(limitedFiles.map(async (record, index) => {
+            console.log('CUREENT TOPIC:' + record.record.recording_data.topic)
+            await Promise.all(record.record.recording_data.recording_files.map(async (files, next_index) => {
+              //file name is
+              if (files.recording_type == 'shared_screen_with_speaker_view') {
+               
+                f_name =   `${files.meeting_id}_video.${files.file_extension}`
+              } else if (files.recording_type == 'audio_only') {
+                f_name =   `${files.meeting_id}_audio.${files.file_extension}` 
+              } else if (files.recording_type == 'chat_file') { 
+                f_name =   `${files.meeting_id}_chat.${files.file_extension}`
+              } else {
+                
+              }
+                try {
+                  console.log('For ' + record.record.recording_data.topic+ f_name)
+                  // await main(files.download_url, f_name, record.topicId)
+                  
+                } catch (error) {
+                  console.log('main error '+ error.message) 
+                }
+            
+            }))
+            console.log('DB RECORDS')
+              update_zoom_recordings(access.user_id, record.record.id, async (err, results) => { 
+
+              })
+           }))
+          // console.log(results_);
+          // (results_[0].recording_files).map(async (file, index) => {
+          //   console.log(file.play_url)
+          // });
+          
+          updateBackupStatusForUser(access.user_id, false, async (err, results) => { 
+
+          })
+          return res.send(results_)
+        })
+
+    } 
+    
+    async function getDriveCredentials(access) {
+      // Use users id to check which drive they want to use for backup from "user_zoom"
+      return new Promise((resolve, reject) => {
+        checkDrive(access, (err, result) => {
+          if (err) {
+            reject(err);
+          }
+    
+          // console.log('FROM DB', result[0].drive_credentials)
+          // console.log(result[0].drive_folder)
+
+          const credentials_ = result[0].drive_credentials;
+          const driveFolder = result[0].drive_folder; // Add any other data you want to pass here
+          resolve({ credentials_, driveFolder });
+        })
+      })
+    }
+      
+    // GET user_zoom googledrive credentials
+
+    if (req.body.preferred == 0) {
+      credentials = tok_data
+      let json = JSON.parse(credentials);
+      oauth3Client.setCredentials(json); 
+      let service = google.drive({ version: 'v3', auth: oauth3Client });
+      // --------------------------------
+      // This creates all the necessary folders and sub folders  required
+      // --------------------------------s
+      // The user email is used to create the subfolder where his backup will be stored
+      let arrayOfFolders = ['SPEEDLINK DEFAULT BACKUP', access.email]
+      // initialize
+      let driveFolder 
+      for (let i = 0; i < arrayOfFolders.length; i++) { 
+        const {truth, files} = await checkBatchFolderExist(arrayOfFolders[i], null, service)
+        if (truth == false) {
+          if (1 == 0) {
+            driveFolder = await createFolder(arrayOfFolders[i], service)
+
+          } else {
+            driveFolder = await createSubfolder(arrayOfFolders[i], createdSubFolder, service)
+
+          }
+          file_id = driveFolder
+        } else {
+          file_id = files
+        }
+
+      }
+      createFoldersForRecords(access, driveFolder, service);
+    } else {
+
+      try {
+       const {credentials_, driveFolder} = await getDriveCredentials(access);
+        // console.log("YOUR CREDENTIALS HERE IS", credentials_);
+        // console.log("YOUR driveFolder HERE IS", driveFolder);
+        
+        let json = credentials_;
+        oauth3Client.setCredentials(json); 
+        let service = google.drive({ version: 'v3', auth: oauth3Client });
+        // console.log(oauth3Client)
+        
+
+        createFoldersForRecords(access, driveFolder, service);
+      } catch (error) {
+          console.error("Error getting drive credentials:", error);
+          return res.status(400).json({
+              error: 1,
+              data: error.message,
+          });
+      }
+    }
+  
+  // main().catch(console.error);
 
 },
 
   
 refresh: (req, res)=>{
   let access = res.decoded_access
-  console.log(access)
+  // console.log(access)
     if_exists(access.user_id, (err, results)=>{
       if(err){
         return res.status(400).json({
@@ -299,11 +584,21 @@ meeting: async (req, res) => {
 },
 
 
-recording: async (req, res)=>{  
+  recording: async (req, res) => {  
+  
+    // fetch the user Zoom auth record
+    // --------------------------------
+    // run runotherfunctions to refresh the access token using the first step data
+    // --------------------------------
+    // with the new access token fetch the zoom recordings record
+    // --------------------------------
+    // Store and send back the zoom recordings record
+
   let access = res.decoded_access
   var accessToken = '';
   let refreshToken = '';
   let zoomUserId = '';
+
   fetch_user_zoom(access.user_id, (err, results)=>{
 
     if(results.rowCount > 0){
@@ -323,8 +618,6 @@ recording: async (req, res)=>{
     }
 
   }) 
-
-
 
 
   async function getAllMeetingRecordings() {
@@ -369,14 +662,18 @@ recording: async (req, res)=>{
         } catch (error) {
             console.error('Error fetching meeting recordings:', error.response ? error.response.data : error.message);
             // Handle error or retry logic here
+            return res.status(400).json({
+              status: 400,
+              error: 1,
+              err: error.message,
+              message:'Could not fetch recordings',
+            })
             break; // Exit loop in case of error
         }
     }
 
     return allRecordings;
   }
-
-
 
 
   async function runOtherFunctions(){
@@ -410,16 +707,25 @@ recording: async (req, res)=>{
     await getAllMeetingRecordings()
     .then(recordings => {
         if (recordings && recordings.length > 0) {
-            const playUrls = [];
-            const downloadUrls = [];
+          const playUrls = [];
+          const downloadUrls = [];
+          const batch_id = uuidv4();
+          
+          let totalSize = 0
             
             // Iterate through each recording
-          recordings.forEach(recording => {  
-            // console.log('Start THIOS TEST')
-            // console.log(recording)
-              store_recordings_data(recording,access.user_id, (err, results) => { 
+          recordings.forEach((recording, index) => {  
+            // console.log(index)
+            totalSize += recording.total_size
+            // -------------------------------
+            
+              store_recordings_data(recording,access.user_id,recording.total_size,batch_id, (err, results) => { 
 
               })
+
+              // store_recordings_data(recording,access.user_id, (err, results) => { 
+
+              // })
                 // Iterate through each recording file of the recording
                 recording.recording_files.forEach(file => {       
                     playUrls.push(file.play_url); // Push play_url to the array
@@ -428,7 +734,7 @@ recording: async (req, res)=>{
             });
 
      
-
+            console.log(totalSize)
             return res.status(200).json({
                 status: 200,
                 success: 1,

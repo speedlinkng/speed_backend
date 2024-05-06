@@ -27,6 +27,21 @@ module.exports = {
         )
     },
 
+    updateUser: (result, callback) => {
+        pool.query(
+            'UPDATE users set plan=$1 WHERE user_id = $2',            
+            [
+                '1',
+                result.user_id
+            ],
+            (err, res, fields) => {
+                if (err) {
+                    return callback(err);
+                }
+                return callback(null, res.rowCount); // Return the entire result set as an array
+            }
+        );
+    },
     updateSubscriber: (body,resData,decoded,ref,plan, callback)=>{
         console.log(body)
         
@@ -80,7 +95,7 @@ module.exports = {
             'insert into subscribers(user_id, plan, payment_id, trxref, amount, AUTH_code, email_token, SUB_code, PLAN_code, CUS_code, status, next_payment_date) values($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)',
             [
                 decoded.user_id,
-                'plus',
+                2,
                 uniqueId,
                 ref,
                 body.data.amount,
