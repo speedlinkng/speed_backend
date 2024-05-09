@@ -305,7 +305,7 @@ backup: async (req, res) => {
               }
                 try {
                   console.log('For ' + record.record.recording_data.topic+ f_name)
-                  // await main(files.download_url, f_name, record.topicId)
+                  await main(files.download_url, f_name, record.topicId)
                   
                 } catch (error) {
                   console.log('main error '+ error.message) 

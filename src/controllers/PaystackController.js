@@ -407,7 +407,7 @@ module.exports = {
             return new Promise((resolve, reject) => {
                 const params = {
                     name: 'Speedlink Plus',
-                    interval: 'daily',
+                    interval: 'monthly',
                     amount: 50000,
                 };
 

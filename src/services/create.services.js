@@ -91,7 +91,8 @@ module.exports = {
         )
     },
 
-    getRefreshTokenGoogle:(user_id, body, callback)=>{
+    getRefreshTokenGoogle: (user_id, body, callback) => {
+        console.log(body.preferred)
         if(body.preferred == 0){
             // 'speedlink Access'
             pgpool.query(
@@ -175,7 +176,7 @@ module.exports = {
         // )
     },
 
-    createRecord: (data,folder_id, ADDFTFR, record_id, user_id, userGoogleRow_id, callback)=>{
+    createRecord: (data,expiry_date,folder_id, ADDFTFR, record_id, user_id, userGoogleRow_id, callback)=>{
         if(data.file_type == 'custom_exe'){
            let custom_type = data.custom_type 
         }else{
@@ -183,10 +184,15 @@ module.exports = {
         }
         console.log('mistaken folderid '+ folder_id)
         let bt = data.b_token;
+        let expiry_time = ''
         const jsonData =  data;
         const currentDate = new Date();
         const oneMoreDay = date.format(date.addDays(currentDate, +1), 'YYYY/MM/DD HH:mm:ss'); 
-   
+        if (expiry_date == null) { 
+            expiry_time = oneMoreDay
+        } else {
+            expiry_time = expiry_date
+        }
         pgpool.query(
             `insert into form_records(user_id,
                 status, 
@@ -215,7 +221,7 @@ module.exports = {
                 ADDFTFR.token_type,
                 ADDFTFR.scope,
                 ADDFTFR.storage_email,
-                oneMoreDay,
+                expiry_time,
                 jsonData,
                 folder_id,
                 userGoogleRow_id
@@ -263,18 +269,18 @@ module.exports = {
 
     getRecord: (user_id, callback)=>{
         pgpool.query(
-                `select * from form_records where user_id = $1`,
-                [
-                    user_id 
-                ],
-                (err, res, fields) =>{
-                    if(err){
-                        return callback(err);
-                    }
-                    return callback(null, res.rows)
+            `select * from form_records where user_id = $1`,
+            [
+                user_id 
+            ],
+            (err, res, fields) =>{
+                if(err){
+                    return callback(err);
                 }
-    
-            )
+                return callback(null, res.rows)
+            }
+
+        )
     },
 
     getRecordById: (r_id, callback)=>{
@@ -312,6 +318,20 @@ module.exports = {
         )
         
     },
+
+    getSubmissionCountById: (r_id, callback)=>{
+        // get submission count by record_id
+        pgpool.query(
+            `SELECT COUNT(*) AS submission_count FROM submitted_records WHERE record_id = $1`,
+            [r_id],
+            (err, res) =>{
+                if(err){
+                    return callback(err);
+                }
+                return callback(null, res.rows[0].submission_count);
+            }
+        );
+    },    
 
     getUploadRecordById: (r_id, callback)=>{
         pgpool.query(

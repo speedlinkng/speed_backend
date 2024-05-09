@@ -59,7 +59,7 @@ module.exports = {
         let access =  res.decoded_access
         let tok_data = ''
         // console.log(req.body.preferred)
-            getGoogleData(access, req.body.preferred, (err, _res)=>{
+            getGoogleData(access, req.body.allArray.preferred, (err, _res)=>{
                 if(err){
                     console.log(err);
                     return res.status(500).json({

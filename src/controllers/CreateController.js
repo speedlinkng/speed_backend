@@ -1,4 +1,4 @@
-const {createRecord,updateRecord, getRecord, getSubmissionById, getUploadRecordById, getRecordById, getSettingById, getRefreshTokenGoogle, getRefreshAndExchangeForAccess, updateexpired, getDefaultFolder, checkForRequestid} = require('../services/create.services');
+const {createRecord,updateRecord, getRecord, getSubmissionById, getUploadRecordById, getRecordById, getSettingById, getRefreshTokenGoogle, getRefreshAndExchangeForAccess, updateexpired, getDefaultFolder, checkForRequestid, getSubmissionCountById} = require('../services/create.services');
 const {getSubmittedRecordById, submitAndUpdate} = require('../services/submit.services');
 const {v4:uuidv4} = require("uuid")
 const request = require("request");
@@ -111,7 +111,9 @@ module.exports = {
         // initialize services
         const service = google.drive({version: 'v3',  auth: oauth3Client});
 
-        const body = req.body
+        const body = req.body.allArray
+        console.log(req.body.allArray)
+        console.log(req.body.expiry_time)
         const page1Data = body.values.page1;
         let allDriveDataForThisFormRequest;
         const pages = Object.keys(body.values);
@@ -134,6 +136,7 @@ module.exports = {
             // Access the single page data using data.values[pages[0]]
         }
 
+        let formTitle = body.otherData.page_name
         let folder = body.filesandFolder.chosen_folder
         let group_by = body.filesandFolder.group_by
         let folder_id = body.filesandFolder.folder_id
@@ -173,9 +176,9 @@ module.exports = {
                 }
                 const files = res.data.files;
                 if (files.length) {
-                    // createSubFolder(files[0].id)
+                    createSubFolder(files[0].id, formTitle)
                     console.log(`Folder '${folder_name}' exists with ID: ${files[0].id}`);
-                    firstQuery(files[0].id)
+                    // firstQuery(files[0].id)
                 } else {
                     console.log(`Folder '${folder_name}' does not exist.`);
                     createFolder(folder_name)
@@ -186,9 +189,9 @@ module.exports = {
 
         
         // Create SUB FOLDERS if it dosent already exists
-        async function createSubFolder(id) {
+        async function createSubFolder(id, formTitle) {
             fileMetadata = {
-                'name' : 'sub1',
+                'name' : `${formTitle}`,
                 'parents' : [id],
                 'mimeType' : 'application/vnd.google-apps.folder'
                 }
@@ -243,7 +246,7 @@ module.exports = {
             // FIRST GET THE RELATIVE REFRESH_TOKEN IN USER_GOOGLE FOR THIS USER
             // this is not needed 
             getRefreshTokenGoogle(access.user_id, body, (err, google_res)=>{
-                
+                console.log('@@@@@@@@@@@@@@@@@@@@@@@@')   
         
                 if(err){
                     
@@ -284,7 +287,7 @@ module.exports = {
         function secondQuery(new_folder_id, google_storage_email){
             console.log('store_email 2:'+new_folder_id) 
             console.log('page URL IS is:',body.otherData.page_url) 
-            createRecord(body, new_folder_id, allDriveDataForThisFormRequest, record_id, access.user_id, userGoogleRow_id, (err, results)=>{
+            createRecord(body, req.body.expiry_time, new_folder_id, allDriveDataForThisFormRequest, record_id, access.user_id, userGoogleRow_id, (err, results)=>{
                 if(err){
                     console.log(err);
                     return res.status(400).json({
@@ -476,6 +479,44 @@ module.exports = {
 
     
     // POSTGRESS
+
+    getSubmissionCount: (req, res) => {
+        let access = res.decoded_access
+        let allCount = []
+        let completedCount = 0;
+        getRecord(access.user_id, (err, allRequests) => { 
+            // console.log(allRequests[0])
+            if (err) {
+                
+            } else {
+                allRequests.forEach( (r, i) => {
+                    // console.log(r.record_id)
+                    getSubmissionCountById(r.record_id, (err, counts) => {
+                        console.log(counts)
+                        if (err) {
+                         
+                        } else {
+                            allCount.push(counts)
+                            // console.log(allCount)
+                        }
+                        completedCount++
+                        if (completedCount === allRequests.length) { 
+                            // console.log('allCount')
+                     
+                            return res.status(201).json({
+                                status: 201,
+                                error: 1,
+                                message: allCount,
+                            })
+                        }
+                    })
+                })
+
+            }
+            
+        })
+        
+    },
     
     getRecord: (req, res)=>{
         let access =  res.decoded_access
@@ -586,15 +627,7 @@ module.exports = {
                     // store these new tokens in a safe place (e.g. database)
                    
                     upload_token = tokens.access_token
-                    console.log(upload_token)
-                    console.log('upload_token')
-                    console.log('upload_token')
-                    console.log('upload_token')
-                    console.log('upload_token')
-                    console.log(upload_token)
-                    console.log(upload_token)
-                    console.log(upload_token)
-                    console.log(upload_token)
+
                  
                   });
             }

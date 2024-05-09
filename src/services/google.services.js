@@ -47,6 +47,7 @@ module.exports = {
     getGoogleData: (access,preferred, callback) =>{
         // if preferred is 1 = get users drive data
         // if preferred is 0 get default drive
+        console.log('preferred is: ', preferred)
         if(preferred == 1){
             pgpool.query(
                 `select * from user_google where user_id= $1`,
