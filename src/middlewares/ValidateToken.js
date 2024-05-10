@@ -1,7 +1,8 @@
 const {verify} = require("jsonwebtoken")
 const jwt = require("jsonwebtoken")
 const revokedTokens = new Set();
-const {checkRevoke} = require('../services/auth.services');
+const { checkRevoke } = require('../services/auth.services');
+const { getGoogleData } = require('../services/google.services');
 
     
 async function isTokenRevoked(jti) {
@@ -121,17 +122,31 @@ module.exports = {
                         if(decoded.result.role == 'admin'){
                             // console.log(decoded.result.role)
                             res.decoded_access = decoded.result
-                            res.jti = decoded.jti
-                            res.role = 'admin'
-                            let d = await isTokenRevoked(decoded.jti);
-                            if(d){
-                              return res.status(305).json({
-                                  error: 3,
-                                  message: "Logged out already"
-                              });
-                            }else{
-                              next();
-                            }
+                            getGoogleData(null, 0, async (err, _res) => {
+                                if (err) {
+                                    return res.status(405).json({
+                                        error:3,
+                                        message:"Error Occured!",
+                                    })
+                                } 
+
+                                    console.log('storage email',  _res[0].storage_email)
+                                    res.jti = decoded.jti
+                                    res.role = 'admin'
+                                    res.drive = _res[0].storage_email
+                                    let d = await isTokenRevoked(decoded.jti);
+                                    if(d){
+                                      return res.status(305).json({
+                                          error: 3,
+                                          message: "Logged out already"
+                                      });
+                                    }else{
+                                      next();
+                                    }
+                                
+                            
+                            })
+                           
                      
                         }else{
 

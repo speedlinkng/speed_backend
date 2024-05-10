@@ -17,13 +17,15 @@ const {
     getTotalSubscribers,
     getTotalAmount,
     getCodeForAdmin,
-
+    getAdminDrive,
+    
 } = require('../controllers/AdminController');
 
 
 // Get all Users in the system
 router.get('/getAllUsers', ifAdmin, getAllUsers)
 router.get('/getAllRecords', ifAdmin, getAllRecords)
+router.get('/getAdminDrive', ifAdmin, getAdminDrive)
 router.get('/searchUser/:searchTerm', ifAdmin, searchUser)
 router.post('/searchRecord', ifAdmin, searchRecord)
 router.patch('/updateUser/:id', ifAdmin, updateUser)
@@ -34,6 +36,7 @@ router.get('/getTotalByteUploaded', ifAdmin, getTotalByteUploaded)
 router.get('/getTotalSubscribers', ifAdmin, getTotalSubscribers)
 router.get('/getTotalAmount', ifAdmin, getTotalAmount)
 router.post('/changeUserPassword', ifAdmin, changeUserPassword)
+
 
 
 // Protect Admin

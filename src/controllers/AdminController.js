@@ -57,6 +57,19 @@ module.exports = {
     },
 
 
+    getAdminDrive: (req, res)=>{
+        let adminJti = res.jti
+        let adminUserId = res.decoded_access.user_id
+        let admin_storage_drive = res.drive
+
+        
+        return res.status(200).json({
+            status: 200,
+            success: 1,
+            admin_drive : admin_storage_drive,
+        })
+    },
+
 
     getAllUsers: (req, res) => {
         getAllUsers((err, results) => {
@@ -204,7 +217,7 @@ module.exports = {
     searchRecord: (req, res)=>{
         let searchTerm = req.body.searchTerm   
         searchRecord(searchTerm, (err, results)=>{
-            console.log(searchTerm)
+            // console.log(searchTerm)
             if(err){      
                
                 return res.status(400).json({
@@ -214,7 +227,7 @@ module.exports = {
                 })
             }
             else if(results && results.length > 0){                 
-                console.log(results)
+                // console.log(results)
                 return res.status(200).json({
                     success: 1,
                     data : results,
@@ -301,7 +314,7 @@ module.exports = {
                 })
             }
             else if(results){                 
-                console.log('record count',results)
+                // console.log('record count',results)
                 
                 return res.status(200).json({
                     success: 1,
@@ -330,7 +343,7 @@ module.exports = {
                 })
             }
             else if(results ){                 
-                console.log(results)
+                // console.log(results)
                 return res.status(200).json({
                     success: 1,
                     data : results,

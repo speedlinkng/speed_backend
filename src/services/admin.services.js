@@ -16,7 +16,7 @@ module.exports = {
                 if(err){
                     return callback(err);
                 }
-                console.log(res.rows)
+                // console.log(res.rows)
                 return callback(null, res.rows)
             }
 
@@ -64,7 +64,7 @@ module.exports = {
     },
 
     updateUser: (body, a_id, callback) => {
-        console.log(body)
+        // console.log(body)
         if (body.e_status ? body.e_status : undefined);
         if (body.e_plan ? body.e_plan : undefined);
         if (body.e_lastname ? body.e_lastname : undefined);
