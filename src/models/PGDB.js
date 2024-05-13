@@ -1,5 +1,6 @@
 const { Pool } = require('pg');
-
+const dotenv = require('dotenv')
+dotenv.config();
 // Create a PostgreSQL connection pool
 // const pool = new Pool({
 //   user: 'postgres',
@@ -16,6 +17,9 @@ const pool = new Pool({
   database: process.env.DB_DATABASE,
   password: process.env.DB_PASSWORD,
   port: 5432,
+  ssl: {
+    rejectUnauthorized: false // Set this to true if you have a valid SSL certificate
+  }
 });
 
 
