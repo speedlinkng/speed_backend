@@ -6,6 +6,7 @@ dotenv.config();
 // Create a PostgreSQL connection pool
 var pool
 if (process.env.NODE_ENV === 'production') {
+  console.log('web DB')
  pool = new Pool({
   user: process.env.DB_USERNAME,
   host: process.env.DB_HOST,
@@ -18,15 +19,16 @@ if (process.env.NODE_ENV === 'production') {
 });
 
 } else {
+  console.log('LOCAL db')
   pool = new Pool({
     user: 'postgres',
     host: 'localhost',
     database: 'speedlink',
     password: '123456',
     port: 5432,
-    ssl: {
-      rejectUnauthorized: false // Set this to true if you have a valid SSL certificate
-    }
+    // ssl: {
+    //   rejectUnauthorized: false // Set this to true if you have a valid SSL certificate
+    // }
   });
 }
 
