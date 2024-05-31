@@ -27,7 +27,7 @@ app.use(session({
 
 dotenv.config();
 // Whitelist specific origins
-const whitelist = [process.env.FRONTEND_URL, 'http://sfts.speedlinkng.com', 'https://speedfrontend-production.up.railway.app'];
+const whitelist = [process.env.FRONTEND_URL, 'http://sfts.speedlinkng.com', 'http://localhost:4000', 'https://speedfrontend-production.up.railway.app'];
 
 const corsOptions = {
   origin: (origin, callback) => {
