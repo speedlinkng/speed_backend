@@ -387,6 +387,7 @@ module.exports = {
       }else{
         role = 'user'
       }
+      cosole.log(role, 'the role is ................')
       let access = res.decoded_access
       let {code} = req.body;
       console.log('this is code: ',code)
