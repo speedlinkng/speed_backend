@@ -544,7 +544,7 @@ refresh: (req, res)=>{
   
 Authorize: (req, res)=>{
   let access = res.decoded_access
-  const redirectURI_ = `${process.env.BACKEND_URL}/zoom/callback/${access.user_id}`; // Update with your actual redirect URI
+  const redirectURI_ = `${process.env.BACKEND_URL}/api/zoom/callback/${access.user_id}`; // Update with your actual redirect URI
   console.log(redirectURI_)  
   const authorizeURL = 'https://zoom.us/oauth/authorize';
     const queryParams = {
