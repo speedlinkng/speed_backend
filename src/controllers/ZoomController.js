@@ -559,19 +559,19 @@ Authorize: (req, res)=>{
     ];
     
     // Combine the original redirect_uri with additional redirect URIs
-    const allRedirectURIs = additionalRedirectURIs.concat(queryParams.redirect_uri);
+    const allRedirectURIs = [queryParams.redirect_uri, ...additionalRedirectURIs];
     
     // Create an array of query parameters including the original redirect_uri
     const allParams = Object.assign({}, queryParams, { redirect_uri: allRedirectURIs });
     
     // Encode only the queryParams
     const encodedQueryParams = Object.fromEntries(
-      Object.entries(allParams).map(([key, value]) => [key, encodeURIComponent(value)])
+      Object.entries(allParams).map(([key, value]) => [key, key === 'redirect_uri' ? value.map(uri => encodeURIComponent(uri)) : value])
     );
     
     // Construct the authorization URL
     const authorizationURL = `${authorizeURL}?${querystring.stringify(encodedQueryParams)}`;
-    console.log(authorizationURL); 
+    console.log(authorizationURL); // Log the final URL to check
   
     // res.redirect(authorizationURL);
     return res.status(200).json({
