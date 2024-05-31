@@ -545,16 +545,34 @@ refresh: (req, res)=>{
 Authorize: (req, res)=>{
   let access = res.decoded_access
   const redirectURI_ = `${process.env.BACKEND_URL}/api/zoom/callback/${access.user_id}`; // Update with your actual redirect URI
-  // console.log(redirectURI_)  
+  console.log(redirectURI_)  
   const authorizeURL = 'https://zoom.us/oauth/authorize';
     const queryParams = {
       response_type: 'code',
       client_id: clientID,
       redirect_uri: redirectURI_,
     };
+
+    const additionalRedirectURIs = [
+      `${process.env.BACKEND_URL}/api/zoom/callback`, // Additional redirect_uri 1
+      `${process.env.BACKEND_URL}/api/zoom/callback/${access.user_id}`, // Additional redirect_uri 2
+    ];
+    
+    // Combine the original redirect_uri with additional redirect URIs
+    const allRedirectURIs = additionalRedirectURIs.concat(queryParams.redirect_uri);
+    
+    // Create an array of query parameters including the original redirect_uri
+    const allParams = Object.assign({}, queryParams, { redirect_uri: allRedirectURIs });
+    
+    // Encode only the queryParams
+    const encodedQueryParams = Object.fromEntries(
+      Object.entries(allParams).map(([key, value]) => [key, encodeURIComponent(value)])
+    );
+    
+    // Construct the authorization URL
+    const authorizationURL = `${authorizeURL}?${querystring.stringify(encodedQueryParams)}`;
+    console.log(authorizationURL); 
   
-    const authorizationURL = `${authorizeURL}?${querystring.stringify(queryParams)}`;
-    // console.log(authorizationURL)
     // res.redirect(authorizationURL);
     return res.status(200).json({
       success: 1,
