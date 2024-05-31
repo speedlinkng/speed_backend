@@ -24,8 +24,12 @@ async function refreshAccessToken(clientId, clientSecret, refreshToken) {
 
         return response.data.access_token;
     } catch (error) {
+   
         console.error('Error refreshing access token:', error.response ? error.response.data : error.message);
-        return null;
+        throw error.response.data; 
+        throw new Error(error.response ? error.response.data : error.message);
+        throw new Error(JSON.stringify(error.response ? error.response.data : error.message));
+        return error;
     }
 }
 

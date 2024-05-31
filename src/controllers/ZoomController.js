@@ -3,14 +3,11 @@ const express = require('express');
 const axios = require('axios');
 const { google } = require('googleapis');
 const querystring = require('querystring');
-const {save_user_zoom, if_exists, fetch_user_zoom, store_recordings_data, checkDrive, fetchRecordsForBackup, update_zoom_recordings, fetchBackupEvent, updateBackupStatusForUser} = require('../services/zoom.services');
+const {save_user_zoom, if_exists, fetch_user_zoom, store_recordings_data, checkDrive, fetchRecordsForBackup, update_zoom_recordings, fetchBackupEvent, updateBackupStatusForUser, getAllRecordsFromDB} = require('../services/zoom.services');
 const refreshAccessToken = require('../middlewares/refreshZoomAccess');
 const { v4: uuidv4 } = require('uuid');
 const app = express();
-const http = require('http');
-const server = http.createServer(app); 
-const io = require('socket.io')(server);
-
+console.log('ZOOM CONTROLLER---')
 
 const oauth3Client = new google.auth.OAuth2(
   process.env.YOUR_CLIENT_ID,
@@ -26,6 +23,17 @@ const clientSecret = 'lKLFc145Ekp570kcafjVW2XbUL87NH7i';
 const redirectURI = `${process.env.BACKEND_URL}/api/zoom/callback`; // Update with your actual redirect URI
 
 
+function formatFileSize(totalSize) {
+  if (totalSize < 1024) {
+      return totalSize + ' bytes';
+  } else if (totalSize < 1024 * 1024) {
+      return (totalSize / 1024).toFixed(2) + ' KB';
+  } else if (totalSize < 1024 * 1024 * 1024) {
+      return (totalSize / (1024 * 1024)).toFixed(2) + ' MB';
+  } else {
+      return (totalSize / (1024 * 1024 * 1024)).toFixed(2) + ' GB';
+  }
+}
 // Function to download the file from the source
 async function downloadFile(url, onDownloadProgress) {
     const response = await axios({
@@ -44,29 +52,48 @@ async function authenticateWithDrive() {
 }
 
 // Function to upload the file to Google Drive
+const progressStream = require('progress-stream');
+
 async function uploadFile(drive, fileName, fileStream, onUploadProgress, downloadFolder_id) {
   const fileMetadata = {
     name: fileName,
     parents: [downloadFolder_id] // Replace folderId with the ID of the folder you want to upload the file to
-};
-const media = {
+  };
+
+  const media = {
     mimeType: 'application/octet-stream',
     body: fileStream
-};
-const res = await drive.files.create({
-    resource: fileMetadata,
-    media: media,
-    fields: 'id',
-    onUploadProgress
-});
-  
-    // UPDATE DB BACKUP STATUS WITH 
+  };
 
-    console.log('File uploaded with ID:', res.data.id);
+  const totalBytes = fileStream.byteLength || fileStream._readableState.length;
+
+  const progress = progressStream({ length: totalBytes, time: 100 });
+
+  progress.on('progress', (progress) => {
+    onUploadProgress({
+      bytesRead: progress.transferred,
+      total: progress.length,
+      percent: progress.percentage
+    });
+  });
+
+  fileStream.pipe(progress);
+
+  const res = await drive.files.create({
+    resource: fileMetadata,
+    media: {
+      mimeType: 'application/octet-stream',
+      body: progress
+    },
+    fields: 'id'
+  });
+
+  console.log('File uploaded with ID:', res.data.id);
 }
 
+
 // Main function
-async function main(download_url, file_name, downloadFolder_id) {
+async function main(download_url, file_name, downloadFolder_id, socket) {
 
   const sourceUrl = download_url ;
     const fileName = file_name ;
@@ -78,14 +105,18 @@ async function main(download_url, file_name, downloadFolder_id) {
     // Download progress callback
     const onDownloadProgress = (progressEvent) => {
         bytesDownloaded = progressEvent.loaded;
-        console.log(`Downloaded ${bytesDownloaded} bytes`);
+      console.log(`Downloaded ${formatFileSize(bytesDownloaded)} bytes of ${fileName}`);
+      socket.emit('download_progress', { fileName, bytesDownloaded, bytesUploaded });
+
     };
 
-    // Upload progress callback
-    const onUploadProgress = (progressEvent) => {
-        bytesUploaded = progressEvent.bytesRead;
-        console.log(`Uploaded ${bytesUploaded} bytes`);
-    };
+     // Upload progress callback
+  const onUploadProgress = (progressEvent) => {
+    bytesUploaded = progressEvent.bytesRead;
+    console.log(`Uploaded ${formatFileSize(bytesUploaded)} bytes of ${fileName}`);
+    socket.emit('upload_progress_name', { fileName});
+    socket.emit('upload_progress', { fileName, bytesUploaded,bytesDownloaded  });
+  };
 
     // Download the file from the source
     const fileStream = await downloadFile(sourceUrl, onDownloadProgress);
@@ -134,8 +165,40 @@ module.exports = {
   // --------------------------------
   // Backup each record to the google drive folder
 
+  recordingDB: async (req, res) => { 
+    // --------------------------------
+    // Get record data from database
+    let access = res.decoded_access
+    getAllRecordsFromDB(access.user_id, (err, results) => { 
+   
+      if(err){      
+        return res.status(400).json({
+            status: 400,
+            error: 1,
+            message : err,
+        })
+      }
+      
+      else if (results && results.length > 0) { 
+        console.log(200)
+        
+          return res.status(200).json({
+              success: 1,
+              data : results,
+          })     
+      }
+      else{
+          return res.status(402).json({
+              status: 402,
+              error: 1,
+              message : 'No record to backup',
+          })
+      }
 
-  fetchBackupEvent: async (req, res) => {
+    })
+  },
+
+fetchBackupEvent: async (req, res) => {
     let access = res.decoded_access
     fetchBackupEvent(access,(err, results) => { 
       if (err) { 
@@ -143,19 +206,43 @@ module.exports = {
         res.status(500).json({ error: 'Error fetching backup event' });
         return;
       }
-      io.emit('backupEvent', results);
+     
       res.status(200).json({ message: 'Backup event fetched successfully', data: results });
     })
-},
-backup: async (req, res) => {
+  },
+
+  backup: async (req, res, io) => {
+    console.log('dan')
+    const socket = req.app.get('io'); 
+    // ... use the 'socket' object for progress updates ...
+    // socket.emit('download_progress_', { fileName: 'myfile.zip', bytesDownloaded: 10240 }); 
+    // console.log(socket)
+    
+  const session = req.session;
+  const socketId = req.body.socketId;
+   
+  const sockets = io.sockets.sockets.get(socketId);
+  // socket.emit('download_progress_', { fileName: 'myfile.zip', bytesDownloaded: 'gin' }); 
+
+  if (!socket) {
+    return res.status(400).send({ error: 'Socket not found' });
+  }
 
   let access = res.decoded_access
-    let tok_data = res.tok_data
-    let credentials = ''
-    let file_id = ''
-    let getTopicId;
-    console.log(tok_data)
-    // console.log(access)
+  let tok_data = res.tok_data
+  let selectedDataForBackup = req.body.selectedDataForBackup;
+  let createdSubFolder
+  let selectedID 
+  let selectedUUID
+  let credentials = ''
+  let file_id = ''
+  let getTopicId;
+
+  // ------------------------------------------
+  // Extract the IDs from selectedDataForBackup
+
+  let ids = selectedDataForBackup.map(data => data.id);
+  
 
     async function checkBatchFolderExist(targetFolder, driveFolder, service) {
       return new Promise((resolve, reject) => {
@@ -235,7 +322,7 @@ backup: async (req, res) => {
       // ----------------------------------------------------------------
       // and create folders for each of them inside the atch subfolder
    
-        fetchRecordsForBackup(access, async (err, results) => {
+        fetchRecordsForBackup(access, ids, async (err, _results) => {
           if (err) {
             return res.status(400).json({
               error: 1,
@@ -245,10 +332,24 @@ backup: async (req, res) => {
       
           // -----------------------------------
           // Create a subfolder BatchedRecord
-          console.log(results)
+          console.log('results')
+          console.log(_results.totalSize)
+          socket.emit('total_size', { size: _results.totalSize, times2: (_results.totalSize*2) }); 
+
+          const results = _results.rows
+          // console.log(results)
+          if (results.length == 0) { 
+            // return " these recordings hve been bce up"
+            return res.status(400).json({
+              error: 1,
+              reason: 'backed_up_already',
+              message:'this recording has been backed up already',
+            })
+          }
+          
           const {truth, files} = await checkBatchFolderExist('BATCH_'+results[0].batch_id, driveFolder, service)
           if (truth == false) {
-            let createdSubFolder = await createSubfolder('BATCH_'+results[0].batch_id, driveFolder, service)
+            createdSubFolder = await createSubfolder('BATCH_'+results[0].batch_id, driveFolder, service)
             // get the file id
             file_id = createdSubFolder
           } else {
@@ -305,7 +406,8 @@ backup: async (req, res) => {
               }
                 try {
                   console.log('For ' + record.record.recording_data.topic+ f_name)
-                  await main(files.download_url, f_name, record.topicId)
+                  socket.emit('backup_in_progress', { id: record.record.id  });
+                  await main(files.download_url, f_name, record.topicId, socket)
                   
                 } catch (error) {
                   console.log('main error '+ error.message) 
@@ -314,7 +416,8 @@ backup: async (req, res) => {
             }))
             console.log('DB RECORDS')
               update_zoom_recordings(access.user_id, record.record.id, async (err, results) => { 
-
+                socket.emit('backup_complete', { id: results });
+                console.log(results ,'emit')
               })
            }))
           // console.log(results_);
@@ -322,7 +425,7 @@ backup: async (req, res) => {
           //   console.log(file.play_url)
           // });
           
-          updateBackupStatusForUser(access.user_id, false, async (err, results) => { 
+          updateBackupStatusForUser(access.user_id, false, async (err, results) => {
 
           })
           return res.send(results_)
@@ -518,6 +621,7 @@ meeting: async (req, res) => {
           return res.status(400).json({
             status: 400,
             error: 1,
+            reason: 'refresh_changed',
             message:'Failed to refresh access token.',
           })
         }
@@ -584,7 +688,7 @@ meeting: async (req, res) => {
 },
 
 
-  recording: async (req, res) => {  
+  recordingpp: async (req, res) => {  
   
     // fetch the user Zoom auth record
     // --------------------------------
@@ -763,6 +867,152 @@ meeting: async (req, res) => {
 
 },
 
+ 
+  
+recording: async (req, res) => {  
+  
+  // fetch the user Zoom auth record
+  // --------------------------------
+  // run runOtherfunctions to refresh the access token using the first step data
+  // --------------------------------
+  // with the new access token fetch the zoom recordings record
+  // --------------------------------
+  // Store and send back the zoom recordings record
+
+  let access = res.decoded_access;
+  let accessToken = '';
+  let refreshToken = '';
+  let zoomUserId = '';
+
+  fetch_user_zoom(access.user_id, (err, results) => {
+      if (results.rowCount > 0) {
+          refreshToken = results.rows[0].refresh_token;
+          zoomUserId = results.rows[0].zoom_user_id;
+          runOtherFunctions();
+      } else if (err) {
+          console.log(err);
+          return res.status(400).json({
+              error: 1,
+              data: err,
+          });
+      }
+  });
+
+  async function getAllMeetingRecordings() {
+      let allRecordings = [];
+      let today = new Date();
+      let fiveYearsAgo = new Date(today);
+      fiveYearsAgo.setMonth(fiveYearsAgo.getMonth() - 6);
+
+      let hasMore = true;
+
+      while (hasMore) {
+          let fromDateTime = new Date(today);
+          fromDateTime.setDate(fromDateTime.getDate() - 30);
+          fromDateTime.setUTCHours(0, 0, 0, 0);
+
+          let toDateTime = new Date(today);
+          toDateTime.setUTCHours(23, 59, 59, 999);
+
+          if (fromDateTime < fiveYearsAgo) {
+              break;
+          }
+
+          try {
+              const response = await axios.get(`https://api.zoom.us/v2/users/${zoomUserId}/recordings`, {
+                  headers: {
+                      Authorization: `Bearer ${accessToken}`,
+                  },
+                  params: {
+                      from: fromDateTime.toISOString(),
+                      to: toDateTime.toISOString(),
+                  },
+                  timeout: 10000,
+              });
+
+              allRecordings.push(...response.data.meetings);
+              hasMore = response.data.next_page_token !== undefined;
+              today = fromDateTime;
+          } catch (error) {
+              console.error('Error fetching meeting recordings:', error.response ? error.response.data : error.message);
+              return res.status(400).json({
+                  status: 400,
+                  error: 1,
+                  reason: 'cant_fetch_recording',
+                  err: error.message,
+                  message: 'Could not fetch recordings',
+              });
+              break;
+          }
+      }
+
+      return allRecordings;
+  }
+
+  async function runOtherFunctions() {
+      try {
+          const newAccessToken = await refreshAccessToken(clientID, clientSecret, refreshToken);
+          if (newAccessToken) {
+              accessToken = newAccessToken;
+          } else {
+              console.log('Failed to refresh access token.');
+              return res.status(400).json({
+                  status: 400,
+                  error: 1,
+                  reason: 'cant_refresh_access',
+                  message: 'Failed to refresh access token.',
+              });
+          }
+
+          const recordings = await getAllMeetingRecordings();
+          if (recordings && recordings.length > 0) {
+              const playUrls = [];
+              const downloadUrls = [];
+              const batch_id = uuidv4();
+
+              let totalSize = 0;
+
+              recordings.forEach((recording, index) => {
+                  totalSize += recording.total_size;
+                  store_recordings_data(recording, access.user_id, recording.total_size, batch_id, (err, results) => {
+                      if (err) {
+                          console.error('Error storing recording data:', err);
+                      }
+                  });
+
+                  recording.recording_files.forEach(file => {
+                      playUrls.push(file.play_url);
+                      downloadUrls.push(file.download_url);
+                  });
+              });
+
+              console.log(totalSize);
+              return res.status(200).json({
+                  status: 200,
+                  success: 1,
+                  data: recordings,
+              });
+          } else {
+              // ---------------------------------
+              // THIS Error breakes he code
+              // ---------------------------------
+              // return res.status(300).json({
+              //     status: 300,
+              //     error: 1,
+              //     message: 'No recordings found',
+              // });
+          }
+      } catch (error) {
+        console.error('Error:', error.reason || error.error || error);
+        return res.status(400).json({
+            status: 400,
+            error: 1,
+            reason: error.error,
+            message: error.reason,
+        });
+      }
+  }
+},
 
 callback: async (req, res)=>{
     const redirectURI_ = `${process.env.BACKEND_URL}/api/zoom/callback/${req.params.user_id}`; // Update with your actual redirect URI

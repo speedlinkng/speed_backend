@@ -4,6 +4,26 @@ const date = require('date-and-time');
 
 module.exports = {
 
+    getAllRecordsFromDB: (user_id, callback) => {
+
+        pgpool.query(
+            `select * from zoom_recordings WHERE user_id = $1`,
+            [      
+                user_id,
+            ],
+            (err, res, fields) =>{
+                if (err) {
+                    console.log(err)
+                    return callback(err);
+                }
+                
+                
+                return callback(null, res.rows)
+            }
+
+        )
+    },
+
     updateBackupStatusForUser: (user_id, truthy, callback) => {
         console.log('TRUETH', truthy)
         pgpool.query(
@@ -81,26 +101,44 @@ module.exports = {
         )
 
     },
-    fetchRecordsForBackup: (access, callback) => {
+
+    // -----------------------------------------
+    // Supply this code below with which selected records to get for backup 
+    // using the ID and user ID
+
+    fetchRecordsForBackup: (access, ids, callback) => {
+        if (ids.length === 0) {
+            return callback(null, []); // No IDs to search for, return empty array
+        }
+    
+        const queryString = `SELECT * FROM zoom_recordings WHERE user_id = $1 AND backup_status = $2 AND id = ANY($3)`;
+        const queryParameters = [access.user_id, 'pending', ids];
+    
+        console.log('Executing query:', queryString);
+        console.log('Query parameters:', queryParameters);
+    
         pgpool.query(
-            `SELECT * FROM zoom_recordings WHERE user_id = $1 AND backup_status = $2`,
-            [
-                access.user_id,
-                'pending'
-            ],
+            queryString,
+            queryParameters,
             (err, res, fields) => { 
-                if(err){
+                if (err) {
+                    console.error('Error executing query:', err);
                     return callback(err);
                 }
+    
+                    let totalSize = 0;
+                    if (res.rows.length > 0) {
+                        totalSize = res.rows.reduce((acc, row) => acc + parseInt(row.size), 0);
+                    }
 
-                return callback(null, res.rows)
-
+                return callback(null, { rows: res.rows, totalSize });
             }
-        )
+        );
     },
-
+    
+    
     update_zoom_recordings: (user_id, record_id, callback) => {
-        console.log('updat DB')
+        console.log('updat DB', record_id)
         pgpool.query(
             `update zoom_recordings set backup_status=$1 WHERE id=$2`,
             [
@@ -116,7 +154,7 @@ module.exports = {
                 }
               
               
-                return callback(null, res.rows)
+                return callback(null, record_id)
             }
 
         )

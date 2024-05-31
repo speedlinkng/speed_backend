@@ -1,8 +1,8 @@
-const express = require('express')
-const app = express()
+const { app, express } = require('./express');
+const { io, server } = require('./socket');
 const path = require('path');
 const appRoute = require('./src/routes/app.route');
-const zoomRoute = require('./src/routes/zoom.route');
+const zoomRoute = require('./src/routes/zoom.route')(io);
 const userRoute = require('./src/routes/user.route');
 const googleRoute = require('./src/routes/google.route');
 const admin = require('./src/routes/admin.route');
@@ -11,10 +11,23 @@ const dotenv = require('dotenv')
 const cors=require("cors");
 const pool = require('./src/models/DB');
 const pgpool = require('./src/models/PGDB');
+const http = require('http');
+// const server = http.createServer(app);
+const session = require('express-session');
+
+
+
+app.use(session({
+  secret: 'your_secret_key',
+  resave: false,
+  saveUninitialized: true,
+  cookie: { secure: false }
+}));
+
 
 dotenv.config();
 // Whitelist specific origins
-const whitelist = [process.env.FRONTEND_URL, 'http://sfts.speedlinkng.com', 'http://sftsadmin.speedlinkng.com'];
+const whitelist = [process.env.FRONTEND_URL, 'http://sfts.speedlinkng.com', 'https://speedfrontend-production.up.railway.app'];
 
 const corsOptions = {
   origin: (origin, callback) => {
@@ -29,6 +42,9 @@ const corsOptions = {
 };
 
 app.use(cors(corsOptions));
+
+
+app.set('io', io); 
 
 // trial
 const {validateLogin} = require("./src/middlewares/ValidateMiddleware")
@@ -130,11 +146,18 @@ app.get('/', function(req, res) {
 });
 
 
-const port = process.env.PORT || 3000
-app.listen(port, () => {
-    console.log(`Listening port ${port} of ${process.env.PORT}...`)
-})
 
+// // Use CORS middleware
+// app.use(cors({
+//   origin: 'http://localhost:4000'
+// }));
+
+
+
+const port = process.env.PORT || 5000;
+server.listen(port, () => {
+  console.log(`WebSocket server is running on http://localhost:${port}`);
+});
 
 
 

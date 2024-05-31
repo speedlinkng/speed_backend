@@ -32,7 +32,7 @@ module.exports = {
                     return callback(err);
                 }
                 // Wednesday
-                pool.query(
+                pgpool.query(
                 `update registeration set goog_refresh_token=$1 where user_id=$2`,
                     [
                         tokens.refresh_token,
@@ -65,7 +65,7 @@ module.exports = {
     
             )
         }else{
-            console.log('else')
+            // console.log('else')
             pgpool.query(
                 `select * from user_google where role = $1`,
                 [
@@ -76,7 +76,7 @@ module.exports = {
                     if(err){
                         return callback(err);
                     }
-                    console.log(res.rows)
+                    // console.log(res.rows)
                     return callback(null, res.rows)
                 }
     

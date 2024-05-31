@@ -75,11 +75,13 @@ module.exports = {
     },
 
    
-    updateRecord: async (req, res)=>{ 
+    updateRecord: async (req, res) => { 
+        
+        // Prepare to accept other config setting data
+
         const body = req.body
-       
-        console.log(body.json)
-        updateRecord(body.record_id, body.json, (err, results)=>{
+        console.log(body.allArray)
+        updateRecord(body.record_id, body.allArray, (err, results)=>{
             if(err){
                 console.log(err)
                 return res.status(400).json({
