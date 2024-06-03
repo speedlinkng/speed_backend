@@ -959,7 +959,6 @@ recording: async (req, res) => {
     return allRecordings;
 }
 
-
   async function runOtherFunctions() {
       try {
           const newAccessToken = await refreshAccessToken(clientID, clientSecret, refreshToken);
