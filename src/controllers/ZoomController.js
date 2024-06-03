@@ -931,7 +931,7 @@ recording: async (req, res) => {
                   },
                   timeout: 100000,
               });
-              console.log('zoom recordings', response);
+              console.log('Response data:', response.data);
               allRecordings.push(...response.data.meetings);
               hasMore = response.data.next_page_token !== undefined;
               today = fromDateTime;
