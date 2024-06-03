@@ -901,55 +901,64 @@ recording: async (req, res) => {
   });
 
   async function getAllMeetingRecordings() {
-      let allRecordings = [];
-      let today = new Date();
-      let fiveYearsAgo = new Date(today);
-      fiveYearsAgo.setMonth(fiveYearsAgo.getMonth() - 6);
+    let allRecordings = [];
+    let today = new Date();
+    let fiveYearsAgo = new Date(today);
+    fiveYearsAgo.setMonth(fiveYearsAgo.getMonth() - 6);
 
-      let hasMore = true;
-    console.log('Get all records')
-      while (hasMore) {
-          let fromDateTime = new Date(today);
-          fromDateTime.setDate(fromDateTime.getDate() - 30);
-          fromDateTime.setUTCHours(0, 0, 0, 0);
+    let hasMore = true;
+    console.log('Get all records');
+    while (hasMore) {
+        let fromDateTime = new Date(today);
+        fromDateTime.setDate(fromDateTime.getDate() - 30);
+        fromDateTime.setUTCHours(0, 0, 0, 0);
 
-          let toDateTime = new Date(today);
-          toDateTime.setUTCHours(23, 59, 59, 999);
+        let toDateTime = new Date(today);
+        toDateTime.setUTCHours(23, 59, 59, 999);
 
-          if (fromDateTime < fiveYearsAgo) {
-              break;
-          }
-          console.log(hasMore)
-          try {
-              const response = await axios.get(`https://api.zoom.us/v2/users/${zoomUserId}/recordings`, {
-                  headers: {
-                      Authorization: `Bearer ${accessToken}`,
-                  },
-                  params: {
-                      from: fromDateTime.toISOString(),
-                      to: toDateTime.toISOString(),
-                  },
-                  timeout: 100000,
-              });
-              console.log('Response data:', response.data);
-              allRecordings.push(...response.data.meetings);
-              hasMore = response.data.next_page_token !== undefined;
-              today = fromDateTime;
-          } catch (error) {
-              console.error('Error fetching meeting recordings:', error.response ? error.response.data : error.message);
-              return res.status(400).json({
-                  status: 400,
-                  error: 1,
-                  reason: 'cant_fetch_recording',
-                  err: error.message,
-                  message: 'Could not fetch recordings',
-              });
-              break;
-          }
-      }
+        if (fromDateTime < fiveYearsAgo) {
+            break;
+        }
+        console.log('Fetching recordings from', fromDateTime.toISOString(), 'to', toDateTime.toISOString());
 
-      return allRecordings;
-  }
+        try {
+            const response = await axios.get(`https://api.zoom.us/v2/users/${zoomUserId}/recordings`, {
+                headers: {
+                    Authorization: `Bearer ${accessToken}`,
+                },
+                params: {
+                    from: fromDateTime.toISOString(),
+                    to: toDateTime.toISOString(),
+                },
+                timeout: 100000,
+            });
+            console.log('Response data:', response.data);
+            allRecordings.push(...response.data.meetings);
+            hasMore = response.data.next_page_token !== undefined;
+            today = fromDateTime;
+        } catch (error) {
+            if (error.code === 'ECONNABORTED') {
+                console.error('Request timeout:', error.message);
+            } else if (error.response) {
+                console.error('Error response status:', error.response.status);
+                console.error('Error response data:', error.response.data);
+            } else {
+                console.error('Error:', error.message);
+            }
+            return res.status(400).json({
+                status: 400,
+                error: 1,
+                reason: 'cant_fetch_recording',
+                err: error.message,
+                message: 'Could not fetch recordings',
+            });
+            break;
+        }
+    }
+
+    return allRecordings;
+}
+
 
   async function runOtherFunctions() {
       try {
