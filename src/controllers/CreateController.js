@@ -248,8 +248,8 @@ module.exports = {
             // FIRST GET THE RELATIVE REFRESH_TOKEN IN USER_GOOGLE FOR THIS USER
             // this is not needed 
             getRefreshTokenGoogle(access.user_id, body, (err, google_res)=>{
-                console.log('@@@@@@@@@@@@@@@@@@@@@@@@')   
-        
+                console.log('@@@@@@@@@@@@@@@@@@@@@@@@')
+    
                 if(err){
                     
                     return res.status(400).json({
