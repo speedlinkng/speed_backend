@@ -690,184 +690,185 @@ meeting: async (req, res) => {
 },
 
 
-  recordingpp: async (req, res) => {  
+//   recordingpp: async (req, res) => {  
   
-    // fetch the user Zoom auth record
-    // --------------------------------
-    // run runotherfunctions to refresh the access token using the first step data
-    // --------------------------------
-    // with the new access token fetch the zoom recordings record
-    // --------------------------------
-    // Store and send back the zoom recordings record
+//     // fetch the user Zoom auth record
+//     // --------------------------------
+//     // run runotherfunctions to refresh the access token using the first step data
+//     // --------------------------------
+//     // with the new access token fetch the zoom recordings record
+//     // --------------------------------
+//     // Store and send back the zoom recordings record
 
-  let access = res.decoded_access
-  var accessToken = '';
-  let refreshToken = '';
-  let zoomUserId = '';
+//   let access = res.decoded_access
+//   var accessToken = '';
+//   let refreshToken = '';
+//   let zoomUserId = '';
 
-  fetch_user_zoom(access.user_id, (err, results)=>{
+//   fetch_user_zoom(access.user_id, (err, results)=>{
 
-    if(results.rowCount > 0){
-      // console.log(results.rows[0].zoom_user_id)
-      // accessToken = results.rows.access_token 
-      refreshToken = results.rows[0].refresh_token 
-      zoomUserId =   results.rows[0].zoom_user_id 
+//     if(results.rowCount > 0){
+//       // console.log(results.rows[0].zoom_user_id)
+//       // accessToken = results.rows.access_token 
+//       refreshToken = results.rows[0].refresh_token 
+//       zoomUserId =   results.rows[0].zoom_user_id 
 
-      runOtherFunctions()
-    }
-    if(err){
-      console.log(err)
-      return res.status(400).json({
-        error: 1,
-        data : err,
-      })
-    }
+//       runOtherFunctions()
+//     }
+//     if(err){
+//       console.log(err)
+//       return res.status(400).json({
+//         error: 1,
+//         data : err,
+//       })
+//     }
 
-  }) 
+//   }) 
 
 
-  async function getAllMeetingRecordings() {
-    let allRecordings = []; // Accumulator array to store all recordings
-    let today = new Date(); // Get current date object
-    let fiveYearsAgo = new Date(today); // Get a copy of the current date
-    // fiveYearsAgo.setFullYear(fiveYearsAgo.getFullYear() - 4); // Subtract 5 years
-    fiveYearsAgo.setMonth(fiveYearsAgo.getMonth() - 2); // Subtract 6 months
+//     async function getAllMeetingRecordings() {
+//     console.log("getAllMeetingRecordings")
+//     let allRecordings = []; // Accumulator array to store all recordings
+//     let today = new Date(); // Get current date object
+//     let fiveYearsAgo = new Date(today); // Get a copy of the current date
+//     // fiveYearsAgo.setFullYear(fiveYearsAgo.getFullYear() - 4); // Subtract 5 years
+//     fiveYearsAgo.setMonth(fiveYearsAgo.getMonth() - 2); // Subtract 6 months
     
-    let hasMore = true; // Flag to track if there are more recordings to fetch
+//     let hasMore = true; // Flag to track if there are more recordings to fetch
     
-    while (hasMore) {
-        let fromDateTime = new Date(today); // Create a new Date object from 'today'
-        fromDateTime.setDate(fromDateTime.getDate() - 30); // Go back 30 days from 'today'
-        fromDateTime.setUTCHours(0, 0, 0, 0); // Set 'from' time to beginning of day (UTC)
+//     while (hasMore) {
+//         let fromDateTime = new Date(today); // Create a new Date object from 'today'
+//         fromDateTime.setDate(fromDateTime.getDate() - 30); // Go back 30 days from 'today'
+//         fromDateTime.setUTCHours(0, 0, 0, 0); // Set 'from' time to beginning of day (UTC)
 
-        let toDateTime = new Date(today); // Create a new Date object from 'today'
-        toDateTime.setUTCHours(23, 59, 59, 999); // Set 'to' time to end of day (UTC)
+//         let toDateTime = new Date(today); // Create a new Date object from 'today'
+//         toDateTime.setUTCHours(23, 59, 59, 999); // Set 'to' time to end of day (UTC)
 
-        if (fromDateTime < fiveYearsAgo) {
-            // If 'fromDateTime' is earlier than 5 years ago, break out of the loop
-            break;
-        }
+//         if (fromDateTime < fiveYearsAgo) {
+//             // If 'fromDateTime' is earlier than 5 years ago, break out of the loop
+//             break;
+//         }
 
-        try {
-            const response = await axios.get(`https://api.zoom.us/v2/users/${zoomUserId}/recordings`, {
-                headers: {
-                    Authorization: `Bearer ${accessToken}`,
-                },
-                params: {
-                    from: fromDateTime.toISOString(),
-                    to: toDateTime.toISOString(),
-                },
-                timeout: 10000, // Set timeout to 10 seconds (adjust as needed)
-            });
+//         try {
+//             const response = await axios.get(`https://api.zoom.us/v2/users/${zoomUserId}/recordings`, {
+//                 headers: {
+//                     Authorization: `Bearer ${accessToken}`,
+//                 },
+//                 params: {
+//                     from: fromDateTime.toISOString(),
+//                     to: toDateTime.toISOString(),
+//                 },
+//                 timeout: 10000, // Set timeout to 10 seconds (adjust as needed)
+//             });
 
         
-            allRecordings.push(...response.data.meetings); // Append retrieved recordings
+//             allRecordings.push(...response.data.meetings); // Append retrieved recordings
 
-            hasMore = response.data.next_page_token !== undefined; // Check for next page token
-            today = fromDateTime; // Update 'today' for next iteration
-        } catch (error) {
-            console.error('Error fetching meeting recordings:', error.response ? error.response.data : error.message);
-            // Handle error or retry logic here
-            return res.status(400).json({
-              status: 400,
-              error: 1,
-              err: error.message,
-              message:'Could not fetch recordings',
-            })
-            break; // Exit loop in case of error
-        }
-    }
+//             hasMore = response.data.next_page_token !== undefined; // Check for next page token
+//             today = fromDateTime; // Update 'today' for next iteration
+//         } catch (error) {
+//             console.error('Error fetching meeting recordings:', error.response ? error.response.data : error.message);
+//             // Handle error or retry logic here
+//             return res.status(400).json({
+//               status: 400,
+//               error: 1,
+//               err: error.message,
+//               message:'Could not fetch recordings',
+//             })
+//             break; // Exit loop in case of error
+//         }
+//     }
 
-    return allRecordings;
-  }
-
-
-  async function runOtherFunctions(){
-
-    // console.log('running other functions')
-    // console.log(refreshToken)
-    await refreshAccessToken(clientID, clientSecret, refreshToken)
-    .then(newAccessToken => {
-        if (newAccessToken) {
-            accessToken = newAccessToken
-            // console.log('New access token:', newAccessToken);
-        } else {
-          console.log('Failed to refresh access token.');
-          return res.status(400).json({
-            status: 400,
-            error: 1,
-            message:'Failed to refresh access token.',
-          })
-        }
-    })
-    .catch(error => {
-      console.error('Error:', error);
-      return res.status(400).json({
-        status: 400,
-        error: 1,
-        message:error,
-      })
-    });
+//     return allRecordings;
+//   }
 
 
-    await getAllMeetingRecordings()
-    .then(recordings => {
-        if (recordings && recordings.length > 0) {
-          const playUrls = [];
-          const downloadUrls = [];
-          const batch_id = uuidv4();
+//   async function runOtherFunctions(){
+
+//     // console.log('running other functions')
+//     // console.log(refreshToken)
+//     await refreshAccessToken(clientID, clientSecret, refreshToken)
+//     .then(newAccessToken => {
+//         if (newAccessToken) {
+//             accessToken = newAccessToken
+//            console.log('New access token:', newAccessToken);
+//         } else {
+//           console.log('Failed to refresh access token.');
+//           return res.status(400).json({
+//             status: 400,
+//             error: 1,
+//             message:'Failed to refresh access token.',
+//           })
+//         }
+//     })
+//     .catch(error => {
+//       console.error('Error:', error);
+//       return res.status(400).json({
+//         status: 400,
+//         error: 1,
+//         message:error,
+//       })
+//     });
+
+
+//     await getAllMeetingRecordings()
+//     .then(recordings => {
+//         if (recordings && recordings.length > 0) {
+//           const playUrls = [];
+//           const downloadUrls = [];
+//           const batch_id = uuidv4();
           
-          let totalSize = 0
+//           let totalSize = 0
             
-            // Iterate through each recording
-          recordings.forEach((recording, index) => {  
-            // console.log(index)
-            totalSize += recording.total_size
-            // -------------------------------
+//             // Iterate through each recording
+//           recordings.forEach((recording, index) => {  
+//             // console.log(index)
+//             totalSize += recording.total_size
+//             // -------------------------------
             
-              store_recordings_data(recording,access.user_id,recording.total_size,batch_id, (err, results) => { 
+//               store_recordings_data(recording,access.user_id,recording.total_size,batch_id, (err, results) => { 
 
-              })
+//               })
 
-              // store_recordings_data(recording,access.user_id, (err, results) => { 
+//               // store_recordings_data(recording,access.user_id, (err, results) => { 
 
-              // })
-                // Iterate through each recording file of the recording
-                recording.recording_files.forEach(file => {       
-                    playUrls.push(file.play_url); // Push play_url to the array
-                    downloadUrls.push(file.download_url); // Push download_url to the array
-                });
-            });
+//               // })
+//                 // Iterate through each recording file of the recording
+//                 recording.recording_files.forEach(file => {       
+//                     playUrls.push(file.play_url); // Push play_url to the array
+//                     downloadUrls.push(file.download_url); // Push download_url to the array
+//                 });
+//             });
 
      
-            console.log(totalSize)
-            return res.status(200).json({
-                status: 200,
-                success: 1,
-                data: recordings,
-                // play: playUrls,
-                // download: downloadUrls
-            });
-        } else {
-            return res.status(300).json({
-                status: 400,
-                error: 1,
-                message: 'No recordings found',
-            });
-        }
-    })
-    .catch(error => {
-        // console.error('Error:', error);
-        return res.status(400).json({
-            status: 400,
-            error: 1,
-            message: error,
-        });
-    });
+//             console.log(totalSize)
+//             return res.status(200).json({
+//                 status: 200,
+//                 success: 1,
+//                 data: recordings,
+//                 // play: playUrls,
+//                 // download: downloadUrls
+//             });
+//         } else {
+//             return res.status(300).json({
+//                 status: 400,
+//                 error: 1,
+//                 message: 'No recordings found',
+//             });
+//         }
+//     })
+//     .catch(error => {
+//         // console.error('Error:', error);
+//         return res.status(400).json({
+//             status: 400,
+//             error: 1,
+//             message: error,
+//         });
+//     });
 
-  }
+//   }
 
-},
+// },
 
   
 recording: async (req, res) => {  
@@ -906,7 +907,7 @@ recording: async (req, res) => {
       fiveYearsAgo.setMonth(fiveYearsAgo.getMonth() - 6);
 
       let hasMore = true;
-
+    console.log('Get all records')
       while (hasMore) {
           let fromDateTime = new Date(today);
           fromDateTime.setDate(fromDateTime.getDate() - 30);
@@ -918,7 +919,7 @@ recording: async (req, res) => {
           if (fromDateTime < fiveYearsAgo) {
               break;
           }
-
+          console.log(hasMore)
           try {
               const response = await axios.get(`https://api.zoom.us/v2/users/${zoomUserId}/recordings`, {
                   headers: {
@@ -928,9 +929,9 @@ recording: async (req, res) => {
                       from: fromDateTime.toISOString(),
                       to: toDateTime.toISOString(),
                   },
-                  timeout: 10000,
+                  timeout: 100000,
               });
-
+              console.log('zoom recordings', response);
               allRecordings.push(...response.data.meetings);
               hasMore = response.data.next_page_token !== undefined;
               today = fromDateTime;
@@ -953,7 +954,8 @@ recording: async (req, res) => {
   async function runOtherFunctions() {
       try {
           const newAccessToken = await refreshAccessToken(clientID, clientSecret, refreshToken);
-          if (newAccessToken) {
+        if (newAccessToken) {
+            console.log('Access token', newAccessToken)
               accessToken = newAccessToken;
           } else {
               console.log('Failed to refresh access token.');
