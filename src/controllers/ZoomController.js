@@ -617,7 +617,7 @@ meeting: async (req, res) => {
     .then(newAccessToken => {
         if (newAccessToken) {
             accessToken = newAccessToken
-            // console.log('New access token:', newAccessToken);
+            console.log('New access token:', newAccessToken);
         } else {
           console.log('Failed to refresh access token.');
           return res.status(400).json({
