@@ -165,6 +165,9 @@ module.exports = {
   // --------------------------------
   // Backup each record to the google drive folder
 
+  test: async (req, res) => { 
+console.log('TESTING BACK')
+  },
   recordingDB: async (req, res) => { 
     // --------------------------------
     // Get record data from database
