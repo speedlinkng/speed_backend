@@ -572,8 +572,6 @@ meeting: async (req, res) => {
     fetch_user_zoom(access.user_id, (err, results)=>{
   
       if(results.rowCount > 0){
-        // console.log(results.rows[0].zoom_user_id)
-        // accessToken = results.rows.access_token 
         refreshToken = results.rows[0].refresh_token 
         zoomUserId =   results.rows[0].zoom_user_id 
   
