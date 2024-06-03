@@ -211,7 +211,7 @@ fetchBackupEvent: async (req, res) => {
     })
   },
 
-  backup: async (req, res, io) => {
+backup: async (req, res, io) => {
     console.log('dan')
     const socket = req.app.get('io'); 
     // ... use the 'socket' object for progress updates ...
@@ -867,10 +867,9 @@ meeting: async (req, res) => {
 
 },
 
- 
   
 recording: async (req, res) => {  
-  
+  console.log('RECORDING STARTED')
   // fetch the user Zoom auth record
   // --------------------------------
   // run runOtherfunctions to refresh the access token using the first step data
