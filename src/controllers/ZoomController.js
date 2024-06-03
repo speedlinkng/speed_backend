@@ -904,7 +904,7 @@ recording: async (req, res) => {
     let allRecordings = [];
     let today = new Date();
     let fiveYearsAgo = new Date(today);
-    fiveYearsAgo.setMonth(fiveYearsAgo.getMonth() - 6);
+    fiveYearsAgo.setMonth(fiveYearsAgo.getMonth() - 10);
 
     let hasMore = true;
     console.log('Get all records');
@@ -933,6 +933,15 @@ recording: async (req, res) => {
                 timeout: 100000,
             });
             console.log('Response data:', response.data);
+            if (response.data.meetings.length === 0) {
+                console.log('No recordings found for the specified date range.');
+                return {
+                    status: 201,
+                    reason: 'not_subscribed_to_zoom',
+                    message: 'No recordings found for the specified date range.',
+                    recordings: allRecordings,
+                };
+            }
             allRecordings.push(...response.data.meetings);
             hasMore = response.data.next_page_token !== undefined;
             today = fromDateTime;
