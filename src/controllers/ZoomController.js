@@ -512,7 +512,9 @@ backup: async (req, res, io) => {
   
 refresh: (req, res)=>{
   let access = res.decoded_access
-  // console.log(access)
+  console.log(access)
+  console.log('REFRESHING...')
+  
     if_exists(access.user_id, (err, results)=>{
       if(err){
         return res.status(400).json({
