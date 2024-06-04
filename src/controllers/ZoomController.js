@@ -977,7 +977,7 @@ recording: async (req, res) => {
           }
 
         const recordings = await getAllMeetingRecordings();
-          if (response.length === 0) {
+          if (recordings.length === 0) {
                 console.log('No recordings found for the specified date range.');
                 return {
                     status: 201,
