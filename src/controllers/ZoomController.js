@@ -933,15 +933,7 @@ recording: async (req, res) => {
                 timeout: 100000,
             });
             console.log('Response data:', response.data);
-            if (response.data.meetings.length === 0) {
-                console.log('No recordings found for the specified date range.');
-                return {
-                    status: 201,
-                    reason: 'not_subscribed_to_zoom',
-                    message: 'No recordings found for the specified date range.',
-                    recordings: allRecordings,
-                };
-            }
+            
             allRecordings.push(...response.data.meetings);
             hasMore = response.data.next_page_token !== undefined;
             today = fromDateTime;
@@ -984,7 +976,16 @@ recording: async (req, res) => {
               });
           }
 
-          const recordings = await getAllMeetingRecordings();
+        const recordings = await getAllMeetingRecordings();
+          if (response.length === 0) {
+                console.log('No recordings found for the specified date range.');
+                return {
+                    status: 201,
+                    reason: 'not_subscribed_to_zoom',
+                    message: 'No recordings found for the specified date range.',
+                    recordings: allRecordings,
+                };
+            }
           if (recordings && recordings.length > 0) {
               const playUrls = [];
               const downloadUrls = [];

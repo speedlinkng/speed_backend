@@ -85,7 +85,8 @@ module.exports = {
   },
 
   submitAndUpdate: async (req, res) => {
-      /* Update image data into submitted_Records record
+      /* 
+        Update image data into submitted_Records record
         For the imaes you can update it even if the link is expired, 
         this helps when people are submitting on deadline but images or file were large
       */
