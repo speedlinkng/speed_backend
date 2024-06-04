@@ -977,15 +977,7 @@ recording: async (req, res) => {
           }
 
         const recordings = await getAllMeetingRecordings();
-          if (recordings.length === 0) {
-                console.log('No recordings found for the specified date range.');
-                return {
-                    status: 201,
-                    reason: 'not_subscribed_to_zoom',
-                    message: 'No recordings found for the specified date range.',
-                    recordings: allRecordings,
-                };
-            }
+ 
           if (recordings && recordings.length > 0) {
               const playUrls = [];
               const downloadUrls = [];
