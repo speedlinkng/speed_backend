@@ -457,6 +457,7 @@ backup: async (req, res, io) => {
     // GET user_zoom googledrive credentials
 
     if (req.body.preferred == 0) {
+      console.log('USING SPEEDLINKS DRIVR')
       credentials = tok_data
       let json = JSON.parse(credentials);
       oauth3Client.setCredentials(json); 
@@ -486,7 +487,7 @@ backup: async (req, res, io) => {
       }
       createFoldersForRecords(access, driveFolder, service);
     } else {
-
+      console.log('USING YOUR OWN DRIVR')
       try {
        const {credentials_, driveFolder} = await getDriveCredentials(access);
         // console.log("YOUR CREDENTIALS HERE IS", credentials_);
