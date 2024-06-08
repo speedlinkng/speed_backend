@@ -76,7 +76,7 @@ module.exports = {
                     if(err){
                         return callback(err);
                     }
-                    // console.log(res.rows)
+                    console.log(res.rows)
                     return callback(null, res.rows)
                 }
     
