@@ -471,7 +471,7 @@ backup: async (req, res, io) => {
           // store these new tokens in a safe place (e.g. database)
          
      
-          console.log('access tokn REFRESHED: ', upload_token)
+          console.log('access tokn REFRESHED: ', tokens.access_token)
         
         });
 
