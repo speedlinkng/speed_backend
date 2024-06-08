@@ -459,8 +459,26 @@ backup: async (req, res, io) => {
     if (req.body.preferred == 0) {
       console.log('USING SPEEDLINKS DRIVR')
       credentials = tok_data
+      console.log(credentials)
+      
       let json = JSON.parse(credentials);
       oauth3Client.setCredentials(json); 
+
+      // ----------------------------------------
+      // RFRESH CREDENTIALS INCASE ACCESS TOKEN IS BAD   
+      oauth3Client.refreshAccessToken((err, tokens) => {
+          // your access_token is now refreshed and stored in oauth2Client
+          // store these new tokens in a safe place (e.g. database)
+         
+     
+          console.log('access tokn REFRESHED: ', upload_token)
+        
+        });
+
+
+
+      // ----------------------------------------
+
       let service = google.drive({ version: 'v3', auth: oauth3Client });
       // --------------------------------
       // This creates all the necessary folders and sub folders  required
