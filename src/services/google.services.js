@@ -65,7 +65,7 @@ module.exports = {
     
             )
         }else{
-            // console.log('else')
+            console.log('else')
             pgpool.query(
                 `select * from user_google where role = $1`,
                 [

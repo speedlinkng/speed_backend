@@ -66,7 +66,7 @@ module.exports = {
         } else {
             preff = req.body.preferred;
         }
-        
+        console.log('PREFF IS ', preff)
             getGoogleData(access, preff, (err, _res)=>{
                 if(err){
                     console.log(err);
