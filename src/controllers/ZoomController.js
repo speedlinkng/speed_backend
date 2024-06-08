@@ -262,10 +262,10 @@ backup: async (req, res, io) => {
                   } else {
                       const files = res.data.files;
                       if (files.length) {
-                          console.log('files and folders exist.');
+                          console.log(`${targetFolder} files and folders exist.`);
                           resolve({truth: true, files: files[0].id});
                       } else {
-                          console.log(`Folder does not exist.`);
+                          console.log(`${targetFolder}Folder does not exist.`);
                           resolve({truth:false, files: null});
                       }
                   }
@@ -467,9 +467,6 @@ backup: async (req, res, io) => {
       // ----------------------------------------
       // RFRESH CREDENTIALS INCASE ACCESS TOKEN IS BAD   
       oauth3Client.refreshAccessToken((err, tokens) => {
-          // your access_token is now refreshed and stored in oauth2Client
-          // store these new tokens in a safe place (e.g. database)
-         
      
           console.log('access tokn REFRESHED: ', tokens.access_token)
         
@@ -482,13 +479,15 @@ backup: async (req, res, io) => {
       let service = google.drive({ version: 'v3', auth: oauth3Client });
       // --------------------------------
       // This creates all the necessary folders and sub folders  required
-      // --------------------------------s
+      // --------------------------------
       // The user email is used to create the subfolder where his backup will be stored
       let arrayOfFolders = ['SPEEDLINK DEFAULT BACKUP', access.email]
       // initialize
       let driveFolder 
       for (let i = 0; i < arrayOfFolders.length; i++) { 
-        const {truth, files} = await checkBatchFolderExist(arrayOfFolders[i], null, service)
+        console.log(`check if ${arrayOfFolders[i]} exist`)
+        const { truth, files } = await checkBatchFolderExist(arrayOfFolders[i], null, service)
+        console.log(`${arrayOfFolders[i]} is ${truth}`)
         if (truth == false) {
           if (i == 0) {
             driveFolder = await createFolder(arrayOfFolders[i], service)

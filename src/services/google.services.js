@@ -73,7 +73,8 @@ module.exports = {
                 ],
     
                 (err, res, fields) =>{
-                    if(err){
+                    if (err) {
+                        console.log(err);
                         return callback(err);
                     }
                     console.log(res.rows)
