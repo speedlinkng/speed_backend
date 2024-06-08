@@ -457,53 +457,54 @@ backup: async (req, res, io) => {
     // GET user_zoom googledrive credentials
 
     if (req.body.preferred == 0) {
-      console.log('USING SPEEDLINKS DRIVR')
-      credentials = tok_data
-      console.log(credentials)
+      console.log('USING SPEEDLINKS DRIVER');
+      credentials = tok_data;
+      console.log(credentials);
       
       let json = JSON.parse(credentials);
-      oauth3Client.setCredentials(json); 
-
-      // ----------------------------------------
-      // RFRESH CREDENTIALS INCASE ACCESS TOKEN IS BAD   
-      oauth3Client.refreshAccessToken((err, tokens) => {
-     
-          console.log('access tokn REFRESHED: ', tokens.access_token)
-        
-        });
-
-
-
-      // ----------------------------------------
-
-      let service = google.drive({ version: 'v3', auth: oauth3Client });
-      // --------------------------------
-      // This creates all the necessary folders and sub folders  required
-      // --------------------------------
-      // The user email is used to create the subfolder where his backup will be stored
-      let arrayOfFolders = ['SPEEDLINK DEFAULT BACKUP', access.email]
-      // initialize
-      let driveFolder 
-      for (let i = 0; i < arrayOfFolders.length; i++) { 
-        console.log(`check if ${arrayOfFolders[i]} exist`)
-        const { truth, files } = await checkBatchFolderExist(arrayOfFolders[i], null, service)
-        console.log(`${arrayOfFolders[i]} is ${truth}`)
-        if (truth == false) {
-          if (i == 0) {
-            driveFolder = await createFolder(arrayOfFolders[i], service)
-
-          } else {
-            driveFolder = await createSubfolder(arrayOfFolders[i], createdSubFolder, service)
-
-          }
-          file_id = driveFolder
-        } else {
-          file_id = files
-        }
-
+      oauth3Client.setCredentials(json);
+  
+      // Refresh credentials in case access token is bad
+      try {
+          await oauth3Client.refreshAccessToken((err, tokens) => {
+              if (err) {
+                  console.error('Error refreshing access token', err);
+                  throw err; // If there's an error, throw it to handle it properly.
+              }
+              console.log('Access token refreshed: ', tokens.access_token);
+          });
+      } catch (error) {
+          console.error('Failed to refresh access token', error);
+          return; // Exit if there's an error refreshing the token.
       }
-      createFoldersForRecords(access, driveFolder, service);
-    } else {
+  
+      let service = google.drive({ version: 'v3', auth: oauth3Client });
+  
+      // This creates all the necessary folders and sub folders required
+      // The user email is used to create the subfolder where the backup will be stored
+      let arrayOfFolders = ['SPEEDLINK DEFAULT BACKUP', access.email];
+      let driveFolder;
+      
+      for (let i = 0; i < arrayOfFolders.length; i++) { 
+          console.log(`Check if ${arrayOfFolders[i]} exists`);
+          const { truth, files } = await checkBatchFolderExist(arrayOfFolders[i], null, service);
+          console.log(`${arrayOfFolders[i]} is ${truth}`);
+          
+          if (!truth) {
+              if (i === 0) {
+                  driveFolder = await createFolder(arrayOfFolders[i], service);
+              } else {
+                  driveFolder = await createSubfolder(arrayOfFolders[i], driveFolder, service);
+              }
+              file_id = driveFolder;
+          } else {
+              file_id = files;
+          }
+      }
+      
+      // Ensure the for loop completes before calling createFoldersForRecords
+      await createFoldersForRecords(access, driveFolder, service);
+  } else {
       console.log('USING YOUR OWN DRIVR')
       try {
        const {credentials_, driveFolder} = await getDriveCredentials(access);
