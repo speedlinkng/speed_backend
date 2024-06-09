@@ -247,32 +247,36 @@ backup: async (req, res, io) => {
   let ids = selectedDataForBackup.map(data => data.id);
   
 
-    async function checkBatchFolderExist(targetFolder, driveFolder, service) {
-      return new Promise((resolve, reject) => {
-        // console.log(targetFolder)
-          service.files.list(
-              {
-                  q: `name = '${targetFolder.replace(/'/g, "\\'")}' and mimeType = 'application/vnd.google-apps.folder'`,
-                  fields: 'files(id, name)',
-              },
-              (err, res) => {
-                  if (err) {
-                      console.error('The API returned an error: ' + err);
-                      reject(err);
-                  } else {
-                      const files = res.data.files;
-                      if (files.length) {
-                          console.log(`${targetFolder} files and folders exist.`);
-                          resolve({truth: true, files: files[0].id});
-                      } else {
-                          console.log(`${targetFolder}Folder does not exist.`);
-                          resolve({truth:false, files: null});
-                      }
-                  }
-              }
-          );
-      });
-    }
+async function checkBatchFolderExist(targetFolder, driveFolder, service) {
+    return new Promise((resolve, reject) => {
+        let query = `name = '${targetFolder.replace(/'/g, "\\'")}' and mimeType = 'application/vnd.google-apps.folder'`;
+        if (driveFolder) {
+            query += ` and '${driveFolder}' in parents`;
+        }
+        service.files.list(
+            {
+                q: query,
+                fields: 'files(id, name)',
+            },
+            (err, res) => {
+                if (err) {
+                    console.error('The API returned an error: ' + err);
+                    reject(err);
+                } else {
+                    const files = res.data.files;
+                    if (files.length) {
+                        console.log(`${targetFolder} files and folders exist.`);
+                        resolve({ truth: true, files: files[0].id });
+                    } else {
+                        console.log(`${targetFolder} folder does not exist.`);
+                        resolve({ truth: false, files: null });
+                    }
+                }
+            }
+        );
+    });
+}
+
 
     async function createFolder(targetFolder, service) {
       return new Promise((resolve, reject) => {
@@ -490,20 +494,36 @@ backup: async (req, res, io) => {
           const { truth, files } = await checkBatchFolderExist(arrayOfFolders[i], null, service);
           console.log(`${arrayOfFolders[i]} is ${truth}`);
           
-          if (!truth) {
-              if (i === 0) {
-                  driveFolder = await createFolder(arrayOfFolders[i], service);
-              } else {
-                  driveFolder = await createSubfolder(arrayOfFolders[i], driveFolder, service);
-              }
-              file_id = driveFolder;
+        if (!truth) {
+          if (i === 0) {
+            driveFolder = await createFolder(arrayOfFolders[i], service);
           } else {
-              file_id = files;
+            driveFolder = await createSubfolder(arrayOfFolders[i], driveFolder, service);
           }
+          file_id = driveFolder;
+          if (i === 1) {
+              
+          }
+            
+        } else {
+          if (i === 0) { 
+            driveFolder = files
+          } else {
+            // Check if the subfolder exists within the parent folder
+            const { truth, files } = await checkBatchFolderExist(arrayOfFolders[i], driveFolder, service);
+            if (truth) {
+              driveFolder = files; // Assuming files is an array and we need the first one
+            } else {
+              driveFolder = await createSubfolder(arrayOfFolders[i], driveFolder, service);
+            }
+          }
+          file_id = driveFolder;
+        }         
       }
-      
       // Ensure the for loop completes before calling createFoldersForRecords
-      await createFoldersForRecords(access, driveFolder, service);
+      console.log('THE DRIVE FOLDER IS: ==', driveFolder);
+        await createFoldersForRecords(access, driveFolder, service);
+    
   } else {
       console.log('USING YOUR OWN DRIVR')
       try {
