@@ -373,7 +373,7 @@ async function checkBatchFolderExist(targetFolder, driveFolder, service) {
             const {truth, files} = await checkBatchFolderExist(record.recording_data.topic, driveFolder, service)
             
             if (truth == false) {
-               getTopicId = await createSubfolder(record.recording_data.topic, file_id, service)
+               getTopicId = await createSubfolder(record.recording_data.topic, driveFolder, service)
            
             } else { 
                getTopicId = files
