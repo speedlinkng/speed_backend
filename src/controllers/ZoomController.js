@@ -355,17 +355,17 @@ async function checkBatchFolderExist(targetFolder, driveFolder, service) {
           }
           
           // CREATE BATCH
-          const {truth, files} = await checkBatchFolderExist('BATCH_'+results[0].batch_id, driveFolder, service)
-          if (truth == false) {
-            createdSubFolder = await createSubfolder('BATCH_'+results[0].batch_id, driveFolder, service)
-            // get the file id
-            file_id = createdSubFolder
-          } else {
-            file_id = files
-            // console.log('trues',file_id)
-            // get th fileid directly
-          }
-          console.log('WAIT A MINUTE',results.length)
+          // const {truth, files} = await checkBatchFolderExist('BATCH_'+results[0].batch_id, driveFolder, service)
+          // if (truth == false) {
+          //   createdSubFolder = await createSubfolder('BATCH_'+results[0].batch_id, driveFolder, service)
+          //   // get the file id
+          //   file_id = createdSubFolder
+          // } else {
+          //   file_id = files
+          //   // console.log('trues',file_id)
+          //   // get th fileid directly
+          // }
+          // console.log('WAIT A MINUTE',results.length)
          
           // CREATE TOPIC FOLDER
           const promises = results.map(async (record, index) => {
