@@ -463,7 +463,7 @@ module.exports = {
                
                 
                 const accessToken = sign({result : results, jti: uniqueID}, process.env.REFRESH_TOK_SEC, {
-                    expiresIn: "1h"
+                    expiresIn: "30d"
                 })
                     console.log(typeof(results.status))
                     console.log(results.status.trim())
