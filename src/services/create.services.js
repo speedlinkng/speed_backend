@@ -213,7 +213,7 @@ module.exports = {
                 user_id,
                 'active',
                 data.preferred,
-                data.otherData.page_url, 
+                (data.otherData.page_url).replace(/\s+/g, ''), 
                 ADDFTFR.refresh_token,
                 ADDFTFR.access_token,
                 ADDFTFR.expiry_date,
