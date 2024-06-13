@@ -63,7 +63,7 @@ module.exports = {
               })
           }
 
-          // console.log('submitting')
+          console.log(req.body)
           // Get the name of the form's creator
         
           let mesg = `<div>
