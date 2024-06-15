@@ -285,7 +285,7 @@ module.exports = {
 
     getRecordById: (r_id, callback)=>{
         pgpool.query(
-            `select * from records where record_id = $1 ORDER BY id ASC`,
+            `select * from_records where record_id = $1 ORDER BY id ASC`,
             [
                 r_id 
             ],
@@ -321,6 +321,7 @@ module.exports = {
 
     getSubmissionCountById: (r_id, callback)=>{
         // get submission count by record_id
+        console.log('submission count for ', r_id)
         pgpool.query(
             `SELECT COUNT(*) AS submission_count FROM submitted_records WHERE record_id = $1`,
             [r_id],
