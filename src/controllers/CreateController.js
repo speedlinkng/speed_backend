@@ -487,12 +487,12 @@ module.exports = {
         let allCount = []
         let completedCount = 0;
         getRecord(access.user_id, (err, allRequests) => { 
-            // console.log(allRequests[0])
+            console.log(allRequests[0])
             if (err) {
                 
             } else {
                 allRequests.forEach( (r, i) => {
-                    // console.log(r.record_id)
+                    console.log("THE ID IS",r.id)
                     getSubmissionCountById(r.record_id, (err, counts) => {
                         console.log(counts)
                         if (err) {
@@ -507,7 +507,7 @@ module.exports = {
                      
                             return res.status(201).json({
                                 status: 201,
-                                error: 1,
+                                success: 1,
                                 message: allCount,
                             })
                         }
