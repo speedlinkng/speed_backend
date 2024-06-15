@@ -19,6 +19,22 @@ module.exports = {
     );
   },
 
+  getPageName: (body, callback) => { 
+    pgpool.query(
+      `SELECT record_data->'otherData'->>'page_name' AS page_name FROM form_records WHERE record_id = $1`,
+      [recordId],
+      (err, res) => {
+        if (err) {
+          return callback(err);
+        } else if (res.rows.length > 0) {
+          callback(null, res.rows[0].page_name);
+        } else {
+          callback(new Error('No record found'));
+        }
+      }
+    );
+  },
+
   submitFormReplies: (body, uniqueId, callback) => {
     // get user id
     function getUserId() {

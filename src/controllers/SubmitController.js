@@ -3,7 +3,7 @@ const request = require("request");
 const dotenv = require('dotenv');
 const sendMail = require('../middlewares/emailMiddleware');
 const { v4: uuidv4 } = require('uuid');
-const {getSubmittedRecordById, submitAndUpdate, submitFormReplies} = require('../services/submit.services');
+const {getSubmittedRecordById, submitAndUpdate, submitFormReplies, getPageName} = require('../services/submit.services');
 dotenv.config();
 
 
@@ -45,15 +45,16 @@ module.exports = {
     },
 
 
-    submitReplies: (req, res)=>{
+    submitReplies: async (req, res)=>{
       let record_id =  req.body.record_id
       const uniqueId = uuidv4();
+      let title  ;
       /* get the userId from the record_id
         then get the username from the users table through the user_id gotten from the form_record query th
         This is to help us send mail to the right person
       */
 
-      submitFormReplies(req.body,uniqueId, (err, results)=>{
+         submitFormReplies(req.body,uniqueId,  (err, results)=>{
           if(err){
               console.log(err);
               return res.status(400).json({
@@ -63,18 +64,30 @@ module.exports = {
               })
           }
 
-          console.log(req.body)
-          // Get the name of the form's creator
+        console.log(req.body.record_id)
+        // search for titl in form record using record id
+         getPageName(req.body, (err, pageName) => { 
+          if (err) {
+            console.error(err)
+          } else { 
+            title = pageName
+
+                     // Get the name of the form's creator
         
           let mesg = `<div>
           <p>Hello ${results[0].firstname},</p> 
-              <p>A submission has been made to the form request you created, titled: <b>${req.body.title}</b></p>
+              <p>A submission has been made to the form request you created, titled: <b>${title}</b></p>
               <p>Visit your dashboard to see the details <b><a href="${process.env.FRONTEND_URL}/dash">${process.env.FRONTEND_URL}/dash</a></b></p>
           </div>`
     
           sendMail(results[0].email, 'Form Submission', mesg);
           console.log('submit ID WAS: ', uniqueId)
        
+          }
+        })
+
+
+ 
           return res.status(200).json({
               status: 200,
               success: 1,
