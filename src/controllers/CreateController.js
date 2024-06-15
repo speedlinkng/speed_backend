@@ -492,7 +492,7 @@ module.exports = {
                 
             } else {
                 allRequests.forEach( (r, i) => {
-                    console.log("THE ID IS",r.id)
+                    
                     getSubmissionCountById(r.record_id, (err, counts) => {
                         console.log(counts)
                         if (err) {
@@ -500,6 +500,7 @@ module.exports = {
                         } else {
                             allCount.push(counts)
                             // console.log(allCount)
+                            console.log("THE ID IS",r.id, 'and count is', counts)
                         }
                         completedCount++
                         if (completedCount === allRequests.length) { 
