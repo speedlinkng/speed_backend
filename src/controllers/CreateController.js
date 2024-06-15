@@ -491,30 +491,50 @@ module.exports = {
             if (err) {
                 
             } else {
-                allRequests.forEach( (r, i) => {
-                    
-                    getSubmissionCountById(r.record_id, (err, counts) => {
-                        console.log(counts)
-                        if (err) {
-                         
-                        } else {
-                            allCount.push(counts)
-                            // console.log(allCount)
-                            console.log("THE ID IS",r.id, 'and count is', counts)
-                        }
-                        completedCount++
-                        if (completedCount === allRequests.length) { 
-                            // console.log('allCount')
-                     
-                            return res.status(201).json({
-                                status: 201,
-                                success: 1,
-                                message: allCount,
-                            })
-                        }
-                    })
-                })
+                allRequests.sort((a, b) => a.id - b.id);
 
+                const promises = allRequests.map((r, i) => {
+                    return new Promise((resolve, reject) => {
+                      getSubmissionCountById(r.record_id, (err, counts) => {
+                        if (err) {
+                          reject(err);
+                        } else {
+                          allCount.push({ id: r.id, count: counts });
+                          console.log("THE ID IS", r.id, 'and count is', counts);
+                          resolve();
+                        }
+                      });
+                    }).then(() => {
+                      completedCount++;
+                      if (completedCount === allRequests.length) {
+                        res.status(201).json({
+                          status: 201,
+                          success: 1,
+                          message: allCount,
+                        });
+                      }
+                    }).catch(err => {
+                      console.error(err);
+                      res.status(500).json({
+                        status: 500,
+                        success: 0,
+                        message: 'An error occurred while processing requests.',
+                      });
+                    });
+                  });
+                  
+                  Promise.all(promises)
+                    .then(() => {
+                      // All requests processed successfully, response already sent in the .then() of each promise
+                    })
+                    .catch(err => {
+                      console.error(err);
+                      res.status(500).json({
+                        status: 500,
+                        success: 0,
+                        message: 'An error occurred while processing requests.',
+                      });
+                    });
             }
             
         })

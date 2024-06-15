@@ -285,7 +285,7 @@ module.exports = {
 
     getRecordById: (r_id, callback)=>{
         pgpool.query(
-            `select * from_records where record_id = $1 ORDER BY id ASC`,
+            `select * from from_records where record_id = $1 ORDER BY id ASC`,
             [
                 r_id 
             ],
