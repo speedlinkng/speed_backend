@@ -22,7 +22,7 @@ module.exports = {
   getPageName: (body, callback) => { 
     pgpool.query(
       `SELECT record_data->'otherData'->>'page_name' AS page_name FROM form_records WHERE record_id = $1`,
-      [recordId],
+      [body.record_id],
       (err, res) => {
         if (err) {
           return callback(err);
