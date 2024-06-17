@@ -168,8 +168,8 @@ module.exports = {
 
         
         // Replace with your Paystack secret key
-        const PAYSTACK_SECRET_KEY = process.env.PAYSTACK_SEC_KEY;
-        console.log('PAYSTACK_SECRET_KEY:', PAYSTACK_SECRET_KEY)
+        const PAYSTACK_SECRET_KEY = process.env.PAYSTACK_SEC_TEST;
+        console.log('PAYSTACK_SECRET_KEY:', PAYSTACK_SEC_TEST)
 
         if (!PAYSTACK_SECRET_KEY) {
             console.error('PAYSTACK_SECRET_KEY is not defined');
