@@ -169,7 +169,7 @@ module.exports = {
         
         // Replace with your Paystack secret key
         const PAYSTACK_SECRET_KEY = process.env.PAYSTACK_SEC_TEST;
-        console.log('PAYSTACK_SECRET_KEY:', PAYSTACK_SEC_TEST)
+        console.log('PAYSTACK_SECRET_KEY:', PAYSTACK_SECRET_KEY)
 
         if (!PAYSTACK_SECRET_KEY) {
             console.error('PAYSTACK_SECRET_KEY is not defined');
@@ -185,11 +185,13 @@ module.exports = {
             const signatureHeader = req.get('X-Paystack-Signature');
             let body = req.body;
 
+            console.log('PHASE 0: ',body)
             // Ensure that 'body' is a buffer or a string
             if (!Buffer.isBuffer(body)) {
                 // If 'body' is an object, convert it to a string using JSON.stringify
                 if (typeof body === 'object') {
-                body = JSON.stringify(body);
+                    body = JSON.stringify(body);
+                    console.log('PHASE 1: ',body)
                 } else {
                 res.status(400).end(); // Handle other data types
                 return;
@@ -207,7 +209,7 @@ module.exports = {
                 return;
             }
 
-
+console.log('PHAS 2: ',body)
             // Append the 'body' variable to package.json
             fs.appendFile('sub.json', body, (err) => {
                 if (err) {
