@@ -6,6 +6,7 @@ const fs = require('fs');
 const {Readable} = require('stream');
 const request = require("request");
 const crypto = require('crypto');
+
 const path = require('path');
 const dotenv = require('dotenv');
 dotenv.config();
@@ -164,14 +165,16 @@ module.exports = {
 
     webhook:(req, res)=>{
         console.log('webhook running')
-        const express = require('express');
-        const crypto = require('crypto');
-        const fs = require('fs');
-        const bodyParser = require('body-parser');
-        const app = express();
+
         
         // Replace with your Paystack secret key
         const PAYSTACK_SECRET_KEY = process.env.PAYSTACK_SEC_KEY;
+        console.log('PAYSTACK_SECRET_KEY:', PAYSTACK_SECRET_KEY)
+
+        if (!PAYSTACK_SECRET_KEY) {
+            console.error('PAYSTACK_SECRET_KEY is not defined');
+            process.exit(1); // Exit the application if the key is not defined
+        }
 
         if (req.method !== 'POST' || !req.get('X-Paystack-Signature')) {
             res.status(400).end();
