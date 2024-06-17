@@ -206,22 +206,22 @@ module.exports = {
 
 
             // Append the 'body' variable to package.json
-    fs.appendFile('sub.json', body, (err) => {
-        if (err) {
-        console.error('Error appending to sub.json:', err);
-        } else {
-        console.log('Appended to sub.json');
-        // Now, let's read the content from package.json
-        fs.readFile('sub.json', 'utf8', (readErr, data) => {
-            if (readErr) {
-            console.error('Error reading package.json:', readErr);
-            } else {
-            console.log('Content of package.json:');
-            console.log(data);
-            }
-        });
-        }
-    });
+            fs.appendFile('sub.json', body, (err) => {
+                if (err) {
+                console.error('Error appending to sub.json:', err);
+                } else {
+                console.log('Appended to sub.json');
+                // Now, let's read the content from package.json
+                fs.readFile('sub.json', 'utf8', (readErr, data) => {
+                    if (readErr) {
+                    console.error('Error reading package.json:', readErr);
+                    } else {
+                    console.log('Content of package.json:');
+                    console.log(data);
+                    }
+                });
+                }
+            });
 
 
         
@@ -381,7 +381,7 @@ module.exports = {
                         first_name: 'Divine ',
                         first_name: 'iso',
                         amount: 200000,
-                        callback_url: 'http://localhost:5000/api/pay/verify?plan='+plan+'&plan_type='+plan_type+'&token='+encryptedData
+                        callback_url: process.env.BACKEND_URL+'/api/pay/verify?plan='+plan+'&plan_type='+plan_type+'&token='+encryptedData
                     },
                 };
 
