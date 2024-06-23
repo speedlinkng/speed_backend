@@ -27,7 +27,7 @@ app.use(session({
 
 dotenv.config();
 // Whitelist specific origins
-const whitelist = [process.env.FRONTEND_URL, 'http://sfts.speedlinkng.com', 'https://speedfrontend-production.up.railway.app'];
+const whitelist = [process.env.FRONTEND_URL, 'http://sfts.speedlinkng.com', 'https://speedfrontend-production-86e7.up.railway.app'];
 
 const corsOptions = {
   origin: (origin, callback) => {
@@ -154,7 +154,7 @@ app.get('/', function(req, res) {
 
 
 
-const port = process.env.PORT || 5000;
+const port = process.env.PORT || 3000;
 server.listen(port, () => {
   console.log(`WebSocket server is running on http://localhost:${port}`);
 });

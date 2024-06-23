@@ -65,7 +65,7 @@ module.exports = {
     
             )
         }else{
-            // console.log('else')
+            console.log('else')
             pgpool.query(
                 `select * from user_google where role = $1`,
                 [
@@ -73,10 +73,11 @@ module.exports = {
                 ],
     
                 (err, res, fields) =>{
-                    if(err){
+                    if (err) {
+                        console.log(err);
                         return callback(err);
                     }
-                    // console.log(res.rows)
+                    console.log(res.rows)
                     return callback(null, res.rows)
                 }
     

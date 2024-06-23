@@ -248,8 +248,8 @@ module.exports = {
             // FIRST GET THE RELATIVE REFRESH_TOKEN IN USER_GOOGLE FOR THIS USER
             // this is not needed 
             getRefreshTokenGoogle(access.user_id, body, (err, google_res)=>{
-                console.log('@@@@@@@@@@@@@@@@@@@@@@@@')   
-        
+                console.log('@@@@@@@@@@@@@@@@@@@@@@@@')
+    
                 if(err){
                     
                     return res.status(400).json({
@@ -487,33 +487,54 @@ module.exports = {
         let allCount = []
         let completedCount = 0;
         getRecord(access.user_id, (err, allRequests) => { 
-            // console.log(allRequests[0])
+            console.log(allRequests[0])
             if (err) {
                 
             } else {
-                allRequests.forEach( (r, i) => {
-                    // console.log(r.record_id)
-                    getSubmissionCountById(r.record_id, (err, counts) => {
-                        console.log(counts)
-                        if (err) {
-                         
-                        } else {
-                            allCount.push(counts)
-                            // console.log(allCount)
-                        }
-                        completedCount++
-                        if (completedCount === allRequests.length) { 
-                            // console.log('allCount')
-                     
-                            return res.status(201).json({
-                                status: 201,
-                                error: 1,
-                                message: allCount,
-                            })
-                        }
-                    })
-                })
+                allRequests.sort((a, b) => a.id - b.id);
 
+                const promises = allRequests.map((r, i) => {
+                    return new Promise((resolve, reject) => {
+                      getSubmissionCountById(r.record_id, (err, counts) => {
+                        if (err) {
+                          reject(err);
+                        } else {
+                          allCount.push({ id: r.id, count: counts });
+                          console.log("THE ID IS", r.id, 'and count is', counts);
+                          resolve();
+                        }
+                      });
+                    }).then(() => {
+                      completedCount++;
+                      if (completedCount === allRequests.length) {
+                        res.status(201).json({
+                          status: 201,
+                          success: 1,
+                          message: allCount,
+                        });
+                      }
+                    }).catch(err => {
+                      console.error(err);
+                      res.status(500).json({
+                        status: 500,
+                        success: 0,
+                        message: 'An error occurred while processing requests.',
+                      });
+                    });
+                  });
+                  
+                  Promise.all(promises)
+                    .then(() => {
+                      // All requests processed successfully, response already sent in the .then() of each promise
+                    })
+                    .catch(err => {
+                      console.error(err);
+                      res.status(500).json({
+                        status: 500,
+                        success: 0,
+                        message: 'An error occurred while processing requests.',
+                      });
+                    });
             }
             
         })

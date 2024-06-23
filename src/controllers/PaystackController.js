@@ -6,6 +6,7 @@ const fs = require('fs');
 const {Readable} = require('stream');
 const request = require("request");
 const crypto = require('crypto');
+
 const path = require('path');
 const dotenv = require('dotenv');
 dotenv.config();
@@ -164,14 +165,16 @@ module.exports = {
 
     webhook:(req, res)=>{
         console.log('webhook running')
-        const express = require('express');
-        const crypto = require('crypto');
-        const fs = require('fs');
-        const bodyParser = require('body-parser');
-        const app = express();
+
         
         // Replace with your Paystack secret key
-        const PAYSTACK_SECRET_KEY = process.env.PAYSTACK_SEC_KEY;
+        const PAYSTACK_SECRET_KEY = process.env.PAYSTACK_SEC_TEST;
+        console.log('PAYSTACK_SECRET_KEY:', PAYSTACK_SECRET_KEY)
+
+        if (!PAYSTACK_SECRET_KEY) {
+            console.error('PAYSTACK_SECRET_KEY is not defined');
+            process.exit(1); // Exit the application if the key is not defined
+        }
 
         if (req.method !== 'POST' || !req.get('X-Paystack-Signature')) {
             res.status(400).end();
@@ -182,11 +185,13 @@ module.exports = {
             const signatureHeader = req.get('X-Paystack-Signature');
             let body = req.body;
 
+            console.log('PHASE 0: ',body)
             // Ensure that 'body' is a buffer or a string
             if (!Buffer.isBuffer(body)) {
                 // If 'body' is an object, convert it to a string using JSON.stringify
                 if (typeof body === 'object') {
-                body = JSON.stringify(body);
+                    body = JSON.stringify(body);
+                    console.log('PHASE 1: ',body)
                 } else {
                 res.status(400).end(); // Handle other data types
                 return;
@@ -204,24 +209,24 @@ module.exports = {
                 return;
             }
 
-
+console.log('PHAS 2: ',body)
             // Append the 'body' variable to package.json
-    fs.appendFile('sub.json', body, (err) => {
-        if (err) {
-        console.error('Error appending to sub.json:', err);
-        } else {
-        console.log('Appended to sub.json');
-        // Now, let's read the content from package.json
-        fs.readFile('sub.json', 'utf8', (readErr, data) => {
-            if (readErr) {
-            console.error('Error reading package.json:', readErr);
-            } else {
-            console.log('Content of package.json:');
-            console.log(data);
-            }
-        });
-        }
-    });
+            fs.appendFile('sub.json', body, (err) => {
+                if (err) {
+                console.error('Error appending to sub.json:', err);
+                } else {
+                console.log('Appended to sub.json');
+                // Now, let's read the content from package.json
+                fs.readFile('sub.json', 'utf8', (readErr, data) => {
+                    if (readErr) {
+                    console.error('Error reading package.json:', readErr);
+                    } else {
+                    console.log('Content of package.json:');
+                    console.log(data);
+                    }
+                });
+                }
+            });
 
 
         
@@ -381,7 +386,7 @@ module.exports = {
                         first_name: 'Divine ',
                         first_name: 'iso',
                         amount: 200000,
-                        callback_url: 'http://localhost:5000/api/pay/verify?plan='+plan+'&plan_type='+plan_type+'&token='+encryptedData
+                        callback_url: process.env.BACKEND_URL+'/api/pay/verify?plan='+plan+'&plan_type='+plan_type+'&token='+encryptedData
                     },
                 };
 

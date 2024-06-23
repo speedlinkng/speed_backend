@@ -130,6 +130,7 @@ module.exports = {
                                     })
                                 } 
 
+                                    console.log('storage',  _res)
                                     console.log('storage email',  _res[0].storage_email)
                                     res.jti = decoded.jti
                                     res.role = 'admin'

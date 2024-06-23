@@ -85,14 +85,16 @@ module.exports = {
         )
     },
 
-    fetch_user_zoom:(user_id,callback)=>{
+    fetch_user_zoom: (user_id, callback) => {
+        console.log(user_id)
         pgpool.query(
             `select * from user_zoom where user_id = $1`,
             [
                 user_id 
             ],
             (err, res, fields) =>{
-                if(err){
+                if (err) {
+                    console.log(err)
                     return callback(err);
                 }
                     return callback(null, res)

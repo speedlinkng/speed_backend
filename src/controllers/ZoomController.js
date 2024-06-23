@@ -165,6 +165,9 @@ module.exports = {
   // --------------------------------
   // Backup each record to the google drive folder
 
+  test: async (req, res) => { 
+console.log('TESTING BACK')
+  },
   recordingDB: async (req, res) => { 
     // --------------------------------
     // Get record data from database
@@ -211,7 +214,7 @@ fetchBackupEvent: async (req, res) => {
     })
   },
 
-  backup: async (req, res, io) => {
+backup: async (req, res, io) => {
     console.log('dan')
     const socket = req.app.get('io'); 
     // ... use the 'socket' object for progress updates ...
@@ -244,32 +247,36 @@ fetchBackupEvent: async (req, res) => {
   let ids = selectedDataForBackup.map(data => data.id);
   
 
-    async function checkBatchFolderExist(targetFolder, driveFolder, service) {
-      return new Promise((resolve, reject) => {
-        // console.log(targetFolder)
-          service.files.list(
-              {
-                  q: `name = '${targetFolder.replace(/'/g, "\\'")}' and mimeType = 'application/vnd.google-apps.folder'`,
-                  fields: 'files(id, name)',
-              },
-              (err, res) => {
-                  if (err) {
-                      console.error('The API returned an error: ' + err);
-                      reject(err);
-                  } else {
-                      const files = res.data.files;
-                      if (files.length) {
-                          console.log('files and folders exist.');
-                          resolve({truth: true, files: files[0].id});
-                      } else {
-                          console.log(`Folder does not exist.`);
-                          resolve({truth:false, files: null});
-                      }
-                  }
-              }
-          );
-      });
-    }
+async function checkBatchFolderExist(targetFolder, driveFolder, service) {
+    return new Promise((resolve, reject) => {
+        let query = `name = '${targetFolder.replace(/'/g, "\\'")}' and mimeType = 'application/vnd.google-apps.folder'`;
+        if (driveFolder) {
+            query += ` and '${driveFolder}' in parents`;
+        }
+        service.files.list(
+            {
+                q: query,
+                fields: 'files(id, name)',
+            },
+            (err, res) => {
+                if (err) {
+                    console.error('The API returned an error: ' + err);
+                    reject(err);
+                } else {
+                    const files = res.data.files;
+                    if (files.length) {
+                        console.log(`${targetFolder} files and folders exist.`);
+                        resolve({ truth: true, files: files[0].id });
+                    } else {
+                        console.log(`${targetFolder} folder does not exist.`);
+                        resolve({ truth: false, files: null });
+                    }
+                }
+            }
+        );
+    });
+}
+
 
     async function createFolder(targetFolder, service) {
       return new Promise((resolve, reject) => {
@@ -347,24 +354,26 @@ fetchBackupEvent: async (req, res) => {
             })
           }
           
-          const {truth, files} = await checkBatchFolderExist('BATCH_'+results[0].batch_id, driveFolder, service)
-          if (truth == false) {
-            createdSubFolder = await createSubfolder('BATCH_'+results[0].batch_id, driveFolder, service)
-            // get the file id
-            file_id = createdSubFolder
-          } else {
-            file_id = files
-            // console.log('trues',file_id)
-            // get th fileid directly
-          }
-          console.log('WAIT A MINUTE',results.length)
+          // CREATE BATCH
+          // const {truth, files} = await checkBatchFolderExist('BATCH_'+results[0].batch_id, driveFolder, service)
+          // if (truth == false) {
+          //   createdSubFolder = await createSubfolder('BATCH_'+results[0].batch_id, driveFolder, service)
+          //   // get the file id
+          //   file_id = createdSubFolder
+          // } else {
+          //   file_id = files
+          //   // console.log('trues',file_id)
+          //   // get th fileid directly
+          // }
+          // console.log('WAIT A MINUTE',results.length)
          
+          // CREATE TOPIC FOLDER
           const promises = results.map(async (record, index) => {
            
-            const {truth, files} = await checkBatchFolderExist(record.recording_data.topic, file_id, service)
+            const {truth, files} = await checkBatchFolderExist(record.recording_data.topic, driveFolder, service)
             
             if (truth == false) {
-               getTopicId = await createSubfolder(record.recording_data.topic, file_id, service)
+               getTopicId = await createSubfolder(record.recording_data.topic, driveFolder, service)
            
             } else { 
                getTopicId = files
@@ -454,36 +463,71 @@ fetchBackupEvent: async (req, res) => {
     // GET user_zoom googledrive credentials
 
     if (req.body.preferred == 0) {
-      credentials = tok_data
+      console.log('USING SPEEDLINKS DRIVER');
+      credentials = tok_data;
+      console.log(credentials);
+      
       let json = JSON.parse(credentials);
-      oauth3Client.setCredentials(json); 
-      let service = google.drive({ version: 'v3', auth: oauth3Client });
-      // --------------------------------
-      // This creates all the necessary folders and sub folders  required
-      // --------------------------------s
-      // The user email is used to create the subfolder where his backup will be stored
-      let arrayOfFolders = ['SPEEDLINK DEFAULT BACKUP', access.email]
-      // initialize
-      let driveFolder 
-      for (let i = 0; i < arrayOfFolders.length; i++) { 
-        const {truth, files} = await checkBatchFolderExist(arrayOfFolders[i], null, service)
-        if (truth == false) {
-          if (i == 0) {
-            driveFolder = await createFolder(arrayOfFolders[i], service)
-
-          } else {
-            driveFolder = await createSubfolder(arrayOfFolders[i], createdSubFolder, service)
-
-          }
-          file_id = driveFolder
-        } else {
-          file_id = files
-        }
-
+      oauth3Client.setCredentials(json);
+  
+      // Refresh credentials in case access token is bad
+      try {
+          await oauth3Client.refreshAccessToken((err, tokens) => {
+              if (err) {
+                  console.error('Error refreshing access token', err);
+                  throw err; // If there's an error, throw it to handle it properly.
+              }
+              console.log('Access token refreshed: ', tokens.access_token);
+          });
+      } catch (error) {
+          console.error('Failed to refresh access token', error);
+          return; // Exit if there's an error refreshing the token.
       }
-      createFoldersForRecords(access, driveFolder, service);
-    } else {
-
+  
+      let service = google.drive({ version: 'v3', auth: oauth3Client });
+  
+      // This creates all the necessary folders and sub folders required
+      // The user email is used to create the subfolder where the backup will be stored
+      let arrayOfFolders = ['SPEEDLINK DEFAULT BACKUP', access.email];
+      let driveFolder;
+      
+      for (let i = 0; i < arrayOfFolders.length; i++) { 
+          console.log(`Check if ${arrayOfFolders[i]} exists`);
+          const { truth, files } = await checkBatchFolderExist(arrayOfFolders[i], null, service);
+          console.log(`${arrayOfFolders[i]} is ${truth}`);
+          
+        if (!truth) {
+          if (i === 0) {
+            driveFolder = await createFolder(arrayOfFolders[i], service);
+          } else {
+            driveFolder = await createSubfolder(arrayOfFolders[i], driveFolder, service);
+          }
+          file_id = driveFolder;
+          if (i === 1) {
+              
+          }
+            
+        } else {
+          if (i === 0) { 
+            driveFolder = files
+          } else {
+            // Check if the subfolder exists within the parent folder
+            const { truth, files } = await checkBatchFolderExist(arrayOfFolders[i], driveFolder, service);
+            if (truth) {
+              driveFolder = files; // Assuming files is an array and we need the first one
+            } else {
+              driveFolder = await createSubfolder(arrayOfFolders[i], driveFolder, service);
+            }
+          }
+          file_id = driveFolder;
+        }         
+      }
+      // Ensure the for loop completes before calling createFoldersForRecords
+      console.log('THE DRIVE FOLDER IS: ==', driveFolder);
+        await createFoldersForRecords(access, driveFolder, service);
+    
+  } else {
+      console.log('USING YOUR OWN DRIVR')
       try {
        const {credentials_, driveFolder} = await getDriveCredentials(access);
         // console.log("YOUR CREDENTIALS HERE IS", credentials_);
@@ -508,11 +552,12 @@ fetchBackupEvent: async (req, res) => {
   // main().catch(console.error);
 
 },
-
   
 refresh: (req, res)=>{
   let access = res.decoded_access
-  // console.log(access)
+  console.log(access)
+  console.log('REFRESHING...')
+  
     if_exists(access.user_id, (err, results)=>{
       if(err){
         return res.status(400).json({
@@ -542,24 +587,22 @@ refresh: (req, res)=>{
 },
 
   
-Authorize: (req, res)=>{
-  let access = res.decoded_access
-  const redirectURI_ = `${process.env.BACKEND_URL}/api/zoom/callback/${access.user_id}`; // Update with your actual redirect URI
-  // console.log(redirectURI_)  
+Authorize: (req, res) => {
+  let access = res.decoded_access;
+  const frontendRedirectURI = `${process.env.BACKEND_URL}/api/zoom/callback/${access.user_id}`;
+  const backendRedirectURI = encodeURIComponent(`${process.env.BACKEND_URL}/api/zoom/callback/${access.user_id}`); 
+
   const authorizeURL = 'https://zoom.us/oauth/authorize';
-    const queryParams = {
-      response_type: 'code',
-      client_id: clientID,
-      redirect_uri: redirectURI_,
-    };
-  
-    const authorizationURL = `${authorizeURL}?${querystring.stringify(queryParams)}`;
-    // console.log(authorizationURL)
-    // res.redirect(authorizationURL);
-    return res.status(200).json({
-      success: 1,
-      data : authorizationURL,
-  })
+  // Manually construct the query string to avoid double encoding
+  const queryString = `response_type=code&client_id=${clientID}&redirect_uri=${frontendRedirectURI}&redirect_uri=${backendRedirectURI}`; 
+
+  const authorizationURL = `${authorizeURL}?${queryString}`;
+  console.log('authorizationURL', authorizationURL);
+
+  return res.status(200).json({
+    success: 1,
+    data: authorizationURL,
+  });
 },
 
 
@@ -572,8 +615,6 @@ meeting: async (req, res) => {
     fetch_user_zoom(access.user_id, (err, results)=>{
   
       if(results.rowCount > 0){
-        // console.log(results.rows[0].zoom_user_id)
-        // accessToken = results.rows.access_token 
         refreshToken = results.rows[0].refresh_token 
         zoomUserId =   results.rows[0].zoom_user_id 
   
@@ -615,8 +656,8 @@ meeting: async (req, res) => {
     .then(newAccessToken => {
         if (newAccessToken) {
             accessToken = newAccessToken
-            // console.log('New access token:', newAccessToken);
-        } else {
+            console.log('New access token:', newAccessToken);
+        } else { 
           console.log('Failed to refresh access token.');
           return res.status(400).json({
             status: 400,
@@ -688,189 +729,189 @@ meeting: async (req, res) => {
 },
 
 
-  recordingpp: async (req, res) => {  
+//   recordingpp: async (req, res) => {  
   
-    // fetch the user Zoom auth record
-    // --------------------------------
-    // run runotherfunctions to refresh the access token using the first step data
-    // --------------------------------
-    // with the new access token fetch the zoom recordings record
-    // --------------------------------
-    // Store and send back the zoom recordings record
+//     // fetch the user Zoom auth record
+//     // --------------------------------
+//     // run runotherfunctions to refresh the access token using the first step data
+//     // --------------------------------
+//     // with the new access token fetch the zoom recordings record
+//     // --------------------------------
+//     // Store and send back the zoom recordings record
 
-  let access = res.decoded_access
-  var accessToken = '';
-  let refreshToken = '';
-  let zoomUserId = '';
+//   let access = res.decoded_access
+//   var accessToken = '';
+//   let refreshToken = '';
+//   let zoomUserId = '';
 
-  fetch_user_zoom(access.user_id, (err, results)=>{
+//   fetch_user_zoom(access.user_id, (err, results)=>{
 
-    if(results.rowCount > 0){
-      // console.log(results.rows[0].zoom_user_id)
-      // accessToken = results.rows.access_token 
-      refreshToken = results.rows[0].refresh_token 
-      zoomUserId =   results.rows[0].zoom_user_id 
+//     if(results.rowCount > 0){
+//       // console.log(results.rows[0].zoom_user_id)
+//       // accessToken = results.rows.access_token 
+//       refreshToken = results.rows[0].refresh_token 
+//       zoomUserId =   results.rows[0].zoom_user_id 
 
-      runOtherFunctions()
-    }
-    if(err){
-      console.log(err)
-      return res.status(400).json({
-        error: 1,
-        data : err,
-      })
-    }
+//       runOtherFunctions()
+//     }
+//     if(err){
+//       console.log(err)
+//       return res.status(400).json({
+//         error: 1,
+//         data : err,
+//       })
+//     }
 
-  }) 
+//   }) 
 
 
-  async function getAllMeetingRecordings() {
-    let allRecordings = []; // Accumulator array to store all recordings
-    let today = new Date(); // Get current date object
-    let fiveYearsAgo = new Date(today); // Get a copy of the current date
-    // fiveYearsAgo.setFullYear(fiveYearsAgo.getFullYear() - 4); // Subtract 5 years
-    fiveYearsAgo.setMonth(fiveYearsAgo.getMonth() - 2); // Subtract 6 months
+//     async function getAllMeetingRecordings() {
+//     console.log("getAllMeetingRecordings")
+//     let allRecordings = []; // Accumulator array to store all recordings
+//     let today = new Date(); // Get current date object
+//     let fiveYearsAgo = new Date(today); // Get a copy of the current date
+//     // fiveYearsAgo.setFullYear(fiveYearsAgo.getFullYear() - 4); // Subtract 5 years
+//     fiveYearsAgo.setMonth(fiveYearsAgo.getMonth() - 2); // Subtract 6 months
     
-    let hasMore = true; // Flag to track if there are more recordings to fetch
+//     let hasMore = true; // Flag to track if there are more recordings to fetch
     
-    while (hasMore) {
-        let fromDateTime = new Date(today); // Create a new Date object from 'today'
-        fromDateTime.setDate(fromDateTime.getDate() - 30); // Go back 30 days from 'today'
-        fromDateTime.setUTCHours(0, 0, 0, 0); // Set 'from' time to beginning of day (UTC)
+//     while (hasMore) {
+//         let fromDateTime = new Date(today); // Create a new Date object from 'today'
+//         fromDateTime.setDate(fromDateTime.getDate() - 30); // Go back 30 days from 'today'
+//         fromDateTime.setUTCHours(0, 0, 0, 0); // Set 'from' time to beginning of day (UTC)
 
-        let toDateTime = new Date(today); // Create a new Date object from 'today'
-        toDateTime.setUTCHours(23, 59, 59, 999); // Set 'to' time to end of day (UTC)
+//         let toDateTime = new Date(today); // Create a new Date object from 'today'
+//         toDateTime.setUTCHours(23, 59, 59, 999); // Set 'to' time to end of day (UTC)
 
-        if (fromDateTime < fiveYearsAgo) {
-            // If 'fromDateTime' is earlier than 5 years ago, break out of the loop
-            break;
-        }
+//         if (fromDateTime < fiveYearsAgo) {
+//             // If 'fromDateTime' is earlier than 5 years ago, break out of the loop
+//             break;
+//         }
 
-        try {
-            const response = await axios.get(`https://api.zoom.us/v2/users/${zoomUserId}/recordings`, {
-                headers: {
-                    Authorization: `Bearer ${accessToken}`,
-                },
-                params: {
-                    from: fromDateTime.toISOString(),
-                    to: toDateTime.toISOString(),
-                },
-                timeout: 10000, // Set timeout to 10 seconds (adjust as needed)
-            });
+//         try {
+//             const response = await axios.get(`https://api.zoom.us/v2/users/${zoomUserId}/recordings`, {
+//                 headers: {
+//                     Authorization: `Bearer ${accessToken}`,
+//                 },
+//                 params: {
+//                     from: fromDateTime.toISOString(),
+//                     to: toDateTime.toISOString(),
+//                 },
+//                 timeout: 10000, // Set timeout to 10 seconds (adjust as needed)
+//             });
 
         
-            allRecordings.push(...response.data.meetings); // Append retrieved recordings
+//             allRecordings.push(...response.data.meetings); // Append retrieved recordings
 
-            hasMore = response.data.next_page_token !== undefined; // Check for next page token
-            today = fromDateTime; // Update 'today' for next iteration
-        } catch (error) {
-            console.error('Error fetching meeting recordings:', error.response ? error.response.data : error.message);
-            // Handle error or retry logic here
-            return res.status(400).json({
-              status: 400,
-              error: 1,
-              err: error.message,
-              message:'Could not fetch recordings',
-            })
-            break; // Exit loop in case of error
-        }
-    }
+//             hasMore = response.data.next_page_token !== undefined; // Check for next page token
+//             today = fromDateTime; // Update 'today' for next iteration
+//         } catch (error) {
+//             console.error('Error fetching meeting recordings:', error.response ? error.response.data : error.message);
+//             // Handle error or retry logic here
+//             return res.status(400).json({
+//               status: 400,
+//               error: 1,
+//               err: error.message,
+//               message:'Could not fetch recordings',
+//             })
+//             break; // Exit loop in case of error
+//         }
+//     }
 
-    return allRecordings;
-  }
-
-
-  async function runOtherFunctions(){
-
-    // console.log('running other functions')
-    // console.log(refreshToken)
-    await refreshAccessToken(clientID, clientSecret, refreshToken)
-    .then(newAccessToken => {
-        if (newAccessToken) {
-            accessToken = newAccessToken
-            // console.log('New access token:', newAccessToken);
-        } else {
-          console.log('Failed to refresh access token.');
-          return res.status(400).json({
-            status: 400,
-            error: 1,
-            message:'Failed to refresh access token.',
-          })
-        }
-    })
-    .catch(error => {
-      console.error('Error:', error);
-      return res.status(400).json({
-        status: 400,
-        error: 1,
-        message:error,
-      })
-    });
+//     return allRecordings;
+//   }
 
 
-    await getAllMeetingRecordings()
-    .then(recordings => {
-        if (recordings && recordings.length > 0) {
-          const playUrls = [];
-          const downloadUrls = [];
-          const batch_id = uuidv4();
+//   async function runOtherFunctions(){
+
+//     // console.log('running other functions')
+//     // console.log(refreshToken)
+//     await refreshAccessToken(clientID, clientSecret, refreshToken)
+//     .then(newAccessToken => {
+//         if (newAccessToken) {
+//             accessToken = newAccessToken
+//            console.log('New access token:', newAccessToken);
+//         } else {
+//           console.log('Failed to refresh access token.');
+//           return res.status(400).json({
+//             status: 400,
+//             error: 1,
+//             message:'Failed to refresh access token.',
+//           })
+//         }
+//     })
+//     .catch(error => {
+//       console.error('Error:', error);
+//       return res.status(400).json({
+//         status: 400,
+//         error: 1,
+//         message:error,
+//       })
+//     });
+
+
+//     await getAllMeetingRecordings()
+//     .then(recordings => {
+//         if (recordings && recordings.length > 0) {
+//           const playUrls = [];
+//           const downloadUrls = [];
+//           const batch_id = uuidv4();
           
-          let totalSize = 0
+//           let totalSize = 0
             
-            // Iterate through each recording
-          recordings.forEach((recording, index) => {  
-            // console.log(index)
-            totalSize += recording.total_size
-            // -------------------------------
+//             // Iterate through each recording
+//           recordings.forEach((recording, index) => {  
+//             // console.log(index)
+//             totalSize += recording.total_size
+//             // -------------------------------
             
-              store_recordings_data(recording,access.user_id,recording.total_size,batch_id, (err, results) => { 
+//               store_recordings_data(recording,access.user_id,recording.total_size,batch_id, (err, results) => { 
 
-              })
+//               })
 
-              // store_recordings_data(recording,access.user_id, (err, results) => { 
+//               // store_recordings_data(recording,access.user_id, (err, results) => { 
 
-              // })
-                // Iterate through each recording file of the recording
-                recording.recording_files.forEach(file => {       
-                    playUrls.push(file.play_url); // Push play_url to the array
-                    downloadUrls.push(file.download_url); // Push download_url to the array
-                });
-            });
+//               // })
+//                 // Iterate through each recording file of the recording
+//                 recording.recording_files.forEach(file => {       
+//                     playUrls.push(file.play_url); // Push play_url to the array
+//                     downloadUrls.push(file.download_url); // Push download_url to the array
+//                 });
+//             });
 
      
-            console.log(totalSize)
-            return res.status(200).json({
-                status: 200,
-                success: 1,
-                data: recordings,
-                // play: playUrls,
-                // download: downloadUrls
-            });
-        } else {
-            return res.status(300).json({
-                status: 400,
-                error: 1,
-                message: 'No recordings found',
-            });
-        }
-    })
-    .catch(error => {
-        // console.error('Error:', error);
-        return res.status(400).json({
-            status: 400,
-            error: 1,
-            message: error,
-        });
-    });
+//             console.log(totalSize)
+//             return res.status(200).json({
+//                 status: 200,
+//                 success: 1,
+//                 data: recordings,
+//                 // play: playUrls,
+//                 // download: downloadUrls
+//             });
+//         } else {
+//             return res.status(300).json({
+//                 status: 400,
+//                 error: 1,
+//                 message: 'No recordings found',
+//             });
+//         }
+//     })
+//     .catch(error => {
+//         // console.error('Error:', error);
+//         return res.status(400).json({
+//             status: 400,
+//             error: 1,
+//             message: error,
+//         });
+//     });
 
-  }
+//   }
 
-},
+// },
 
- 
   
 recording: async (req, res) => {  
-  
+  console.log('RECORDING STARTED')
   // fetch the user Zoom auth record
   // --------------------------------
   // run runOtherfunctions to refresh the access token using the first step data
@@ -899,60 +940,70 @@ recording: async (req, res) => {
   });
 
   async function getAllMeetingRecordings() {
-      let allRecordings = [];
-      let today = new Date();
-      let fiveYearsAgo = new Date(today);
-      fiveYearsAgo.setMonth(fiveYearsAgo.getMonth() - 6);
+    let allRecordings = [];
+    let today = new Date();
+    let fiveYearsAgo = new Date(today);
+    fiveYearsAgo.setMonth(fiveYearsAgo.getMonth() - 10);
 
-      let hasMore = true;
+    let hasMore = true;
+    console.log('Get all records');
+    while (hasMore) {
+        let fromDateTime = new Date(today);
+        fromDateTime.setDate(fromDateTime.getDate() - 30);
+        fromDateTime.setUTCHours(0, 0, 0, 0);
 
-      while (hasMore) {
-          let fromDateTime = new Date(today);
-          fromDateTime.setDate(fromDateTime.getDate() - 30);
-          fromDateTime.setUTCHours(0, 0, 0, 0);
+        let toDateTime = new Date(today);
+        toDateTime.setUTCHours(23, 59, 59, 999);
 
-          let toDateTime = new Date(today);
-          toDateTime.setUTCHours(23, 59, 59, 999);
+        if (fromDateTime < fiveYearsAgo) {
+            break;
+        }
+        console.log('Fetching recordings from', fromDateTime.toISOString(), 'to', toDateTime.toISOString());
 
-          if (fromDateTime < fiveYearsAgo) {
-              break;
-          }
+        try {
+            const response = await axios.get(`https://api.zoom.us/v2/users/${zoomUserId}/recordings`, {
+                headers: {
+                    Authorization: `Bearer ${accessToken}`,
+                },
+                params: {
+                    from: fromDateTime.toISOString(),
+                    to: toDateTime.toISOString(),
+                },
+                timeout: 100000,
+            });
+            console.log('Response data:', response.data);
+            
+            allRecordings.push(...response.data.meetings);
+            hasMore = response.data.next_page_token !== undefined;
+            today = fromDateTime;
+        } catch (error) {
+            if (error.code === 'ECONNABORTED') {
+                console.error('Request timeout:', error.message);
+            } else if (error.response) {
+                console.error('Error response status:', error.response.status);
+                console.error('Error response data:', error.response.data);
+            } else {
+                console.error('Error:', error.message);
+            }
+            return res.status(400).json({
+                status: 400,
+                error: 1,
+                reason: 'cant_fetch_recording',
+                err: error.message,
+                message: 'Could not fetch recordings',
+            });
+            break;
+        }
+    }
 
-          try {
-              const response = await axios.get(`https://api.zoom.us/v2/users/${zoomUserId}/recordings`, {
-                  headers: {
-                      Authorization: `Bearer ${accessToken}`,
-                  },
-                  params: {
-                      from: fromDateTime.toISOString(),
-                      to: toDateTime.toISOString(),
-                  },
-                  timeout: 10000,
-              });
-
-              allRecordings.push(...response.data.meetings);
-              hasMore = response.data.next_page_token !== undefined;
-              today = fromDateTime;
-          } catch (error) {
-              console.error('Error fetching meeting recordings:', error.response ? error.response.data : error.message);
-              return res.status(400).json({
-                  status: 400,
-                  error: 1,
-                  reason: 'cant_fetch_recording',
-                  err: error.message,
-                  message: 'Could not fetch recordings',
-              });
-              break;
-          }
-      }
-
-      return allRecordings;
-  }
+    return allRecordings;
+}
 
   async function runOtherFunctions() {
       try {
           const newAccessToken = await refreshAccessToken(clientID, clientSecret, refreshToken);
-          if (newAccessToken) {
+        if (newAccessToken) {
+            console.log('Access token', newAccessToken)
               accessToken = newAccessToken;
           } else {
               console.log('Failed to refresh access token.');
@@ -964,7 +1015,8 @@ recording: async (req, res) => {
               });
           }
 
-          const recordings = await getAllMeetingRecordings();
+        const recordings = await getAllMeetingRecordings();
+ 
           if (recordings && recordings.length > 0) {
               const playUrls = [];
               const downloadUrls = [];
