@@ -124,6 +124,7 @@ module.exports = {
 
     setActivate: async (user_id, callback) => {
       console.log('activeting ....')
+      console.log(user_id)
         pgpool.query(
             `update users set status = $1 WHERE user_id = $2`, 
             ['activated', user_id],
@@ -133,8 +134,8 @@ module.exports = {
                     console.log(err);
                     return callback(err);
                 }
-                console.log(user_id)
-                return callback(null, res.rows)
+                console.log(res.rows)
+                return callback(null, user_id)
             }
 
         )

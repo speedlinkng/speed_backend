@@ -119,8 +119,8 @@ module.exports = {
             // now check if the result from the database matches the jwt results
             else if (results.email === decoded_user.email) {
                 setActivate(decoded_user, (err, act) => { 
-                    console.log( act)
-                    console.log( act[0])
+                    // console.log( act)
+                    // console.log( act[0])
                     if (err) {
                         return res.status(400).json({
                             success: err,
@@ -129,7 +129,7 @@ module.exports = {
                     }
                     return res.status(200).json({
                         success: 1,
-                        data : act[0],
+                        // data : act[0],
                     }) 
                 })
             } else {
