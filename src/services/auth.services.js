@@ -129,6 +129,8 @@ module.exports = {
             ['activated', user_id],
             (err, res, fields) => {
                 if (err) {
+                    console.log('eissues');
+                    console.log(err);
                     return callback(err);
                 }
                 console.log(user_id)

@@ -108,15 +108,19 @@ module.exports = {
         let decoded_user = req.params.decodedUser;
         console.log( req.params.decodedUser)
         checkUserId(decoded_user.user_id, (err, results) => { 
+            console.log( results)
             if(err){
                 return res.status(400).json({
                     success: err,
                     message : 'DB connection error',
                 })
             }
+          
             // now check if the result from the database matches the jwt results
             else if (results.email === decoded_user.email) {
                 setActivate(decoded_user, (err, act) => { 
+                    console.log( act)
+                    console.log( act[0])
                     if (err) {
                         return res.status(400).json({
                             success: err,
