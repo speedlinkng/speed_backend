@@ -389,11 +389,11 @@ async function checkBatchFolderExist(targetFolder, driveFolder, service) {
 
           // update user backup status
           // --------------------------------
-          updateBackupStatusForUser(access.user_id, true, async (err, results) => { 
-            if (err) {
-              console.log(err);
-            }
-          })
+          // updateBackupStatusForUser(access.user_id, true, async (err, results) => { 
+          //   if (err) {
+          //     console.log(err);
+          //   }
+          // })
 
            // Wait for all promises to resolve
           const results_ = await Promise.all(promises);
@@ -434,9 +434,9 @@ async function checkBatchFolderExist(targetFolder, driveFolder, service) {
           //   console.log(file.play_url)
           // });
           
-          updateBackupStatusForUser(access.user_id, false, async (err, results) => {
+          // updateBackupStatusForUser(access.user_id, false, async (err, results) => {
 
-          })
+          // })
           return res.send(results_)
         })
 
