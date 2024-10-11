@@ -127,10 +127,18 @@ module.exports = {
                             message : 'DB connection error',
                         })
                     }
-                    return res.status(200).json({
-                        success: 1,
-                        data : act[0],
-                    }) 
+                    // Check if there are rows before accessing act[0]
+                    if (act && act.length > 0) {
+                        return res.status(200).json({
+                            success: 1,
+                            data: act[0],  // This will only happen if act[0] exists
+                        });
+                    } else {
+                        return res.status(404).json({
+                            success: 0,
+                            message: 'No data found for activation',
+                        });
+                    }
                 })
             } else {
                 return res.status(301).json({
