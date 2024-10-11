@@ -125,20 +125,26 @@ module.exports = {
     setActivate: async (user_id, callback) => {
       console.log('activeting ....')
       console.log(user_id)
+        
         pgpool.query(
-            `update users set status = $1 WHERE user_id = $2`, 
+            `UPDATE users SET status = $1 WHERE user_id = $2 RETURNING *`,  // Returning updated row
             ['activated', user_id],
-            (err, res, fields) => {
+            (err, res) => {
                 if (err) {
-                    console.log('eissues');
+                    console.log('issues');
                     console.log(err);
                     return callback(err);
                 }
-                console.log(res.rows)
-                return callback(null, user_id)
+                
+                // Check if rows exist
+                if (res && res.rows && res.rows.length > 0) {
+                    console.log(res.rows);
+                    return callback(null, res.rows);  // Return the rows
+                } else {
+                    return callback(null, []);  // No rows found
+                }
             }
-
-        )
+        );
     },
     checkUserId: async (user_id, callback) => {
       
