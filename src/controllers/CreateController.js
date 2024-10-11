@@ -697,19 +697,6 @@ module.exports = {
        // console.log(req.params.record_id);
         let upload_token;
         let defaultFolder = ''
-
-        // getDefaultFolder((err, res_all_replies) => {
-        //    // console.log(res_all_replies)
-        //     if (err) {
-        //         console.log(err);
-              
-        //     } else {
-        //         defaultFolder = res_all_replies[0].all_replies
-        //         // console.log('###############dddddddddddddds')
-        //         // console.log(res_all_replies[0].all_replies)
-           
-        //     }
-        // });
     
         const getRefreshTokenAndExchange = async () => {
             try {
@@ -829,7 +816,6 @@ module.exports = {
             });
     },
     
-
 
     
     submitReplies: (req, res)=>{

@@ -336,7 +336,7 @@ module.exports = {
 
     getUploadRecordById: (r_id, callback)=>{
         pgpool.query(
-            `select * from form_records where record_id = $1`,
+            `select * from form_records where record_id ILIKE $1`,
             [
                 r_id 
             ],
