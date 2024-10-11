@@ -29,10 +29,7 @@ module.exports = {
             if(preferred == 0){
                 // 'speedlink Access'
                 console.log('speed instead.....')
-                console.log('speed instead.....')
-                console.log('speed instead.....')
-                console.log('speed instead.....')
-                console.log('speed instead.....')
+          
 
                 pgpool.query(
                     `SELECT * FROM user_google WHERE role = $1 LIMIT 1`,
@@ -52,12 +49,7 @@ module.exports = {
             if(preferred == 1){
                 // 'my Access'
                 console.log('using preferred')
-                console.log('using preferred')
-                console.log('using preferred')
-                console.log('using preferred')
-                console.log('using preferred')
-                console.log('using preferred')
-                console.log('using preferred')
+        
                 pgpool.query(
                     `SELECT * FROM user_google WHERE user_id = $1 AND storage_email = $2 LIMIT 1`,
                     [
@@ -87,6 +79,8 @@ module.exports = {
             // )
         }
     },
+
+
 
     updateRecord:(r_id,jsonData, callback)=>{
         pgpool.query(

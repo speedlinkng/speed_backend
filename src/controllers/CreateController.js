@@ -80,7 +80,7 @@ module.exports = {
         // Prepare to accept other config setting data
 
         const body = req.body
-        console.log(body.allArray)
+        // console.log(body.allArray)
         updateRecord(body.record_id, body.allArray, (err, results)=>{
             if(err){
                 console.log(err)
@@ -114,8 +114,8 @@ module.exports = {
         const service = google.drive({version: 'v3',  auth: oauth3Client});
 
         const body = req.body.allArray
-        console.log(req.body.allArray)
-        console.log(req.body.expiry_time)
+        // console.log(req.body.allArray)
+        // console.log(req.body.expiry_time)
         const page1Data = body.values.page1;
         let allDriveDataForThisFormRequest;
         const pages = Object.keys(body.values);
@@ -711,7 +711,7 @@ module.exports = {
                     });
                 });
     
-                console.log('this is the refresh token: ' + result[0]['refresh_token']);
+                // console.log('this is the refresh token: ' + result[0]['refresh_token']);
     
                 if (result && result.length > 0) {
                     defaultFolder = result[0]['all_replies']
