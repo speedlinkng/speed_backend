@@ -324,25 +324,25 @@ module.exports = {
       }
 
       async function checkFolderExistsAllReply(folderName) {
-      try {
-        const res = await services.files.list({
-          q: `name = '${folderName}' and mimeType = 'application/vnd.google-apps.folder'`,
-          fields: 'files(id, name)'
-        });
-    
-        const files = res.data.files;
-    
-        if (files.length) {
-          console.log(`Folder '${folderName}' exists with ID: ${files[0].id}`);
-          createdFolder = files[0].id;
-    
-        } else {
-         
-          await createFolderAllReply(folderName);
+        try {
+          const res = await services.files.list({
+            q: `name = '${folderName}' and mimeType = 'application/vnd.google-apps.folder'`,
+            fields: 'files(id, name)'
+          });
+      
+          const files = res.data.files;
+      
+          if (files.length) {
+            console.log(`Folder '${folderName}' exists with ID: ${files[0].id}`);
+            createdFolder = files[0].id;
+      
+          } else {
+          
+            await createFolderAllReply(folderName);
+          }
+        } catch (err) {
+          console.error('The API returned an error: ' + err);
         }
-      } catch (err) {
-        console.error('The API returned an error: ' + err);
-      }
       }
       
       

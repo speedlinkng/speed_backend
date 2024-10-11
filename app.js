@@ -13,15 +13,7 @@ const pool = require('./src/models/DB');
 const pgpool = require('./src/models/PGDB');
 const http = require('http');
 // const server = http.createServer(app);
-const session = require('express-session');
 
-
-app.use(session({
-  secret: 'your_secret_key',
-  resave: false,
-  saveUninitialized: true,
-  cookie: { secure: false }
-}));
 
 
 dotenv.config();
