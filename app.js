@@ -117,24 +117,24 @@ app.use(express.static(path.join(__dirname, 'public')));
 //     res.json(req.body);
 // });
 
-app.get('/', function(req, res) {
-  res.send(`server Backend is running on this URL ${process.env.PORT}`);
-    // res.redirect('view/index.html');
-    async function getClient() {
-      try {
-        const client = await pgpool.connect();
-        console.log('Acquired a client from the Databse');
-        res.send('server Backend is running on this URL');
-        return client;
-      } catch (error) {
-        console.error('Error acquiring client from the Database', error);
-        res.send('error was received'+error);
-        throw error;
-      }
-    }
-    getClient()
+app.get('/', async function (req, res) {
+  try {
+    const client = await pgpool.connect();
+    console.log('Acquired a client from the Database');
     
+    // Send a success response after acquiring the client
+    res.send(`server Backend is running on this URL ${process.env.PORT}`);
+    
+    // Release the client after use to avoid connection leaks
+    client.release();
+  } catch (error) {
+    console.error('Error acquiring client from the Database:', error);
+
+    // Send error response if the database connection fails
+    res.status(500).send('Error acquiring client from the database: ' + error.message);
+  }
 });
+
 
 
 
