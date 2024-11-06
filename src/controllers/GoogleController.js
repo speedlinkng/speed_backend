@@ -679,7 +679,7 @@ module.exports = {
         const url = oauth2Client.generateAuthUrl({
             prompt: 'consent',
             access_type: "offline",
-            scope: ["https://www.googleapis.com/auth/userinfo.profile", "https://www.googleapis.com/auth/userinfo.email", "https://www.googleapis.com/auth/drive", 'https://www.googleapis.com/auth/drive.readonly'],
+            scope: ["https://www.googleapis.com/auth/userinfo.profile", "https://www.googleapis.com/auth/userinfo.email", "https://www.googleapis.com/auth/drive.file"],
         });
     
         
