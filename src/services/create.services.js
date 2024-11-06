@@ -86,10 +86,11 @@ module.exports = {
         console.log('THIS IS A JSON DATA£££££££££££££')
         console.log(jsonData)
         pgpool.query(
-            'update form_records set record_data=$1, expiry_date=$2  WHERE record_id = $3 ',            
+            'update form_records set record_data=$1, expiry_date=$2, record_id=$3  WHERE record_id = $4 ',            
             [
                 jsonData,
                 expiry_time,
+                r_id,
                 r_id 
             ],
             (err, res, fields) =>{
