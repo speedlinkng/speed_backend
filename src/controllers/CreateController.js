@@ -81,7 +81,7 @@ module.exports = {
 
         const body = req.body
         // console.log(body.allArray)
-        updateRecord(body.record_id, body.allArray, (err, results)=>{
+        updateRecord(body.record_id, body.allArray, body.expiry_time, (err, results)=>{
             if(err){
                 console.log(err)
                 return res.status(400).json({
