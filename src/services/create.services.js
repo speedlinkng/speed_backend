@@ -82,7 +82,9 @@ module.exports = {
 
 
 
-    updateRecord:(r_id,jsonData, callback)=>{
+    updateRecord: (r_id, jsonData, callback) => {
+        console.log('THIS IS A JSON DATA£££££££££££££')
+        console.log(jsonData)
         pgpool.query(
             'update form_records set record_data=$1 WHERE record_id = $2 ',            
             [

@@ -235,7 +235,7 @@ module.exports = {
       }
     },
 
-  getMyStorage: (req, res) => {
+    getMyStorage: (req, res) => {
 
       let access = res.decoded_access
       console.log(access.email)
@@ -293,7 +293,6 @@ module.exports = {
         })
     },
 
-  
     getUserBackupDrive: async(req, res) => {
       // ----------------------------------------------------------------
       // Check if this request is coming for backup or from filestorage using utility
@@ -514,7 +513,7 @@ module.exports = {
       console.log('done')
 
       // STORE IN USER_GOOGLE DATABASE
-      fs.writeFileSync("cred.json", JSON.stringify(tokens));
+      // fs.writeFileSync("cred.json", JSON.stringify(tokens));
 
 
     },
