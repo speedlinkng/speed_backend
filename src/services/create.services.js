@@ -85,6 +85,7 @@ module.exports = {
     updateRecord: (r_id, jsonData, expiry_time, callback) => {
         console.log('THIS IS A JSON DATA£££££££££££££')
         console.log(jsonData)
+        console.log('RECORD ID EXPECTED TO UPDATE IS : ',r_id)
         pgpool.query(
             'update form_records set record_data=$1, expiry_date=$2, record_id=$3  WHERE record_id = $4 ',            
             [
