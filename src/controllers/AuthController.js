@@ -382,53 +382,57 @@ module.exports = {
         })
     },
 
-
     createUser: (req, res) => {
-        const body = req.body
+        const body = req.body;
         const salt = genSaltSync(10);
-        body.password = hashSync(body.password, salt)
-        register(body, (err, results, exists = false)=>{
-            if(err){
-                console.log(err);
-                return res.status(400).json({
-                    error: 1,
-                    message : err,
-                })
+        body.password = hashSync(body.password, salt);
+    
+        register(body, (err, results, exists = false) => {
+            if (err) {
+                console.error(err);
+                return res.status(400).json({ error: 1, message: err });
             }
             if (exists) {
-                return res.status(401).json({
-                    error: 1,
-                    message:'User already exists'
-                })
+                return res.status(401).json({ error: 1, message: 'User already exists' });
             }
-            results.password = undefined
-            results.recovery_id = undefined
-            const payload = {
-                result: results
-            };
-        
-            // Sign the payload to create the refresh token
-            const activateToken = jwt.sign(payload, 'your_refresh_token_secret', { expiresIn: '25m' }); // Expires in 7 days
-        
-            console.log(results.email)
-            let mesg = `
+    
+            results.password = undefined;
+            results.recovery_id = undefined;
+    
+            // Create activation token
+            const payload = { result: results };
+            const activateToken = jwt.sign(payload, 'your_refresh_token_secret', { expiresIn: '25m' });
+    
+            // Prepare email message
+            const mesg = `
                 <div>
                     <p>Hello,</p> 
-                        <p>Click the link below to activate your Speedlink account</p>
-                        <a href="${process.env.FRONTEND_URL}/auth/activate/${activateToken}"  style="display: inline-block; padding: 10px 20px; background-color: #4f46ES; color: #ffffff; text-decoration: none; border-radius: 5px;">
-                        <button>Activate Account</button></a>
-                        <p>This link will expire after 30 minutes</p>
-                </div>`
-           
-            if (sendMail(results.email, 'Activate Your Speedlink Account', mesg)) {
-                return res.status(200).json({
-                    success:1,
-                    data : results,
-                })   
-           }
-        })
+                    <p>Click the link below to activate your Speedlink account</p>
+                    <a href="${process.env.FRONTEND_URL}/auth/activate/${activateToken}" style="display: inline-block; padding: 10px 20px; background-color: #4f46E5; color: #ffffff; text-decoration: none; border-radius: 5px;">
+                        <button>Activate Account</button>
+                    </a>
+                    <p>This link will expire after 30 minutes</p>
+                </div>`;
+    
+            // Add email job to the queue
+            queue.create('email', {
+                email: results.email,
+                subject: 'Activate Your Speedlink Account',
+                message: mesg,
+            })
+                .priority('high') // Set priority
+                .attempts(3) // Retry up to 3 times if failed
+                .save(err => {
+                    if (err) {
+                        console.error('Failed to queue email job:', err);
+                    } else {
+                        console.log(`📩 Email job queued for ${results.email}`);
+                    }
+                });
+    
+            return res.status(200).json({ success: 1, data: results });
+        });
     },
-
 
     login: (req, res)=>{
         const data = req.body
