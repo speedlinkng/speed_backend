@@ -6,6 +6,7 @@ const crypto = require('crypto');
 const nodemailer = require('nodemailer');
 const cron = require('node-cron');
 const sendMail = require('../middlewares/emailMiddleware');
+const queue = require('../queues/emailQueue'); // Import the queu
 
 
 
