@@ -83,7 +83,7 @@ module.exports = {
                             });
                           }else{
                             console.log('next')
-                            console.log(decoded.result;)
+                            console.log(decoded.result)
                             res.decoded_access = decoded.result;
                             res.jti = decoded.jti;
                             next();
