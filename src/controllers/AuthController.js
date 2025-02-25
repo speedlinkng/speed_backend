@@ -46,8 +46,9 @@ module.exports = {
     },
 
 
-    logout: (req, res)=>{
-        let token = req.headers.authorization;
+    logout: (req, res) => {
+        console.log('LOGOUT', token)
+        let token = req.get("authorization")
         token =  token && token.split(' ')[1]
         console.log(token)
         console.log('LOGOUT', token)
