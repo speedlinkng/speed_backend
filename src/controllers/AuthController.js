@@ -85,7 +85,7 @@ module.exports = {
         try {
             let recovery_id = req.query.recovery_id; // Get recovery_id from query params
             let email = req.query.email; // Get email from query params
-    
+    CONSOLE.LOG(recovery_id, email, 'AND')
             // Find the recovery_id associated with the email in Redis
             let storedRecoveryId = await redis.get(`password_recovery:${email}`);
     
