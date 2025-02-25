@@ -429,7 +429,7 @@ module.exports = {
                     }
     
                     // 🔹 Redirect user to the frontend signin page after successful activation
-                    return res.redirect(`${process.env.FRONTEND_URL}/auth/signin?activated=1`);
+                    return res.redirect(`${process.env.FRONTEND_URL}/auth/signin`);
                 });
             });
         });
