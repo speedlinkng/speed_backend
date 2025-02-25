@@ -50,6 +50,8 @@ module.exports = {
         let token = req.headers.authorization;
         token =  token && token.split(' ')[1]
         console.log(token)
+        console.log('LOGOUT', token)
+        console.log(token)
         jwt.verify(token, process.env.REFRESH_TOK_SEC, (err, decoded)=>{
             let decodedToken = decoded
          
