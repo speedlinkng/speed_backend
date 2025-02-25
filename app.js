@@ -14,10 +14,6 @@ const pgpool = require('./src/models/PGDB');
 const http = require('http');
 // const server = http.createServer(app);
 
-const Redis = require("ioredis");
-
-// Create a Redis client
-const redis = new Redis();
 
 
 dotenv.config();
@@ -134,64 +130,6 @@ app.get('/', async function (req, res) {
     res.status(500).send('Error acquiring client from the database: ' + error.message);
   }
 });
-
-
-// Function to save code with email and expiration time
-async function saveCode(email, code, expirationTimeInSeconds) {
-    await redis.setex(email, expirationTimeInSeconds, code);
-    console.log(`Code saved for ${email} with expiration time of ${expirationTimeInSeconds} seconds.`);
-}
-
-// Function to retrieve code using email
-async function retrieveCode(email) {
-    const code = await redis.get(email);
-    if (code) {
-        return code;
-    } else {
-        return "No code found for this email or the code has expired.";
-    }
-}
-
-// Example usage
-(async () => {
-    // Save a code with an expiration time of 60 seconds
-    await saveCode("mm@gmail.com", "ABC123", 60);
-
-    // Retrieve the code immediately
-    let retrievedCode = await retrieveCode("mm@gmail.com");
-    console.log(`Retrieved code: ${retrievedCode}`);
-
-    // Wait for 61 seconds (longer than the expiration time)
-    setTimeout(async () => {
-        retrievedCode = await retrieveCode("mm@gmail.com");
-        console.log(`Retrieved code after expiration: ${retrievedCode}`);
-
-        // Close the Redis connection
-        redis.disconnect();
-    }, 61000); // 61 seconds
-})();
-
-async function listAllKeys() {
-  let cursor = "0"; // Start with cursor 0
-  let keys = [];
-
-  do {
-      // Scan for keys
-      const reply = await redis.scan(cursor, "MATCH", "*", "COUNT", 100);
-      cursor = reply[0]; // Update the cursor
-      keys = keys.concat(reply[1]); // Add keys to the list
-  } while (cursor !== "0"); // Continue until cursor is 0
-
-  console.log("All keys in Redis:", keys);
-}
-
-// Example usage
-(async () => {
-  await listAllKeys();
-
-  // Close the Redis connection
-  redis.disconnect();
-})();
 
 
 
