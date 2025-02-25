@@ -88,7 +88,7 @@ module.exports = {
     
             console.log("Recovery ID:", recovery_id); // Debugging
             console.log("Email:", email); // Debugging
-    
+            console.log(`password_recovery:${email}`); // Debugging
             // Retrieve the stored recovery_id from Redis using the email as the key
             const storedRecoveryId = await redis.get(`password_recovery:${email}`);
     
@@ -130,7 +130,8 @@ module.exports = {
     
             // Generate a unique recovery ID
             let recovery_id = require("crypto").randomBytes(32).toString("hex");
-    
+            console.log("@@@@@@@@@@@@@@ Recovery ID:", recovery_id); // Debugging
+            console.log(`password_recovery:${email}`); // Debugging
             // Store the recovery_id in Redis with the email as the key (expire in 30 minutes)
             await redis.setex(`password_recovery:${email}`, 1800, recovery_id);
     
