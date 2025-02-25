@@ -15,8 +15,8 @@ router.post('/forgot', forgot)
 router.patch('/',checkToken, updateUsers)
 router.delete('/',checkToken, deleteUser)
 router.post('/login', validateLogin(loginSchema), login)
-router.post('/logout', checkToken, logout);
-router.get('/logouts', checkToken, logout)
+router.post('/logout', logout);
+router.get('/logouts', logout)
 router.post('/setNewPassword', checkToken, setNewPassword)
 router.post('/set_newPhoneNumber', checkToken, set_newPhoneNumber)
 
