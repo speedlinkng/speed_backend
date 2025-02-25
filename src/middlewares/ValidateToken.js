@@ -76,14 +76,13 @@ module.exports = {
                         } else {
                           let d = await isTokenRevoked(decoded.jti);
                           if(d){
-                            console.log('revoked')
+                           
                             return res.status(305).json({
                                 error: 3,
                                 message: "Logged out already"
                             });
                           }else{
-                            console.log('next')
-                            console.log(decoded.result)
+                            
                             res.decoded_access = decoded.result;
                             res.jti = decoded.jti;
                             next();
@@ -132,8 +131,7 @@ module.exports = {
                                     })
                                 } 
 
-                                    console.log('storage',  _res)
-                                    console.log('storage email',  _res[0].storage_email)
+                                  
                                     res.jti = decoded.jti
                                     res.role = 'admin'
                                     res.drive = _res[0].storage_email
