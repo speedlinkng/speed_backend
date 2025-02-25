@@ -31,7 +31,7 @@ router.get('/get/:record', checkToken, getRecord)
 router.get('/getforupload/:record', getRecord)
 
 //verify the recovery id link in mail
-router.get('/verifyrecovery/:verify_id', verifyrecovery)
+router.get('/verifyrecovery', verifyrecovery)
 
 router.get('/activateuser/:activateId', activateUser);
 
