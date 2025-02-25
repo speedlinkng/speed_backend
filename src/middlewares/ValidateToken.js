@@ -58,7 +58,7 @@ module.exports = {
     },
 
     checkToken: async (req, res, next) => {
-        console.log('Checking token')
+   
         let token = req.get("authorization");
     
         async function check() {
@@ -82,7 +82,8 @@ module.exports = {
                                 message: "Logged out already"
                             });
                           }else{
-                            //console.log('next')
+                            console.log('next')
+                            console.log(decoded_access)
                             res.decoded_access = decoded.result;
                             res.jti = decoded.jti;
                             next();
