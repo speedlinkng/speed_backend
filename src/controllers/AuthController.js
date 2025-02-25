@@ -84,9 +84,7 @@ module.exports = {
     
             // Find the email associated with the recovery ID
             let email = await redis.get(`password_recovery:${recovery_id}`);
-    console.log(email)
-    console.log(email)
-    console.log(email)
+ 
     console.log(email)
             if (!email) {
                 return res.status(404).json({
@@ -109,45 +107,6 @@ module.exports = {
             });
         }
     },
-    
-    
-
-    activateUser: (req, res) => {
-        const { activateId } = req.params; // JWT token
-    console.log(activateId)
-    console.log('activateId')
-        // Verify JWT token
-        jwt.verify(activateId, process.env.REFRESH_TOK_SEC, (err, decoded) => {
-            if (err) {
-                return res.redirect(`${process.env.FRONTEND_URL}/auth/activate?error=invalid_token`);
-            }
-    
-            const decodedUser = decoded.result;
-    
-            // Check if the user exists in the database
-            checkUserId(decodedUser.user_id, (err, results) => {
-                if (err || !results) {
-                    return res.redirect(`${process.env.FRONTEND_URL}/auth/activate?error=user_not_found`);
-                }
-    
-                // Ensure the decoded email matches the database record
-                if (results.email !== decodedUser.email) {
-                    return res.redirect(`${process.env.FRONTEND_URL}/auth/activate?error=mismatch`);
-                }
-    
-                // Activate the user
-                setActivate(decodedUser.user_id, (err, act) => {
-                    if (err || !act || act.length === 0) {
-                        return res.redirect(`${process.env.FRONTEND_URL}/auth/activate?error=activation_failed`);
-                    }
-    
-                    // 🔹 Redirect user to the frontend signin page after successful activation
-                    return res.redirect(`${process.env.FRONTEND_URL}/auth/signin?activated=1`);
-                });
-            });
-        });
-    },
-    
     
 
     forgot: async (req, res) => {
@@ -399,7 +358,7 @@ module.exports = {
                 <div>
                     <p>Hello,</p> 
                     <p>Click the link below to activate your Speedlink account</p>
-                    <a href="${process.env.BACKEND_URL}/api/users/activate/${activateToken}" style="display: inline-block; padding: 10px 20px; background-color: #4f46E5; color: #ffffff; text-decoration: none; border-radius: 5px;">
+                    <a href="${process.env.BACKEND_URL}/api/users/activateuser/${activateToken}" style="display: inline-block; padding: 10px 20px; background-color: #4f46E5; color: #ffffff; text-decoration: none; border-radius: 5px;">
                         <button>Activate Account</button>
                     </a>
                     <p>This link will expire after 30 minutes</p>
@@ -424,6 +383,43 @@ module.exports = {
             return res.status(200).json({ success: 1, data: results });
         });
     },
+    
+    activateUser: (req, res) => {
+        const { activateId } = req.params; // JWT token
+    console.log(activateId)
+    console.log('activateId')
+        // Verify JWT token
+        jwt.verify(activateId, 'your_refresh_token_secret', (err, decoded) => {
+            if (err) {
+                return res.redirect(`${process.env.FRONTEND_URL}/auth/activate?error=invalid_token`);
+            }
+    
+            const decodedUser = decoded.result;
+    
+            // Check if the user exists in the database
+            checkUserId(decodedUser.user_id, (err, results) => {
+                if (err || !results) {
+                    return res.redirect(`${process.env.FRONTEND_URL}/auth/activate?error=user_not_found`);
+                }
+    
+                // Ensure the decoded email matches the database record
+                if (results.email !== decodedUser.email) {
+                    return res.redirect(`${process.env.FRONTEND_URL}/auth/activate?error=mismatch`);
+                }
+    
+                // Activate the user
+                setActivate(decodedUser.user_id, (err, act) => {
+                    if (err || !act || act.length === 0) {
+                        return res.redirect(`${process.env.FRONTEND_URL}/auth/activate?error=activation_failed`);
+                    }
+    
+                    // 🔹 Redirect user to the frontend signin page after successful activation
+                    return res.redirect(`${process.env.FRONTEND_URL}/auth/signin?activated=1`);
+                });
+            });
+        });
+    },
+    
 
     login: (req, res)=>{
         const data = req.body
