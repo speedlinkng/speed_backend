@@ -80,25 +80,34 @@ module.exports = {
 
     verifyrecovery: async (req, res) => {
         try {
-            let recovery_id = req.params.verify_id; // Get the recovery_id from the URL
+            let recovery_id = req.query.recovery_id; // Get recovery_id from query params
+            let email = req.query.email; // Get email from query params
     
-            // Find the email associated with the recovery_id
-            let email = await redis.get(`password_recovery:${recovery_id}`);
+            // Find the recovery_id associated with the email in Redis
+            let storedRecoveryId = await redis.get(`password_recovery:${email}`);
     
-            console.log("Recovery ID:", recovery_id); // Debugging
-            console.log("Email:", email); // Debugging
+            console.log("User-Sent Recovery ID:", recovery_id); // Debugging
+            console.log("Stored Recovery ID:", storedRecoveryId); // Debugging
     
-            if (!email) {
+            if (!storedRecoveryId) {
                 return res.status(404).json({
                     error: 1,
                     message: "Recovery token not found or expired.",
                 });
             }
     
+            // Compare the user-sent recovery_id with the stored recovery_id
+            if (recovery_id !== storedRecoveryId) {
+                return res.status(400).json({
+                    error: 1,
+                    message: "Invalid recovery token.",
+                });
+            }
+    
+            // If the recovery_ids match, the user is valid
             return res.status(200).json({
                 success: 1,
                 message: "Token validated successfully.",
-                email: email, // Return the email for further use
             });
     
         } catch (err) {
@@ -115,10 +124,10 @@ module.exports = {
         try {
             let email = req.body.email;
     
-            // Generate a unique recovery ID (could be a UUID or similar)
+            // Generate a unique recovery ID
             let recovery_id = require("crypto").randomBytes(32).toString("hex");
     
-            // Store the recovery ID in Redis (expire in 30 minutes)
+            // Store the recovery_id in Redis with the email as the key (expire in 30 minutes)
             await redis.setex(`password_recovery:${email}`, 1800, recovery_id);
     
             // Send Recovery Email
@@ -127,7 +136,7 @@ module.exports = {
                     <p>Hello,</p> 
                     <p>You initiated a password recovery process on our platform.</p>
                     <p>Click this link to recover your password: 
-                        <a href="${process.env.FRONTEND_URL}/auth/verify/${recovery_id}">
+                        <a href="${process.env.FRONTEND_URL}/auth/verify?recovery_id=${recovery_id}&email=${email}">
                             Reset Password
                         </a>
                     </p>
@@ -406,10 +415,10 @@ module.exports = {
     
                 // Ensure the decoded email matches the database record
                 console.log('results')
-                console.log(results)
+                console.log(results[0])
                 console.log('decodedUser')
                 console.log(decodedUser)
-                if (results.email !== decodedUser.email) {
+                if (results[0].email !== decodedUser.email) {
                     return res.redirect(`${process.env.FRONTEND_URL}/auth/activate?error=mismatch`);
                 }
     
