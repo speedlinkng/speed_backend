@@ -81,23 +81,35 @@ module.exports = {
     verifyrecovery: async (req, res) => {
         try {
             let email = req.body.email; // Get the email from the request body
+            let userRecoveryId = req.body.recovery_id; // Get the recovery_id sent by the user
     
             // Find the recovery ID associated with the email
-            let recovery_id = await redis.get(`password_recovery:${email}`);
+            let storedRecoveryId = await redis.get(`password_recovery:${email}`);
     
-            console.log(recovery_id); // Debugging: Check if the recovery_id is retrieved
+            console.log("Stored Recovery ID:", storedRecoveryId); // Debugging
+            console.log("User-Sent Recovery ID:", userRecoveryId); // Debugging
     
-            if (!recovery_id) {
+            // Check if the recovery ID exists in Redis
+            if (!storedRecoveryId) {
                 return res.status(404).json({
                     error: 1,
                     message: "Recovery token not found or expired.",
                 });
             }
     
+            // Compare the user-sent recovery ID with the stored recovery ID
+            if (userRecoveryId !== storedRecoveryId) {
+                return res.status(400).json({
+                    error: 1,
+                    message: "Invalid recovery token.",
+                });
+            }
+    
+            // If the recovery IDs match, return success
             return res.status(200).json({
                 success: 1,
                 message: "Token validated successfully.",
-                recovery_id: recovery_id, // Return the recovery_id for verification
+                recovery_id: storedRecoveryId, // Return the recovery_id for further use
             });
     
         } catch (err) {
@@ -387,8 +399,8 @@ module.exports = {
     
     activateUser: (req, res) => {
         const { activateId } = req.params; // JWT token
-    console.log(activateId)
-    console.log('activateId')
+        console.log(activateId)
+        console.log('activateId')
         // Verify JWT token
         jwt.verify(activateId, process.env.REFRESH_TOK_SEC, (err, decoded) => {
             if (err) {

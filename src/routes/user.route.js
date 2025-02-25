@@ -31,7 +31,9 @@ router.get('/getforupload/:record', getRecord)
 
 //verify the recovery id link in mail
 router.get('/verifyrecovery/:verify_id', verifyrecovery)
-router.get('/activateuser/:decodedUser', activateUser)
+
+router.get('/activateuser/:activateId', activateUser);
+
 
 //change the fogot password
 router.post('/changeForgotPassword', changeForgotPassword)
