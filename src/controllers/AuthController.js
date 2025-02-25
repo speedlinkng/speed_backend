@@ -7,6 +7,8 @@ const nodemailer = require('nodemailer');
 const cron = require('node-cron');
 const sendMail = require('../middlewares/emailMiddleware');
 const queue = require('../queues/emailQueue'); // Import the queue
+const Redis = require("ioredis");
+const redis = new Redis(process.env.REDIS_PUBLIC_URL);
 
 
 
@@ -76,34 +78,36 @@ module.exports = {
     },
 
 
-    verifyrecovery: (req, res)=>{
-        let recovery_id = req.params.verify_id;
-        console.log(recovery_id)
-
-            matchRecovery(recovery_id, (err, results)=>{
-                if(err){
-                    // console.log(err);
-                    return res.status(400).json({
-                        error: err,
-                        message : 'DB connection error',
-                    })
-                }
-                if(results.success){
-                    console.log(results.data[0])
-                    return res.status(200).json({
-                        success: 1,
-                        data : results.data[0],
-                    })
-                }
-                if(!results.success){
-                    // status 301 meaning result not found
-                    return res.status(301).json({
-                        success: 1,
-                        data : null
-                    })
-                }
-            })
+    verifyrecovery: async (req, res) => {
+        try {
+            let recovery_id = req.params.verify_id;
+    
+            // Find the email associated with the recovery ID
+            let email = await redis.get(`password_recovery:${recovery_id}`);
+    
+            if (!email) {
+                return res.status(404).json({
+                    error: 1,
+                    message: "Recovery token not found or expired.",
+                });
+            }
+    
+            return res.status(200).json({
+                success: 1,
+                message: "Token validated successfully.",
+                email: email,
+            });
+    
+        } catch (err) {
+            console.error(err);
+            return res.status(500).json({
+                error: 1,
+                message: "Internal server error",
+            });
+        }
     },
+    
+    
 
     activateUser: (req, res) => {
         const { activateId } = req.params; // JWT token
@@ -143,51 +147,41 @@ module.exports = {
     
     
 
-    forgot: (req, res)=>{
-        let email = req.body.email;
-        let recover_id = '';
-        let try_ = 1;
-        
-        
-        checkEmailExists(email, try_, (err, results)=>{
-           
-            if(err){
-                return res.status(400).json({
-                    success: err,
-                    message : 'DB connection error',
-                })
-            }
-            console.log('first try')
-            console.log(results)
-            checkEmailExists(email, 2, (err, result)=>{
-                if(err){
-                    return res.status(400).json({
-                        success: err,
-                        message : 'DB connection error',
-                    })
-                }
+    forgot: async (req, res) => {
+        try {
+            let email = req.body.email;
+            
+            // Generate a unique recovery ID (could be a UUID or similar)
+            let recovery_id = require("crypto").randomBytes(32).toString("hex");
     
-                if(result && result.length > 0){
-                   
-                    console.log(result[0])
-                     // SEND RECOVERY EMAIL
-                    // schedule email sending
-             
-                    let mesg = `<div>
+            // Store the recovery ID in Redis (expire in 30 minutes)
+            await redis.setex(`password_recovery:${email}`, 1800, recovery_id);
+    
+            // Send Recovery Email
+            let mesg = `
+                <div>
                     <p>Hello,</p> 
-                        <p>You initiated a password recovery process on our platform, kindly click the this <a href="${process.env.FRONTEND_URL}/auth/verify/${result[0].recovery_id}">${process.env.FRONTEND_URL}/auth/verify/${result[0].recovery_id}</a> to recover your password</p>
-                    </div>`
-              
-                    sendMail(email, 'Recover Your Password', mesg);
-
-                    return res.status(200).json({
-                        success: 1,
-                        data : result[0],
-                    })
-                }
-            })
-
-        })
+                    <p>You initiated a password recovery process on our platform.</p>
+                    <p>Click this link to recover your password: 
+                        <a href="${process.env.FRONTEND_URL}/auth/verify/${recovery_id}">
+                            Reset Password
+                        </a>
+                    </p>
+                </div>`;
+    
+            sendMail(email, "Recover Your Password", mesg);
+    
+            return res.status(200).json({
+                success: 1,
+                message: "Recovery email sent successfully!",
+            });
+        } catch (err) {
+            console.error(err);
+            return res.status(500).json({
+                error: 1,
+                message: "Internal server error",
+            });
+        }
     },
 
 
