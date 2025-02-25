@@ -84,7 +84,10 @@ module.exports = {
     
             // Find the email associated with the recovery ID
             let email = await redis.get(`password_recovery:${recovery_id}`);
-    
+    console.log(email)
+    console.log(email)
+    console.log(email)
+    console.log(email)
             if (!email) {
                 return res.status(404).json({
                     error: 1,
