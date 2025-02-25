@@ -107,7 +107,8 @@ module.exports = {
 
     activateUser: (req, res) => {
         const { activateId } = req.params; // JWT token
-    
+    console.log(activateId)
+    console.log('activateId')
         // Verify JWT token
         jwt.verify(activateId, process.env.REFRESH_TOK_SEC, (err, decoded) => {
             if (err) {
