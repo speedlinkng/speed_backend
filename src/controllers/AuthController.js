@@ -83,13 +83,15 @@ module.exports = {
 
     verifyrecovery: async (req, res) => {
         try {
-            let recovery_id = req.query.recovery_id; // Get recovery_id from query params
-            let email = req.query.email; // Get email from query params
-    CONSOLE.LOG(recovery_id, email, 'AND')
-            // Find the recovery_id associated with the email in Redis
-            let storedRecoveryId = await redis.get(`password_recovery:${email}`);
+            const recovery_id = req.query.recovery_id; // Get recovery_id from query params
+            const email = req.query.email; // Get email from query params
     
-            console.log("User-Sent Recovery ID:", recovery_id); // Debugging
+            console.log("Recovery ID:", recovery_id); // Debugging
+            console.log("Email:", email); // Debugging
+    
+            // Retrieve the stored recovery_id from Redis using the email as the key
+            const storedRecoveryId = await redis.get(`password_recovery:${email}`);
+    
             console.log("Stored Recovery ID:", storedRecoveryId); // Debugging
     
             if (!storedRecoveryId) {
@@ -112,7 +114,6 @@ module.exports = {
                 success: 1,
                 message: "Token validated successfully.",
             });
-    
         } catch (err) {
             console.error(err);
             return res.status(500).json({
