@@ -68,7 +68,7 @@ module.exports = {
                         error: err,
                         message : 'DB connection error',
                     })
-                }
+                }  
                 if(results){
                     return res.status(200).json({
                         success: 1,
