@@ -6,7 +6,8 @@ const crypto = require('crypto');
 const nodemailer = require('nodemailer');
 const cron = require('node-cron');
 const sendMail = require('../middlewares/emailMiddleware');
-const queue = require('../queues/emailQueue'); // Import the queu
+const queue = require('../queues/emailQueue'); // Import the queue
+
 
 
 
@@ -104,51 +105,42 @@ module.exports = {
             })
     },
 
-
     activateUser: (req, res) => {
-        let decoded_user = req.params.decodedUser;
-        console.log( req.params.decodedUser)
-        checkUserId(decoded_user.user_id, (err, results) => { 
-            console.log( results)
-            if(err){
-                return res.status(400).json({
-                    success: err,
-                    message : 'DB connection error',
-                })
+        const { activateId } = req.params; // JWT token
+    
+        // Verify JWT token
+        jwt.verify(activateId, process.env.REFRESH_TOK_SEC, (err, decoded) => {
+            if (err) {
+                return res.redirect(`${process.env.FRONTEND_URL}/auth/activate?error=invalid_token`);
             }
-          
-            // now check if the result from the database matches the jwt results
-            else if (results.email === decoded_user.email) {
-                setActivate(decoded_user.user_id, (err, act) => { 
-                    // console.log( act)
-                    // console.log( act[0])
-                    if (err) {
-                        return res.status(400).json({
-                            success: err,
-                            message : 'DB connection error',
-                        })
+    
+            const decodedUser = decoded.result;
+    
+            // Check if the user exists in the database
+            checkUserId(decodedUser.user_id, (err, results) => {
+                if (err || !results) {
+                    return res.redirect(`${process.env.FRONTEND_URL}/auth/activate?error=user_not_found`);
+                }
+    
+                // Ensure the decoded email matches the database record
+                if (results.email !== decodedUser.email) {
+                    return res.redirect(`${process.env.FRONTEND_URL}/auth/activate?error=mismatch`);
+                }
+    
+                // Activate the user
+                setActivate(decodedUser.user_id, (err, act) => {
+                    if (err || !act || act.length === 0) {
+                        return res.redirect(`${process.env.FRONTEND_URL}/auth/activate?error=activation_failed`);
                     }
-                    // Check if there are rows before accessing act[0]
-                    if (act && act.length > 0) {
-                        return res.status(200).json({
-                            success: 1,
-                            data: act[0],  // This will only happen if act[0] exists
-                        });
-                    } else {
-                        return res.status(404).json({
-                            success: 0,
-                            message: 'No data found for activation',
-                        });
-                    }
-                })
-            } else {
-                return res.status(301).json({
-                    success: err,
-                    message : 'results dont match',
-                })
-            }
-        })
+    
+                    // 🔹 Redirect user to the frontend signin page after successful activation
+                    return res.redirect(`${process.env.FRONTEND_URL}/auth/signin?activated=1`);
+                });
+            });
+        });
     },
+    
+    
 
     forgot: (req, res)=>{
         let email = req.body.email;
@@ -402,14 +394,14 @@ module.exports = {
     
             // Create activation token
             const payload = { result: results };
-            const activateToken = jwt.sign(payload, 'your_refresh_token_secret', { expiresIn: '25m' });
+            const activateToken = jwt.sign(payload, 'your_refresh_token_secret', { expiresIn: '15m' });
     
             // Prepare email message
             const mesg = `
                 <div>
                     <p>Hello,</p> 
                     <p>Click the link below to activate your Speedlink account</p>
-                    <a href="${process.env.FRONTEND_URL}/auth/activate/${activateToken}" style="display: inline-block; padding: 10px 20px; background-color: #4f46E5; color: #ffffff; text-decoration: none; border-radius: 5px;">
+                    <a href="${process.env.BACKEND_URL}/api/users/activate/${activateToken}" style="display: inline-block; padding: 10px 20px; background-color: #4f46E5; color: #ffffff; text-decoration: none; border-radius: 5px;">
                         <button>Activate Account</button>
                     </a>
                     <p>This link will expire after 30 minutes</p>
