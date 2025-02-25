@@ -58,6 +58,7 @@ module.exports = {
     },
 
     checkToken: async (req, res, next) => {
+        console.log('Checking token')
         let token = req.get("authorization");
     
         async function check() {
