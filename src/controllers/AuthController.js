@@ -80,36 +80,25 @@ module.exports = {
 
     verifyrecovery: async (req, res) => {
         try {
-            let email = req.body.email; // Get the email from the request body
-            let userRecoveryId = req.body.recovery_id; // Get the recovery_id sent by the user
+            let recovery_id = req.params.verify_id; // Get the recovery_id from the URL
     
-            // Find the recovery ID associated with the email
-            let storedRecoveryId = await redis.get(`password_recovery:${email}`);
+            // Find the email associated with the recovery_id
+            let email = await redis.get(`password_recovery:${recovery_id}`);
     
-            console.log("Stored Recovery ID:", storedRecoveryId); // Debugging
-            console.log("User-Sent Recovery ID:", userRecoveryId); // Debugging
+            console.log("Recovery ID:", recovery_id); // Debugging
+            console.log("Email:", email); // Debugging
     
-            // Check if the recovery ID exists in Redis
-            if (!storedRecoveryId) {
+            if (!email) {
                 return res.status(404).json({
                     error: 1,
                     message: "Recovery token not found or expired.",
                 });
             }
     
-            // Compare the user-sent recovery ID with the stored recovery ID
-            if (userRecoveryId !== storedRecoveryId) {
-                return res.status(400).json({
-                    error: 1,
-                    message: "Invalid recovery token.",
-                });
-            }
-    
-            // If the recovery IDs match, return success
             return res.status(200).json({
                 success: 1,
                 message: "Token validated successfully.",
-                recovery_id: storedRecoveryId, // Return the recovery_id for further use
+                email: email, // Return the email for further use
             });
     
         } catch (err) {
@@ -416,6 +405,10 @@ module.exports = {
                 }
     
                 // Ensure the decoded email matches the database record
+                console.log('results')
+                console.log(results)
+                console.log('decodedUser')
+                console.log(decodedUser)
                 if (results.email !== decodedUser.email) {
                     return res.redirect(`${process.env.FRONTEND_URL}/auth/activate?error=mismatch`);
                 }
