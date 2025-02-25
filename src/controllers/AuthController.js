@@ -352,7 +352,7 @@ module.exports = {
     
             // Create activation token
             const payload = { result: results };
-            const activateToken = jwt.sign(payload, 'your_refresh_token_secret', { expiresIn: '15m' });
+            const activateToken = jwt.sign(payload, process.env.REFRESH_TOK_SEC, { expiresIn: '15m' });
     
             // Prepare email message
             const mesg = `
@@ -390,7 +390,7 @@ module.exports = {
     console.log(activateId)
     console.log('activateId')
         // Verify JWT token
-        jwt.verify(activateId, 'your_refresh_token_secret', (err, decoded) => {
+        jwt.verify(activateId, process.env.REFRESH_TOK_SEC, (err, decoded) => {
             if (err) {
                 return res.redirect(`${process.env.FRONTEND_URL}/auth/activate?error=invalid_token`);
             }
