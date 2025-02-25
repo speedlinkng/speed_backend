@@ -80,13 +80,14 @@ module.exports = {
 
     verifyrecovery: async (req, res) => {
         try {
-            let recovery_id = req.params.verify_id;
+            let email = req.body.email; // Get the email from the request body
     
-            // Find the email associated with the recovery ID
-            let email = await redis.get(`password_recovery:${recovery_id}`);
- 
-    console.log(email)
-            if (!email) {
+            // Find the recovery ID associated with the email
+            let recovery_id = await redis.get(`password_recovery:${email}`);
+    
+            console.log(recovery_id); // Debugging: Check if the recovery_id is retrieved
+    
+            if (!recovery_id) {
                 return res.status(404).json({
                     error: 1,
                     message: "Recovery token not found or expired.",
@@ -96,7 +97,7 @@ module.exports = {
             return res.status(200).json({
                 success: 1,
                 message: "Token validated successfully.",
-                email: email,
+                recovery_id: recovery_id, // Return the recovery_id for verification
             });
     
         } catch (err) {
@@ -112,7 +113,7 @@ module.exports = {
     forgot: async (req, res) => {
         try {
             let email = req.body.email;
-            
+    
             // Generate a unique recovery ID (could be a UUID or similar)
             let recovery_id = require("crypto").randomBytes(32).toString("hex");
     
