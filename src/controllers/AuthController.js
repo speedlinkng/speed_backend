@@ -175,7 +175,7 @@ module.exports = {
     changeForgotPassword: (req, res)=>{
         let password = req.body.new_pwd;
         let password_conf = req.body.conf_new_pwd;
-        let user_id = req.body.user_id;
+        let user_id = req.body.user_id; //THIS IS EMAIL
 
         if(password === password_conf){
             const salt = genSaltSync(10);

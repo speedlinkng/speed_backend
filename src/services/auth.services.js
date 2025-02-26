@@ -208,7 +208,7 @@ module.exports = {
     updateChangedPassword: (password, user_id, callback) =>{
         const currentDate = new Date();
         pgpool.query(
-            `update users set password = $1, updated_at = $2 WHERE user_id = $3`, 
+            `update users set password = $1, updated_at = $2 WHERE email = $3`, 
             [    
                 password,
                 currentDate,
