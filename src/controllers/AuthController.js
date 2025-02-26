@@ -133,7 +133,7 @@ module.exports = {
             console.log("@@@@@@@@@@@@@@ Recovery ID:", recovery_id); // Debugging
             console.log(`password_recovery:${email}`); // Debugging
             // Store the recovery_id in Redis with the email as the key (expire in 30 minutes)
-            await redis.setex(`password_recovery:${email}`, 1800, recovery_id);
+            await redis.setex(`password_recovery:${email}`, 300, recovery_id);
     
             // Send Recovery Email
             let mesg = `
