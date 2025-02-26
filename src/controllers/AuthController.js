@@ -130,17 +130,24 @@ module.exports = {
 
     forgot: async (req, res) => {
         try {
-            let email = req.body.email;
+            const email = req.body.email;
+    
+            // Find and delete all prior recovery keys for this email
+            const keys = await redis.keys(`password_recovery:${email}*`);
+            if (keys.length > 0) {
+                await redis.del(...keys);
+                console.log(`Cleared ${keys.length} prior recovery keys for: ${email}`);
+            }
     
             // Generate a unique recovery ID
-            let recovery_id = require("crypto").randomBytes(32).toString("hex");
-            console.log("@@@@@@@@@@@@@@ Recovery ID:", recovery_id); // Debugging
-            console.log(`password_recovery:${email}`); // Debugging
+            const recovery_id = crypto.randomBytes(32).toString('hex');
+            console.log("Recovery ID:", recovery_id); // Debugging
+    
             // Store the recovery_id in Redis with the email as the key (expire in 30 minutes)
-            await redis.setex(`password_recovery:${email}`, 300, recovery_id);
+            await redis.setex(`password_recovery:${email}`, 1800, recovery_id); // 1800 seconds = 30 minutes
     
             // Send Recovery Email
-            let mesg = `
+            const mesg = `
                 <div>
                     <p>Hello,</p> 
                     <p>You initiated a password recovery process on our platform.</p>
@@ -151,7 +158,7 @@ module.exports = {
                     </p>
                 </div>`;
     
-            sendMail(email, "Recover Your Password", mesg);
+            await sendMail(email, "Recover Your Password", mesg);
     
             return res.status(200).json({
                 success: 1,
