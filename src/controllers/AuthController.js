@@ -88,7 +88,7 @@ module.exports = {
     
             console.log("Recovery ID:", recovery_id); // Debugging
             console.log("Email:", email); // Debugging
-            console.log(`password_recovery:${email}`); // Debugging
+    
             // Retrieve the stored recovery_id from Redis using the email as the key
             const storedRecoveryId = await redis.get(`password_recovery:${email}`);
     
@@ -109,11 +109,11 @@ module.exports = {
                 });
             }
     
-            // If the recovery_ids match, the user is valid
-            return res.status(200).json({
-                success: 1,
-                message: "Token validated successfully.",
-            });
+            // Save "access granted" in Redis with a 5-minute expiration
+            await redis.set(`access_granted:${email}`, "access granted", "EX", 300); // 300 seconds = 5 minutes
+    
+            // Redirect to /newpwd with the email as a query parameter
+            return res.redirect(`${process.env.FRONTEND_URL}/auth/newpwd?email=${encodeURIComponent(email)}`);
         } catch (err) {
             console.error(err);
             return res.status(500).json({
