@@ -115,9 +115,10 @@ module.exports = {
             await redis.set(`access_granted:${email}`, "access granted", "EX", 300); // 300 seconds = 5 minutes
             console.log('200')
             console.log('200', encodeURIComponent(email))
-            // Redirect to /newpwd with the email as a query parameter
-            return res.redirect(`${process.env.FRONTEND_URL}/auth/newpwd?email=${encodeURIComponent(email)}`);
-            console.log('200  2')
+            return res.status(200).json({
+                success: 1,
+                message: "Password recovery successful",
+            });
         } catch (err) {
             console.error(err);
             return res.status(500).json({
