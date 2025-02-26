@@ -95,6 +95,7 @@ module.exports = {
             console.log("Stored Recovery ID:", storedRecoveryId); // Debugging
     
             if (!storedRecoveryId) {
+                console.log('400')
                 return res.status(404).json({
                     error: 1,
                     message: "Recovery token not found or expired.",
@@ -103,6 +104,7 @@ module.exports = {
     
             // Compare the user-sent recovery_id with the stored recovery_id
             if (recovery_id !== storedRecoveryId) {
+                console.log('400 2')
                 return res.status(400).json({
                     error: 1,
                     message: "Invalid recovery token.",
@@ -111,9 +113,11 @@ module.exports = {
     
             // Save "access granted" in Redis with a 5-minute expiration
             await redis.set(`access_granted:${email}`, "access granted", "EX", 300); // 300 seconds = 5 minutes
-    
+            console.log('200')
+            console.log('200', encodeURIComponent(email))
             // Redirect to /newpwd with the email as a query parameter
             return res.redirect(`${process.env.FRONTEND_URL}/auth/newpwd?email=${encodeURIComponent(email)}`);
+            console.log('200  2')
         } catch (err) {
             console.error(err);
             return res.status(500).json({
