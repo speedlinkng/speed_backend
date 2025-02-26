@@ -150,7 +150,7 @@ module.exports = {
                     <p>Hello,</p> 
                     <p>You initiated a password recovery process on our platform.</p>
                     <p>Click this link to recover your password: 
-                        <a href="${process.env.FRONTEND_URL}/auth/verify?recovery_id=${recovery_id}&email=${email}">
+                        <a href="${process.env.FRONTEND_URL}/auth/newpwd?recovery_id=${recovery_id}&email=${email}">
                             Reset Password
                         </a>
                     </p>
