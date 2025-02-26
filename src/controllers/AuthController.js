@@ -128,63 +128,48 @@ module.exports = {
     },
     
 
-    forgot: async (req, res) => {
-        try {
-            const email = req.body.email;
-    
-            // Clear all prior recovery keys for this email
-            const pattern = `password_recovery:${email}:*`; // Match all keys with this pattern
-            let cursor = '0'; // Start scanning from the beginning
-            let keys = [];
-    
-            do {
-                // Scan for keys matching the pattern
-                const reply = await redis.scan(cursor, 'MATCH', pattern, 'COUNT', 100);
-                cursor = reply[0]; // Update the cursor
-                keys = keys.concat(reply[1]); // Add keys to the list
-            } while (cursor !== '0'); // Continue until cursor is 0
-    
-            // Delete all matching keys
-            if (keys.length > 0) {
-                await redis.del(...keys);
-                console.log(`Deleted keys for ${email}:`, keys);
-            } else {
-                console.log(`No prior recovery keys found for ${email}`);
-            }
-    
-            // Generate a unique recovery ID
-            const recovery_id = crypto.randomBytes(32).toString('hex');
-            console.log("Recovery ID:", recovery_id); // Debugging
-    
-            // Store the recovery_id in Redis with the email as the key (expire in 30 minutes)
-            await redis.setex(`password_recovery:${email}:${recovery_id}`, 1800, recovery_id); // 1800 seconds = 30 minutes
-    
-            // Send Recovery Email
-            const mesg = `
-                <div>
-                    <p>Hello,</p> 
-                    <p>You initiated a password recovery process on our platform.</p>
-                    <p>Click this link to recover your password: 
-                        <a href="${process.env.FRONTEND_URL}/auth/verify?recovery_id=${recovery_id}&email=${email}">
-                            Reset Password
-                        </a>
-                    </p>
-                </div>`;
-    
-            await sendMail(email, "Recover Your Password", mesg);
-    
-            return res.status(200).json({
-                success: 1,
-                message: "Recovery email sent successfully!",
-            });
-        } catch (err) {
-            console.error(err);
-            return res.status(500).json({
-                error: 1,
-                message: "Internal server error",
-            });
-        }
-    },
+forgot: async (req, res) => {
+    try {
+        const email = req.body.email;
+
+        // Clear any prior recovery key for this email
+        await redis.del(`password_recovery:${email}`);
+        console.log(`Cleared prior recovery key for: ${email}`);
+
+        // Generate a unique recovery ID
+        const recovery_id = crypto.randomBytes(32).toString('hex');
+        console.log("Recovery ID:", recovery_id); // Debugging
+
+        // Store the recovery_id in Redis with the email as the key (expire in 30 minutes)
+        await redis.setex(`password_recovery:${email}`, 1800, recovery_id); // 1800 seconds = 30 minutes
+
+        // Send Recovery Email
+        const mesg = `
+            <div>
+                <p>Hello,</p> 
+                <p>You initiated a password recovery process on our platform.</p>
+                <p>Click this link to recover your password: 
+                    <a href="${process.env.FRONTEND_URL}/auth/verify?recovery_id=${recovery_id}&email=${email}">
+                        Reset Password
+                    </a>
+                </p>
+            </div>`;
+
+        await sendMail(email, "Recover Your Password", mesg);
+
+        return res.status(200).json({
+            success: 1,
+            message: "Recovery email sent successfully!",
+        });
+    } catch (err) {
+        console.error(err);
+        return res.status(500).json({
+            error: 1,
+            message: "Internal server error",
+        });
+    }
+},
+
 
     changeForgotPassword: (req, res)=>{
         let password = req.body.new_pwd;
