@@ -156,7 +156,7 @@ module.exports = {
                             Reset Password
                         </a>
                     </p>
-                </div>`;
+                </div>`; 
     
             await sendMail(email, "Recover Your Password", mesg);
     
