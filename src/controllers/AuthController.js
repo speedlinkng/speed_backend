@@ -132,11 +132,24 @@ module.exports = {
         try {
             const email = req.body.email;
     
-            // Find and delete all prior recovery keys for this email
-            const keys = await redis.keys(`password_recovery:${email}*`);
+            // Clear all prior recovery keys for this email
+            const pattern = `password_recovery:${email}:*`; // Match all keys with this pattern
+            let cursor = '0'; // Start scanning from the beginning
+            let keys = [];
+    
+            do {
+                // Scan for keys matching the pattern
+                const reply = await redis.scan(cursor, 'MATCH', pattern, 'COUNT', 100);
+                cursor = reply[0]; // Update the cursor
+                keys = keys.concat(reply[1]); // Add keys to the list
+            } while (cursor !== '0'); // Continue until cursor is 0
+    
+            // Delete all matching keys
             if (keys.length > 0) {
                 await redis.del(...keys);
-                console.log(`Cleared ${keys.length} prior recovery keys for: ${email}`);
+                console.log(`Deleted keys for ${email}:`, keys);
+            } else {
+                console.log(`No prior recovery keys found for ${email}`);
             }
     
             // Generate a unique recovery ID
@@ -144,7 +157,7 @@ module.exports = {
             console.log("Recovery ID:", recovery_id); // Debugging
     
             // Store the recovery_id in Redis with the email as the key (expire in 30 minutes)
-            await redis.setex(`password_recovery:${email}`, 1800, recovery_id); // 1800 seconds = 30 minutes
+            await redis.setex(`password_recovery:${email}:${recovery_id}`, 1800, recovery_id); // 1800 seconds = 30 minutes
     
             // Send Recovery Email
             const mesg = `
@@ -156,7 +169,7 @@ module.exports = {
                             Reset Password
                         </a>
                     </p>
-                </div>`; 
+                </div>`;
     
             await sendMail(email, "Recover Your Password", mesg);
     
@@ -172,7 +185,6 @@ module.exports = {
             });
         }
     },
-
 
     changeForgotPassword: (req, res)=>{
         let password = req.body.new_pwd;
