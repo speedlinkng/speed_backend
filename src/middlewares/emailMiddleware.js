@@ -9,7 +9,10 @@ const transporter = nodemailer.createTransport({
     auth: {
         user: 'ftp@speedlinkng.com', // your email
         pass: 'fcgvizklrnuszgnm' // your password
-    }
+    },
+    tls: {
+        rejectUnauthorized: false, // Prevents SSL issues
+      },
 });
 // Send email
 async function sendMail(to, subject, message){
