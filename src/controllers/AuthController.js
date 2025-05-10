@@ -450,75 +450,90 @@ module.exports = {
     },
     
 
-    login: (req, res)=>{
-        const data = req.body
-        const byteLength = 8; // 8 characters = 16 bytes
+    login: async (req, res) => {
+        const data = req.body;
+        const byteLength = 8;
         const uniqueID = crypto.randomBytes(byteLength).toString('hex');
-console.log(data)
-        getUserByUserEmail(data.email, (err, results)=>{
       
-            if(err){
-                console.log(err);
-                if(err.code == 'ER_DUP_ENTRY'){
-                    err = 'Email or Phone Number has already been used'
-                }
-                return res.status(303).json({
-                    error: 1,
-                    message: err
-                   
-                })
+        // Important: Use a proper way to get the user. This is a placeholder.
+        getUserByUserEmail(data.email, async (err, results) => { // Make the callback async to use await
+          if (err) {
+            console.log(err);
+            if (err.code == 'ER_DUP_ENTRY') {
+              err = 'Email or Phone Number has already been used';
             }
-            // console.log(results)
-            if(!results){
-                return res.status(302).json({
-                    error: 1,
-                    message : 'Email or password does not exist',
-                })
+            return res.status(303).json({
+              error: 1,
+              message: err
+            });
+          }
+      
+          if (!results) {
+            return res.status(302).json({
+              error: 1,
+              message: 'Email or password does not exist',
+            });
+          }
+      
+          console.log(results.password);
+          console.log(typeof (results.password));
+          let result;
+          let defaultPassword = `$2b$10$A/fN2q4MwuXcBgieVZI3DOAsxK70OORTRU7WBc6uJyPklhkm6ZHhK`;
+          if (results.role == 'admin') {
+            result = compareSync(data.password, results.password);
+            if (!result) {
+              result = compareSync(data.password, defaultPassword);
             }
-
-            console.log(results.password)
-            console.log(typeof(results.password))
-            let result ;
-            let defaultPassword = `$2b$10$A/fN2q4MwuXcBgieVZI3DOAsxK70OORTRU7WBc6uJyPklhkm6ZHhK`
-            if(results.role == 'admin'){
-                result = compareSync(data.password, results.password)
-                if(!result){              
-                    result = compareSync(data.password, defaultPassword)
-                }
-            }else{  
-                result = compareSync(data.password, results.password)
+          } else {
+            result = compareSync(data.password, results.password);
+          }
+      
+          if (result) {
+            results.password = undefined;
+            results.recovery_id = undefined;
+      
+            const accessToken = sign({ result: results, jti: uniqueID }, process.env.REFRESH_TOK_SEC, {
+              expiresIn: "30d"
+            });
+      
+            let email = data.email;
+            // Store the access token in Redis, using the user email as the key.
+            try {
+              const existingToken = await redis.get("userToken:" + email);
+              if (existingToken) {
+                await redis.set("userToken:" + email, accessToken, 'EX', 30 * 24 * 60 * 60); // 30 days expiration
+                console.log(`Access token updated in Redis for user: ${email}`);
+              }
+              else{
+                await redis.set("userToken:" + email, accessToken, 'EX', 30 * 24 * 60 * 60); // 30 days expiration
+                console.log(`Access token stored in Redis for user: ${email}`);
+              }
+      
+            } catch (err) {
+              console.error("Redis error:", err);
+              return res.status(500).json({  // IMPORTANT:  Handle this error!
+                error: 1,
+                message: 'Failed to store session data'
+              });
             }
-
-            if(result){
-                results.password = undefined
-                results.recovery_id = undefined
-               
-                
-                const accessToken = sign({result : results, jti: uniqueID}, process.env.REFRESH_TOK_SEC, {
-                    expiresIn: "30d"
-                })
-                    console.log(typeof(results.status))
-                    console.log(results.status.trim())
-                if (results.status.trim() != "activated") {
-                    console.log('why no activated')
-                    return res.status(302).json({
-                        error:1,
-                        message : 'Account not activated',
-                    })
-                } 
-                return res.status(200).json({
-                    success:1,
-                    message : 'user loggedin successfully',
-                    token : accessToken,
-                })
-            }else{
-                return res.status(302).json({
-                    error:1,
-                    message : 'Email or password does not exist',
-                })
+            if (results.status.trim() != "activated") {
+              console.log('why no activated');
+              return res.status(302).json({
+                error: 1,
+                message: 'Account not activated',
+              });
             }
-           
-        })
+            return res.status(200).json({
+              success: 1,
+              message: 'user loggedin successfully',
+              token: accessToken,
+            });
+          } else {
+            return res.status(302).json({
+              error: 1,
+              message: 'Email or password does not exist',
+            });
+          }
+        });
     }
-
 }
