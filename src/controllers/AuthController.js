@@ -454,7 +454,7 @@ module.exports = {
         const data = req.body
         const byteLength = 8; // 8 characters = 16 bytes
         const uniqueID = crypto.randomBytes(byteLength).toString('hex');
-
+console.log(data)
         getUserByUserEmail(data.email, (err, results)=>{
       
             if(err){
