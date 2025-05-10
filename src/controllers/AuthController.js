@@ -515,7 +515,10 @@ module.exports = {
                 error: 1,
                 message: 'Failed to store session data'
               });
-            }
+              }
+              console.log(await redis.get("userToken:" + email))
+              console.log(await redis.get("userToken:" + email))
+              console.log(email)
             if (results.status.trim() != "activated") {
               console.log('why no activated');
               return res.status(302).json({
