@@ -543,7 +543,7 @@ module.exports = {
     
     getRecord: (req, res)=>{
         let access =  res.decoded_access
-        // console.log(access)
+        console.log(access)
         getRecord(access.user_id, (err, results)=>{
             if(err){
                 console.log(err);

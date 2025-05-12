@@ -280,7 +280,8 @@ module.exports = {
         }
     },
 
-    getRecord: (user_id, callback)=>{
+    getRecord: (user_id, callback) => {
+        console.log("user_id:", user_id)
         pgpool.query(
             `select * from form_records where user_id = $1 ORDER BY id ASC`,
             [
