@@ -47,37 +47,56 @@ module.exports = {
 
 
     logout: async (req, res) => {
-        
-        let token = req.get("authorization")
-        token =  token && token.split(' ')[1]
-        console.log(token)
-        console.log('LOGOUT', token)
-        console.log(token)
-        jwt.verify(token, process.env.REFRESH_TOK_SEC, (err, decoded)=>{
-            let decodedToken = decoded
-         
-            const tokenjit = decodedToken.jti;
-            // revokeToken(tokenId)
-            console.log(tokenjit)
-            console.log('logging outs')
+      let token = req.get("authorization");
+        if (!token) {
+            return res.status(401).json({ // More specific status code
+                error: "Unauthorized",
+                message: "Authorization header is missing",
+            });
+        }
+        token = token.split(' ')[1];
 
-            logout(tokenjit,token, (err, results)=>{
-                if(err){
-                    // console.log(err);
-                    return res.status(400).json({
-                        error: err,
-                        message : 'DB connection error',
-                    })
-                }  
-                if(results){
+        try {
+            const decoded = jwt.verify(token, process.env.REFRESH_TOK_SEC); // Use the constant
+            const tokenJti = decoded.jti;
+            const userEmail = decoded.email; // Access email from the payload
+
+            // Delete from Redis
+            const redisKey = `userToken:${userEmail}`;
+            const deletedCount = await redis.del(redisKey);
+
+            if (deletedCount > 0) {
+                console.log(`Token ${tokenJti} (for user ${userEmail}) revoked from Redis`);
+            } else {
+                console.log(`Token ${tokenJti} (for user ${userEmail}) not found in Redis`);
+                //  Don't treat this as an error.  The token may have expired.
+            }
+
+            // Blacklist the JTI in the database
+            logout(tokenJti, token, (dbErr, results) => {
+                if (dbErr) {
+                    console.error("Error revoking token in database:", dbErr);
+                    return res.status(500).json({ // Internal Server Error for DB issues
+                        error: dbErr,
+                        message: 'Database error during logout',
+                    });
+                }
+                if (results) {
                     return res.status(200).json({
                         success: 1,
-                        message : 'User Logged out successfully',
-                    })
+                        message: 'User Logged out successfully',
+                    });
                 }
-            })
-            // res.status(200).json({ message: 'Logged out successfully' });  
-        })
+            });
+
+
+        } catch (jwtErr) {
+            console.error("JWT verification error:", jwtErr);
+            return res.status(401).json({ // Use 401 for invalid token
+                error: jwtErr,
+                message: 'Invalid or expired token',
+            });
+        }
     },
 
 
@@ -313,22 +332,27 @@ module.exports = {
     getMeOnRefresh: (req, res)=>{
         let access = res.decoded_access
 
-        getUserByUserEmail(access.email, (err, results)=>{
-            if(err){
-                // console.log(err);
+        getUserByUserEmail(access.email, (err, results) => {
+            if (err) {
                 return res.status(400).json({
-                    success: err,
-                    message : 'DB connection error',
-                })
+                    success: false,
+                    message: 'DB connection error',
+                });
             }
-          
-            results.password = undefined
-            results.recovery_id = undefined
-            console.log(results)
-            return res.status(200).json({
-                results
-            })
-        })
+
+            if (!results) {
+                return res.status(404).json({
+                    success: false,
+                    message: 'User not found',
+                });
+            }
+
+            results.password = undefined;
+            results.recovery_id = undefined;
+
+            return res.status(200).json({ results });
+        });
+
     },
 
     getMe: (req, res)=>{

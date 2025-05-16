@@ -101,6 +101,30 @@ module.exports = {
         })
     },
 
+    deleteRecord: async (req, res) => {
+        const record_id = req.body.record_id; // Extract record_id from the request body
+
+        deleteFormRecord(record_id, (err, results) => {
+        if (err) {
+            // Handle errors during deletion
+            console.error(err);
+            return res.status(400).json({
+            status: 400,
+            error: 1,
+            message: "Failed to delete record: " + err.message, // Include the error message
+            });
+        }
+        // Handle successful deletion
+        console.log(results);
+        return res.status(200).json({
+            status: 200,
+            success: 1,
+            message: "Record deleted successfully",
+            data: results, // Optionally send back the result from the database operation
+        });
+        });
+    },
+
     addRecord: async (req, res)=>{    
 
         // initialize decoded access from middleware
@@ -312,7 +336,7 @@ module.exports = {
         }
 
     },
-    
+
     getSettingById:(req, res)=>{
         let upload_token = ''
         let r_id = req.params.id
@@ -486,10 +510,16 @@ module.exports = {
         let access = res.decoded_access
         let allCount = []
         let completedCount = 0;
+        console.log(access.user_id)
         getRecord(access.user_id, (err, allRequests) => { 
-            console.log(allRequests[0])
+          
             if (err) {
-                
+                console.log(err);
+                return res.status(401).json({
+                    status: 401,
+                    error: 1,
+                    message : err,
+                })
             } else {
                 allRequests.sort((a, b) => a.id - b.id);
 
@@ -543,7 +573,7 @@ module.exports = {
     
     getRecord: (req, res)=>{
         let access =  res.decoded_access
-        console.log(access)
+        // console.log(access)
         getRecord(access.user_id, (err, results)=>{
             if(err){
                 console.log(err);
@@ -553,16 +583,32 @@ module.exports = {
                     message : err,
                 })
             }
+                console.log(results)
+            if (!results || results.length === 0) {
+                console.log('No results found');
+                return res.status(404).json({
+                    status: 404,
+                    error: 1,
+                    message: 'No data found',
+                    data: []
+                });
+            }
+      
   
             
             function setExpired(element){
                 let date1 = new Date();
                 let date2 = new Date(element.expiry_date); 
                 if(date1 > date2 ){
-                    updateexpired(access.user_id, (err, res)=>{
+                    updateexpired(access.id, (err, res)=>{
                         
                     })
                 }else{
+                    console.log(element.status)
+                    console.log(element.status)
+                    console.log(element.status)
+                    console.log(element.status)
+                    console.log(element.status)
                     console.log(element.status)
                 }
             }
@@ -571,6 +617,10 @@ module.exports = {
             
             // SET EXPIRED IN THE DB FOR RECORD
             results.forEach(element => {
+                console.log(element.id)
+                console.log(element)
+                console.log(element.id)
+                console.log(element.id)
                 console.log(element.id)
                 setExpired(element)
             });
@@ -816,7 +866,6 @@ module.exports = {
             });
     },
     
-
     
     submitReplies: (req, res)=>{
         let record_id =  req.body.record_id

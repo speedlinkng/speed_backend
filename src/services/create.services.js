@@ -161,11 +161,13 @@ module.exports = {
     
 
 
-    updateexpired:(user_id, callback)=>{
+    updateexpired: (id, callback) => {
+        console.log('update')
         pgpool.query(
-            'update form_records set status=$1 WHERE file_id = "null" ',            
+            'update form_records set status=$1 WHERE id = $2 ',            
             [
-                'expired' 
+                'expired',
+                id
             ],
             (err, res, fields) =>{
                 if(err){
@@ -174,19 +176,7 @@ module.exports = {
                 // return callback(null, res)
             }
         )
-        // pgpool.query(
-        //     'update records set status=? WHERE file_id != "null" ',            
-        //     [
-        //         'completed' 
-        //     ],
-        //     (err, res, fields) =>{
-        //         if(err){
-        //             return callback(err);
-        //         }
-        //         return callback(null, res)
-        //     }
-
-        // )
+       
     },
 
     createRecord: (data,expiry_date,folder_id, ADDFTFR, record_id, user_id, userGoogleRow_id, callback)=>{
@@ -279,6 +269,42 @@ module.exports = {
             )
         }
     },
+    updateExpired : (record_id) => {
+            return new Promise((resolve, reject) => {
+                pgpool.query(
+                    `UPDATE form_records SET status = 'expired' WHERE id = $1`,
+                    [record_id],
+                    (err, res) => {
+                        if (err) {
+                            console.error("Error updating expired record:", err);
+                            return reject(err);
+                        }
+                        resolve(res);
+                    }
+                );
+            });
+    },
+
+
+    deleteFormRecord: (record_id, callback) => {
+    pgpool.query(
+        `DELETE FROM form_records WHERE id = $1`, // Use a parameterized query to prevent SQL injection
+        [record_id],
+        (err, res) => {
+        if (err) {
+            console.error("Error deleting record:", err);
+            return callback(err); // Pass the error to the callback
+        }
+        // Check the number of rows affected to determine if the deletion was successful
+        if (res.rowCount > 0) {
+            callback(null, res); // Pass the result to the callback
+        } else {
+            callback(null, { message: "Record not found or already deleted", rowCount: 0 });
+        }
+        }
+    );
+    },
+
 
     getRecord: (user_id, callback) => {
         console.log("user_id:", user_id)
