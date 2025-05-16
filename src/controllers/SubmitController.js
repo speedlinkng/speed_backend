@@ -105,7 +105,7 @@ module.exports = {
     
     <div style="padding: 20px; text-align: center; font-size: 12px; color: #999; 
                 border-top: 1px solid #eee; margin-top: 20px;">
-        <p>© ${new Date().getFullYear()} Your Company Name. All rights reserved.</p>
+        <p>© ${new Date().getFullYear()}  blazzingshare.com. All rights reserved.</p>
         <p>
             <a href="YOUR_PRIVACY_POLICY_URL" style="color: #2563eb; text-decoration: none;">Privacy Policy</a> | 
             <a href="YOUR_TERMS_URL" style="color: #2563eb; text-decoration: none;">Terms of Service</a>

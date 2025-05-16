@@ -19,7 +19,7 @@ async function sendMail(to, subject, message){
 
     // Email content
     const mailOptions = {
-        from: `"Blazzingshare" support@speedlinkng.com`, // sender address
+        from: `"Ben from Blazzingshare" support@speedlinkng.com`, // sender address
         to: to, // list of receivers
         subject: subject, // Subject line
         html: '<p>'+message+'</p>' // html body

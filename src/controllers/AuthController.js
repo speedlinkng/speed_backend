@@ -183,7 +183,7 @@ module.exports = {
                         </div>
                         
                         <div style="text-align: center; font-size: 12px; color: #666; padding-top: 20px; border-top: 1px solid #e1e1e1;">
-                            <p>© ${new Date().getFullYear()} Your Company. All rights reserved.</p>
+                            <p>© ${new Date().getFullYear()} blazzingshare.com. All rights reserved.</p>
                             <p>
                                 <a href="YOUR_PRIVACY_POLICY_URL" style="color: #2563eb; text-decoration: none;">Privacy Policy</a> | 
                                 <a href="YOUR_TERMS_URL" style="color: #2563eb; text-decoration: none;">Terms of Service</a>
@@ -191,7 +191,7 @@ module.exports = {
                         </div>
                     </div>`;
 
-                    await sendMail(email, "Recover Your Password", mesg);
+                    await sendMail(email, "Password Reset", mesg);
 
             return res.status(200).json({
                 success: 1,
