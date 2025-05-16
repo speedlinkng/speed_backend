@@ -161,7 +161,7 @@ module.exports = {
             console.log("Recovery ID:", recovery_id); // Debugging
 
             // Store the recovery_id in Redis with the email as the key (expire in 30 minutes)
-            await redis.setex(`password_recovery:${email}`, 1800, recovery_id); // 1800 seconds = 30 minutes
+            await redis.setex(`password_recovery:${email}`, 350, recovery_id); // 1800 seconds = 30 minutes
 
             const mesg = `
                     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e1e1e1; border-radius: 8px;">
