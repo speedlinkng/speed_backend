@@ -74,11 +74,44 @@ module.exports = {
 
                      // Get the name of the form's creator
         
-          let mesg = `<div>
-          <p>Hello ${results[0].firstname},</p> 
-              <p>A submission has been made to the form request you created, titled: <b>${title}</b></p>
-              <p>Visit your dashboard to see the details <b><a href="${process.env.FRONTEND_URL}/dash">${process.env.FRONTEND_URL}/dash</a></b></p>
-          </div>`
+        let mesg = `
+<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; color: #333;">
+    <div style="text-align: center; padding: 20px 0; border-bottom: 1px solid #eee;">
+        <img src="YOUR_LOGO_URL" alt="Company Logo" style="max-height: 50px;">
+    </div>
+    
+    <div style="padding: 25px 20px;">
+        <p style="font-size: 16px; margin-bottom: 20px;">Hello ${results[0].firstname},</p>
+        
+        <p style="margin-bottom: 15px; line-height: 1.5;">
+            A new submission has been made to your form: 
+            <strong style="color: #2563eb;">${title}</strong>
+        </p>
+        
+        <div style="text-align: center; margin: 30px 0;">
+            <a href="${process.env.FRONTEND_URL}/dash" 
+               style="background-color: #2563eb; color: white; padding: 12px 24px; 
+                      text-decoration: none; border-radius: 6px; font-weight: bold; 
+                      display: inline-block;">
+                View Submission
+            </a>
+        </div>
+        
+        <p style="font-size: 14px; color: #666;">
+            You can also copy and paste this link into your browser:<br>
+            <span style="word-break: break-all;">${process.env.FRONTEND_URL}/dash</span>
+        </p>
+    </div>
+    
+    <div style="padding: 20px; text-align: center; font-size: 12px; color: #999; 
+                border-top: 1px solid #eee; margin-top: 20px;">
+        <p>© ${new Date().getFullYear()} Your Company Name. All rights reserved.</p>
+        <p>
+            <a href="YOUR_PRIVACY_POLICY_URL" style="color: #2563eb; text-decoration: none;">Privacy Policy</a> | 
+            <a href="YOUR_TERMS_URL" style="color: #2563eb; text-decoration: none;">Terms of Service</a>
+        </p>
+    </div>
+</div>`;
     
           sendMail(results[0].email, 'Form Submission', mesg);
           console.log('submit ID WAS: ', uniqueId)

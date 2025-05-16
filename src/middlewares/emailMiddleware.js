@@ -19,10 +19,9 @@ async function sendMail(to, subject, message){
 
     // Email content
     const mailOptions = {
-        from: 'support@speedlinkng.com', // sender address
+        from: `"Blazzingshare" support@speedlinkng.com`, // sender address
         to: to, // list of receivers
         subject: subject, // Subject line
-        text: 'A new user named File Transfer has been created', // plain text body
         html: '<p>'+message+'</p>' // html body
     };
 

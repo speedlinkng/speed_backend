@@ -163,19 +163,35 @@ module.exports = {
             // Store the recovery_id in Redis with the email as the key (expire in 30 minutes)
             await redis.setex(`password_recovery:${email}`, 1800, recovery_id); // 1800 seconds = 30 minutes
 
-            // Send Recovery Email
             const mesg = `
-                <div>
-                    <p>Hello,</p> 
-                    <p>You initiated a password recovery process on our platform.</p>
-                    <p>Click this link to recover your password: 
-                        <a href="${process.env.FRONTEND_URL}/auth/newpwd?recovery_id=${recovery_id}&email=${email}">
-                            Reset Password
-                        </a>
-                    </p>
-                </div>`;
+                    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e1e1e1; border-radius: 8px;">
+                        <div style="text-align: center; margin-bottom: 20px;">
+                            <img src="YOUR_LOGO_URL" alt="Logo" style="max-height: 50px;">
+                        </div>
+                        
+                        <div style="background-color: #f9f9f9; padding: 20px; border-radius: 6px; margin-bottom: 20px;">
+                            <!-- Your dynamic content will go here -->
+                            ${`<p>Hello,</p> 
+                            <p>You initiated a password recovery process on our platform.</p>
+                            <p style="margin: 25px 0;">
+                                <a href="${process.env.FRONTEND_URL}/auth/newpwd?recovery_id=${recovery_id}&email=${email}" 
+                                style="background-color: #2563eb; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; font-weight: bold; display: inline-block;">
+                                    Reset Password
+                                </a>
+                            </p>
+                            <p>If you didn't request this, please ignore this email.</p>`}
+                        </div>
+                        
+                        <div style="text-align: center; font-size: 12px; color: #666; padding-top: 20px; border-top: 1px solid #e1e1e1;">
+                            <p>© ${new Date().getFullYear()} Your Company. All rights reserved.</p>
+                            <p>
+                                <a href="YOUR_PRIVACY_POLICY_URL" style="color: #2563eb; text-decoration: none;">Privacy Policy</a> | 
+                                <a href="YOUR_TERMS_URL" style="color: #2563eb; text-decoration: none;">Terms of Service</a>
+                            </p>
+                        </div>
+                    </div>`;
 
-            await sendMail(email, "Recover Your Password", mesg);
+                    await sendMail(email, "Recover Your Password", mesg);
 
             return res.status(200).json({
                 success: 1,
