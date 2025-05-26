@@ -1,4 +1,4 @@
-const {createRecord,updateRecord, getRecord, getSubmissionById, getUploadRecordById, getRecordById, getSettingById, getRefreshTokenGoogle, getRefreshAndExchangeForAccess, updateexpired, getDefaultFolder, checkForRequestid, getSubmissionCountById} = require('../services/create.services');
+const {createRecord,updateRecord, getRecord, getSubmissionById, getUploadRecordById, getRecordById, getSettingById, getRefreshTokenGoogle, getRefreshAndExchangeForAccess, updatexpired, getDefaultFolder, checkForRequestid, getSubmissionCountById, } = require('../services/create.services');
 const {getSubmittedRecordById, submitAndUpdate} = require('../services/submit.services');
 const {v4:uuidv4} = require("uuid")
 const request = require("request");
@@ -583,7 +583,7 @@ module.exports = {
                     message : err,
                 })
             }
-                console.log(results)
+                // console.log(results)
             if (!results || results.length === 0) {
                 console.log('No results found');
                 return res.status(404).json({
@@ -594,51 +594,47 @@ module.exports = {
                 });
             }
       
-  
             
+           
             function setExpired(element){
                 let date1 = new Date();
                 let date2 = new Date(element.expiry_date); 
+                console.log("date")
+                console.log(date1 > date2)
                 if(date1 > date2 ){
-                    updateexpired(access.id, (err, res)=>{
-                        
+                    updatexpired(element.id, (err, res)=>{
+                        console.log(res)
                     })
-                }else{
-                    console.log(element.status)
-                    console.log(element.status)
-                    console.log(element.status)
-                    console.log(element.status)
-                    console.log(element.status)
-                    console.log(element.status)
                 }
             }
             
 
+
             
             // SET EXPIRED IN THE DB FOR RECORD
-            results.forEach(element => {
-                console.log(element.id)
-                console.log(element)
-                console.log(element.id)
-                console.log(element.id)
-                console.log(element.id)
+            results.forEach((element,index) => {
                 setExpired(element)
             });
-           
+            // after setting expired, get result again
+            getRecord(access.user_id, (err, res_after) => { 
 
-            let rez = []
-            results.forEach(ress => {
-                rez.push(ress)
-            });
+                 let rez = []
+                res_after.forEach(ress => {
+                    rez.push(ress)
+                });
 
-            
-            let js = JSON.stringify(rez)
-            // console.log(js)
-            return res.status(200).json({
-                status: 200,
-                success: 1,
-                data : rez  
+                
+                let js = JSON.stringify(rez)
+                // console.log(js)
+                return res.status(200).json({
+                    status: 200,
+                    success: 1,
+                    data : rez  
+                })
+
             })
+           
+           
         })
     },
 

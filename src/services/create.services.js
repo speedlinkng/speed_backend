@@ -161,7 +161,7 @@ module.exports = {
     
 
 
-    updateexpired: (id, callback) => {
+    updatexpired: (id, callback) => {
         console.log('update')
         pgpool.query(
             'update form_records set status=$1 WHERE id = $2 ',            
