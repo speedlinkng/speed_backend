@@ -288,9 +288,10 @@ module.exports = {
 
     deleteFormRecord: (record_id, callback) => {
     pgpool.query(
-        `DELETE FROM form_records WHERE id = $1`, // Use a parameterized query to prevent SQL injection
+        `DELETE FROM form_records WHERE record_id = $1`, // Use a parameterized query to prevent SQL injection
         [record_id],
         (err, res) => {
+            console.log(record_id)
         if (err) {
             console.error("Error deleting record:", err);
             return callback(err); // Pass the error to the callback

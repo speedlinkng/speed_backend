@@ -5,7 +5,7 @@ const upload = multer();
 const {login, createUser, getMe, getMeOnRefresh} = require('../controllers/AuthController');
 const {checkToken} = require("../middlewares/ValidateToken");
 const {getGoogleData, checkLinkExpire} = require("../middlewares/Generals");
-const {addRecord, updateRecord, getRecord, getSubmissionById,getUploadRecordById, getRecordById, getSettingById, refresh, sendmail, checkId, getSubmissionCount} = require('../controllers/CreateController');
+const {addRecord, deleteRecord, updateRecord, getRecord, getSubmissionById,getUploadRecordById, getRecordById, getSettingById, refresh, sendmail, checkId, getSubmissionCount} = require('../controllers/CreateController');
 const { submitAndUpdate, checkOnline, submitReplies } = require('../controllers/SubmitController');
 
 
@@ -25,6 +25,7 @@ router.put('/update', checkToken, getGoogleData, updateRecord)
 
 // get all of a users rcords upload request 
 router.get('/getrecords', checkToken, getRecord)
+router.post('/deleteRecord', checkToken, deleteRecord)
 
 // get submission count for each record
 router.get('/getSubmissionCount', checkToken, getSubmissionCount)

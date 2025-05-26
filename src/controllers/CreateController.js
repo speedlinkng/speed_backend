@@ -1,4 +1,4 @@
-const {createRecord,updateRecord, getRecord, getSubmissionById, getUploadRecordById, getRecordById, getSettingById, getRefreshTokenGoogle, getRefreshAndExchangeForAccess, updatexpired, getDefaultFolder, checkForRequestid, getSubmissionCountById, } = require('../services/create.services');
+const {createRecord,updateRecord, getRecord, getSubmissionById, getUploadRecordById, getRecordById, getSettingById, getRefreshTokenGoogle, getRefreshAndExchangeForAccess, updatexpired, getDefaultFolder, checkForRequestid, getSubmissionCountById,deleteFormRecord, } = require('../services/create.services');
 const {getSubmittedRecordById, submitAndUpdate} = require('../services/submit.services');
 const {v4:uuidv4} = require("uuid")
 const request = require("request");
@@ -102,8 +102,9 @@ module.exports = {
     },
 
     deleteRecord: async (req, res) => {
-        const record_id = req.body.record_id; // Extract record_id from the request body
-
+        const record_id = req.body.recordId; // Extract record_id from the request body
+        console.log('DELETING')
+        console.log(record_id)
         deleteFormRecord(record_id, (err, results) => {
         if (err) {
             // Handle errors during deletion

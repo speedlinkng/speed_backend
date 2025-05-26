@@ -44,7 +44,6 @@ module.exports = {
          })  
     },
 
-
     submitReplies: async (req, res)=>{
       let record_id =  req.body.record_id
       const uniqueId = uuidv4();
